@@ -15,8 +15,8 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "fragment Button on Button {\n  label\n  link {\n    ...Link\n  }\n}": typeof types.ButtonFragmentDoc,
-    "fragment Footer on Footer {\n  textRaw\n  button {\n    ...Button\n  }\n  navigationItems {\n    ...Button\n  }\n  backgroundMedia {\n    ...Media\n  }\n}": typeof types.FooterFragmentDoc,
-    "fragment Header on Header {\n  navigationItems {\n    ...Button\n  }\n  button {\n    ...Button\n  }\n}": typeof types.HeaderFragmentDoc,
+    "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}": typeof types.FooterFragmentDoc,
+    "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": typeof types.HeaderFragmentDoc,
     "fragment Link on Link {\n  type\n  reference {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n    }\n  }\n  href\n  anchor\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n}": typeof types.LinkFragmentDoc,
     "fragment Media on Media {\n  type\n  image {\n    ...SanityImage\n  }\n  video {\n    ...MuxVideo\n  }\n}": typeof types.MediaFragmentDoc,
     "fragment Meta on Meta {\n  title\n  description\n  image {\n    ...SanityImage\n  }\n}": typeof types.MetaFragmentDoc,
@@ -24,8 +24,8 @@ type Documents = {
     "fragment SanityFile on File {\n  asset {\n    ...SanityFileAsset\n  }\n}\n\nfragment SanityFileAsset on SanityFileAsset {\n  url\n  originalFilename\n}": typeof types.SanityFileFragmentDoc,
     "fragment SanityImage on Image {\n  asset {\n    ...SanityImageAsset\n  }\n  hotspot {\n    ...SanityImageHotspot\n  }\n  crop {\n    ...SanityImageCrop\n  }\n}\n\nfragment SanityImageAsset on SanityImageAsset {\n  url\n  altText\n  originalFilename\n  metadata {\n    ...SanityImageMetadata\n  }\n}\n\nfragment SanityImageMetadata on SanityImageMetadata {\n  lqip\n  dimensions {\n    ...SanityImageDimensions\n  }\n}\n\nfragment SanityImageDimensions on SanityImageDimensions {\n  width\n  height\n  aspectRatio\n}\n\nfragment SanityImageHotspot on SanityImageHotspot {\n  x\n  y\n  height\n  width\n}\n\nfragment SanityImageCrop on SanityImageCrop {\n  top\n  bottom\n  left\n  right\n}": typeof types.SanityImageFragmentDoc,
     "fragment Slug on Slug {\n  current\n}": typeof types.SlugFragmentDoc,
-    "fragment Home on Home {\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.HomeFragmentDoc,
-    "fragment Page on Page {\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.PageFragmentDoc,
+    "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.HomeFragmentDoc,
+    "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.PageFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": typeof types.SectionHeroFragmentDoc,
     "\n  query FooterQuery {\n    allFooter {\n      ...Footer\n    }\n  }\n": typeof types.FooterQueryDocument,
     "\n  query HeaderQuery {\n    allHeader {\n      ...Header\n    }\n  }\n": typeof types.HeaderQueryDocument,
@@ -34,8 +34,8 @@ type Documents = {
 };
 const documents: Documents = {
     "fragment Button on Button {\n  label\n  link {\n    ...Link\n  }\n}": types.ButtonFragmentDoc,
-    "fragment Footer on Footer {\n  textRaw\n  button {\n    ...Button\n  }\n  navigationItems {\n    ...Button\n  }\n  backgroundMedia {\n    ...Media\n  }\n}": types.FooterFragmentDoc,
-    "fragment Header on Header {\n  navigationItems {\n    ...Button\n  }\n  button {\n    ...Button\n  }\n}": types.HeaderFragmentDoc,
+    "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}": types.FooterFragmentDoc,
+    "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": types.HeaderFragmentDoc,
     "fragment Link on Link {\n  type\n  reference {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n    }\n  }\n  href\n  anchor\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n}": types.LinkFragmentDoc,
     "fragment Media on Media {\n  type\n  image {\n    ...SanityImage\n  }\n  video {\n    ...MuxVideo\n  }\n}": types.MediaFragmentDoc,
     "fragment Meta on Meta {\n  title\n  description\n  image {\n    ...SanityImage\n  }\n}": types.MetaFragmentDoc,
@@ -43,8 +43,8 @@ const documents: Documents = {
     "fragment SanityFile on File {\n  asset {\n    ...SanityFileAsset\n  }\n}\n\nfragment SanityFileAsset on SanityFileAsset {\n  url\n  originalFilename\n}": types.SanityFileFragmentDoc,
     "fragment SanityImage on Image {\n  asset {\n    ...SanityImageAsset\n  }\n  hotspot {\n    ...SanityImageHotspot\n  }\n  crop {\n    ...SanityImageCrop\n  }\n}\n\nfragment SanityImageAsset on SanityImageAsset {\n  url\n  altText\n  originalFilename\n  metadata {\n    ...SanityImageMetadata\n  }\n}\n\nfragment SanityImageMetadata on SanityImageMetadata {\n  lqip\n  dimensions {\n    ...SanityImageDimensions\n  }\n}\n\nfragment SanityImageDimensions on SanityImageDimensions {\n  width\n  height\n  aspectRatio\n}\n\nfragment SanityImageHotspot on SanityImageHotspot {\n  x\n  y\n  height\n  width\n}\n\nfragment SanityImageCrop on SanityImageCrop {\n  top\n  bottom\n  left\n  right\n}": types.SanityImageFragmentDoc,
     "fragment Slug on Slug {\n  current\n}": types.SlugFragmentDoc,
-    "fragment Home on Home {\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": types.HomeFragmentDoc,
-    "fragment Page on Page {\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": types.PageFragmentDoc,
+    "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": types.HomeFragmentDoc,
+    "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": types.PageFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": types.SectionHeroFragmentDoc,
     "\n  query FooterQuery {\n    allFooter {\n      ...Footer\n    }\n  }\n": types.FooterQueryDocument,
     "\n  query HeaderQuery {\n    allHeader {\n      ...Header\n    }\n  }\n": types.HeaderQueryDocument,
@@ -73,11 +73,11 @@ export function graphql(source: "fragment Button on Button {\n  label\n  link {\
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Footer on Footer {\n  textRaw\n  button {\n    ...Button\n  }\n  navigationItems {\n    ...Button\n  }\n  backgroundMedia {\n    ...Media\n  }\n}"): (typeof documents)["fragment Footer on Footer {\n  textRaw\n  button {\n    ...Button\n  }\n  navigationItems {\n    ...Button\n  }\n  backgroundMedia {\n    ...Media\n  }\n}"];
+export function graphql(source: "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}"): (typeof documents)["fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Header on Header {\n  navigationItems {\n    ...Button\n  }\n  button {\n    ...Button\n  }\n}"): (typeof documents)["fragment Header on Header {\n  navigationItems {\n    ...Button\n  }\n  button {\n    ...Button\n  }\n}"];
+export function graphql(source: "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}"): (typeof documents)["fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -109,11 +109,11 @@ export function graphql(source: "fragment Slug on Slug {\n  current\n}"): (typeo
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Home on Home {\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"): (typeof documents)["fragment Home on Home {\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"];
+export function graphql(source: "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"): (typeof documents)["fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Page on Page {\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"): (typeof documents)["fragment Page on Page {\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"];
+export function graphql(source: "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"): (typeof documents)["fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

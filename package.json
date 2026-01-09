@@ -8,6 +8,5 @@
     "lint": "pnpm run --parallel -r lint",
     "deploy": "pnpm run --parallel -r deploy",
     "gen": "pnpm --filter cms gen && pnpm --filter frontend gen"
-  },
-  "packageManager": "pnpm@10.15.0"
+  }
 }

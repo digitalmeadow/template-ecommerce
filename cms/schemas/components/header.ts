@@ -16,9 +16,5 @@ export const header = defineType({
       ],
       validation: (Rule) => Rule.required(),
     }),
-    defineField({
-      type: 'button',
-      name: 'button',
-    }),
   ],
 })

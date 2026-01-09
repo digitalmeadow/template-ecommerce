@@ -11,17 +11,9 @@ export const footer = defineType({
       name: 'text',
     }),
     defineField({
-      type: 'button',
-      name: 'button',
-    }),
-    defineField({
       type: 'array',
       name: 'navigationItems',
       of: [defineArrayMember({type: 'button'})],
-    }),
-    defineField({
-      type: 'media',
-      name: 'backgroundMedia',
     }),
   ],
 })

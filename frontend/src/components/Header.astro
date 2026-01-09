@@ -1,0 +1,44 @@
+---
+import SanityLink from "../primitives/SanityLink.astro";
+import { sanityClient } from "../sanity/client";
+import type { HeaderQueryQuery } from "../sanity/generated/graphql";
+import { headerQuery } from "../sanity/queries/header";
+import { selectDocument } from "../sanity/utils/drafts";
+
+const componentQuery: HeaderQueryQuery =
+  await sanityClient.request(headerQuery);
+const headerData = selectDocument(componentQuery.allHeader);
+---
+
+<header id="header">
+  <nav class="buttons">
+    <a
+      class:list={["button", "main", { active: Astro.url.pathname === "/" }]}
+      href="/">Home</a
+    >
+
+    {
+      headerData?.navigationItems?.map((navigationItem) => {
+        if (!navigationItem?.link) return null;
+        return (
+          <SanityLink linkData={navigationItem.link}>
+            {navigationItem.label}
+          </SanityLink>
+        );
+      })
+    }
+  </nav>
+</header>
+
+<style>
+  header {
+    position: fixed;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: var(--margin) var(--margin);
+    display: flex;
+    justify-content: space-between;
+  }
+</style>

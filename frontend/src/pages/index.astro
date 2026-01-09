@@ -10,9 +10,6 @@ const pageQuery: HomeQueryQuery = await sanityClient.request(homeQuery);
 const pageData = selectDocument(pageQuery.allHome);
 ---
 
-<PageLayout meta={pageData.meta}>
-  <h1>Astro</h1>
-  <h2>An astro test!</h2>
-
-  <SectionsRenderer sections={pageData.sections} />
+<PageLayout meta={pageData?.meta}>
+  <SectionsRenderer sections={pageData?.sections} />
 </PageLayout>

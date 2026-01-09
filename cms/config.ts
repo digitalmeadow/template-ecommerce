@@ -1,4 +1,5 @@
-export const PREVIEW_WEBSITE_URL = 'PROJECT_PREVIEW_WEBSITE_URL'
+export const PREVIEW_WEBSITE_URL =
+  'https://template-astro-shopify-sanity-cloudflare-preview.digital-meadow.workers.dev'
 
 export const PREVIEWABLE_DOCUMENT_TYPES: string[] = ['home', 'header', 'footer', 'page']
 export const LINKABLE_DOCUMENT_TYPES: string[] = ['home', 'page']

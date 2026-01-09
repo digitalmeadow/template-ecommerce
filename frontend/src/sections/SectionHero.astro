@@ -1,7 +1,6 @@
 ---
 import Media from "../primitives/Media.astro";
 import PortableText from "../primitives/PortableText.astro";
-import SanityImage from "../primitives/SanityImage.astro";
 import type { SectionHeroFragment } from "../sanity/generated/graphql";
 
 interface Props {
@@ -20,5 +19,5 @@ const { section }: Props = Astro.props;
     sizes={[100, 100, 100]}
   />
 
-  <PortableText portableText={section.textRaw} />
+  <PortableText value={section.textRaw} />
 </section>

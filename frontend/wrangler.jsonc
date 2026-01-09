@@ -25,9 +25,9 @@
         "SANITY_PERSPECTIVE": "raw",
 
         "GIT_OWNER": "digitalmeadow",
-        "GIT_REPO": "PROJECT_GIT_REPO",
+        "GIT_REPO": "template-astro-shopify-sanity-cloudflare",
         "GIT_BRANCH": "main",
-        "GIT_WORKFLOW_ID_DEPLOY": "PROJECT_GIT_WORKFLOW_ID_DEPLOY_PREVIEW"
+        "GIT_WORKFLOW_ID_DEPLOY": "222218633"
       }
     },
     "production": {
@@ -39,9 +39,9 @@
         "SANITY_PERSPECTIVE": "published",
 
         "GIT_OWNER": "digitalmeadow",
-        "GIT_REPO": "PROJECT_GIT_REPO",
+        "GIT_REPO": "template-astro-shopify-sanity-cloudflare",
         "GIT_BRANCH": "main",
-        "GIT_WORKFLOW_ID_DEPLOY": "PROJECT_GIT_WORKFLOW_ID_DEPLOY_PRODUCTION"
+        "GIT_WORKFLOW_ID_DEPLOY": "222218634"
       }
     }
   }

@@ -1,8 +1,8 @@
 fragment Header on Header {
+  __typename
+  _id
+
   navigationItems {
-    ...Button
-  }
-  button {
     ...Button
   }
 }
