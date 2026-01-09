@@ -1,0 +1,8 @@
+fragment Header on Header {
+  navigationItems {
+    ...Button
+  }
+  button {
+    ...Button
+  }
+}

@@ -1,0 +1,53 @@
+name: Deploy Preview
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25.2.1
+
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: frontend
+
+      - name: Build
+        run: pnpm build
+        working-directory: frontend
+        env:
+          WEBSITE_URL: https://template-astro-shopify-sanity-cloudflare-production.digital-meadow.workers.dev
+
+          SANITY_PROJECT_ID: iqfm6q7t
+          SANITY_DATASET: production
+          SANITY_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
+          SANITY_WEBHOOK_SECRET: ${{ secrets.SANITY_WEBHOOK_SECRET }}
+          SANITY_PERSPECTIVE: raw
+
+          GIT_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
+          GIT_OWNER: digitalmeadow
+          GIT_REPO: PROJECT_GIT_REPO
+          GIT_WORKFLOW_ID_DEPLOY: PROJECT_GIT_WORKFLOW_ID_DEPLOY_PREVIEW
+          GIT_BRANCH: main
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "frontend"
+          environment: preview

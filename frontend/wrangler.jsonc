@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "template-astro-shopify-sanity-cloudflare",
+  "account_id": "8302c7b161e88da77559f1fc976201c3",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2025-08-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  },
+  "env": {
+    "preview": {
+      "vars": {
+        "WEBSITE_URL": "https://template-astro-shopify-sanity-cloudflare-production.digital-meadow.workers.dev",
+
+        "SANITY_PROJECT_ID": "iqfm6q7t",
+        "SANITY_DATASET": "production",
+        "SANITY_PERSPECTIVE": "raw",
+
+        "GIT_OWNER": "digitalmeadow",
+        "GIT_REPO": "PROJECT_GIT_REPO",
+        "GIT_BRANCH": "main",
+        "GIT_WORKFLOW_ID_DEPLOY": "PROJECT_GIT_WORKFLOW_ID_DEPLOY_PREVIEW"
+      }
+    },
+    "production": {
+      "vars": {
+        "WEBSITE_URL": "https://template-astro-shopify-sanity-cloudflare-production.digital-meadow.workers.dev",
+
+        "SANITY_PROJECT_ID": "iqfm6q7t",
+        "SANITY_DATASET": "production",
+        "SANITY_PERSPECTIVE": "published",
+
+        "GIT_OWNER": "digitalmeadow",
+        "GIT_REPO": "PROJECT_GIT_REPO",
+        "GIT_BRANCH": "main",
+        "GIT_WORKFLOW_ID_DEPLOY": "PROJECT_GIT_WORKFLOW_ID_DEPLOY_PRODUCTION"
+      }
+    }
+  }
+}

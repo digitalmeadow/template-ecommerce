@@ -1,0 +1,48 @@
+---
+import type { MediaFragment } from "../sanity/generated/graphql";
+import MuxVideo from "./MuxVideo.astro";
+import SanityImage from "./SanityImage.astro";
+
+interface Props {
+  mediaData: MediaFragment | null | undefined;
+  layout?: "width" | "height" | "cover" | "contain";
+  sizes?: [number, number, number];
+  loading?: "lazy" | "eager";
+  mediaId?: string | null;
+}
+
+const {
+  mediaData,
+  layout = "width",
+  sizes = [100, 100, 100],
+  loading = "lazy",
+  mediaId,
+}: Props = Astro.props;
+---
+
+{
+  () => {
+    if (mediaData?.type === "image") {
+      return (
+        <SanityImage
+          imageData={mediaData.image}
+          layout={layout}
+          sizes={sizes}
+          loading={loading}
+          mediaId={mediaId}
+        />
+      );
+    }
+
+    if (mediaData?.type === "video") {
+      return (
+        <MuxVideo
+          videoData={mediaData.video}
+          layout={layout}
+          loading={loading}
+          mediaId={mediaId}
+        />
+      );
+    }
+  }
+}

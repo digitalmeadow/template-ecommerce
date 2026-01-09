@@ -1,0 +1,6 @@
+fragment Button on Button {
+  label
+  link {
+    ...Link
+  }
+}

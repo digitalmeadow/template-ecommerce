@@ -1,0 +1,9 @@
+fragment Media on Media {
+  type
+  image {
+    ...SanityImage
+  }
+  video {
+    ...MuxVideo
+  }
+}

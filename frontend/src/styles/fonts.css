@@ -1,0 +1,37 @@
+@font-face {
+  font-family: "EBGaramond";
+  src: url("/fonts/EBGaramond-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "EBGaramond";
+  src: url("/fonts/EBGaramond-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "EBGaramond";
+  src: url("/fonts/EBGaramond-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "EBGaramond";
+  src: url("/fonts/EBGaramond-MediumItalic.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: block;
+}
+
+:root {
+  --font-heading: "EBGaramond", serif;
+  --font-body: "EBGaramond", serif;
+  --font-button: "EBGaramond", sans-serif;
+}

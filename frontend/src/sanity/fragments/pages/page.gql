@@ -1,0 +1,15 @@
+fragment Page on Page {
+  __typename
+  _id
+
+  title
+  slug {
+    ...Slug
+  }
+  sections {
+    ...SectionHero
+  }
+  meta {
+    ...Meta
+  }
+}

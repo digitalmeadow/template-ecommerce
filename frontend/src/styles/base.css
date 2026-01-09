@@ -1,0 +1,18 @@
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+
+  scroll-padding-top: var(--scroll-padding-top);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+
+  --color-background: var(--color-white);
+  --color-text: var(--color-black);
+
+  background-color: var(--color-background);
+  color: var(--color-text);
+}

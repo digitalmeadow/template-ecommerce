@@ -1,0 +1,12 @@
+fragment Footer on Footer {
+  textRaw
+  button {
+    ...Button
+  }
+  navigationItems {
+    ...Button
+  }
+  backgroundMedia {
+    ...Media
+  }
+}

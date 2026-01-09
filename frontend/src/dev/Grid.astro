@@ -1,0 +1,51 @@
+---
+const columns = Array.from({ length: 24 });
+---
+
+<div id="grid-visualizer" style="display: none;">
+  <div class="grid">
+    {columns.map(() => <div class="column" />)}
+  </div>
+</div>
+
+<style>
+  .grid {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 50%;
+    width: var(--container-width);
+    height: 100vh;
+    display: grid;
+    grid-template-columns: repeat(var(--number-of-columns), 1fr);
+    column-gap: var(--gutter);
+    pointer-events: none;
+    transform: translateX(-50%);
+  }
+
+  .column {
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+</style>
+
+<style is:global>
+  body.outlined * {
+    outline: 1px solid rgba(0, 0, 0, 0.1);
+  }
+</style>
+
+<script>
+  let visible = false;
+  function handleKeyPress(event: KeyboardEvent) {
+    if (event.ctrlKey && event.code === "KeyG") {
+      visible = !visible;
+      const gridVisualizerElement = document.getElementById("grid-visualizer");
+      if (gridVisualizerElement)
+        gridVisualizerElement.style.display = visible ? "block" : "none";
+      document.body.classList.toggle("outlined", visible);
+    }
+  }
+  window.addEventListener("keydown", handleKeyPress);
+</script>

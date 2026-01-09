@@ -1,0 +1,25 @@
+---
+import type { Props as $, Mark } from "astro-portabletext/types";
+import { Mark as DefaultMark } from "astro-portabletext/components";
+import SanityLink from "../SanityLink.astro";
+
+export type Props = $<Mark>;
+const props = Astro.props;
+---
+
+{
+  () => {
+    if (props.node.markType === "link" && props.node.markDef) {
+      return (
+        <SanityLink linkData={props.node.markDef}>
+          <slot />
+        </SanityLink>
+      );
+    }
+    return (
+      <DefaultMark {...props}>
+        <slot />
+      </DefaultMark>
+    );
+  }
+}

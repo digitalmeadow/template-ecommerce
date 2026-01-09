@@ -1,0 +1,22 @@
+---
+import type { SectionHeroFragment } from "../sanity/generated/graphql";
+import SectionHero from "./SectionHero.astro";
+
+interface Props {
+  sections: (SectionHeroFragment | null)[] | null | undefined;
+}
+
+const { sections }: Props = Astro.props;
+---
+
+{
+  sections?.map((section) => {
+    if (!section) return null;
+
+    if (section.__typename === "SectionHero") {
+      return <SectionHero section={section} />;
+    }
+
+    return null;
+  })
+}

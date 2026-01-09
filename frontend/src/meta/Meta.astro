@@ -1,0 +1,15 @@
+---
+import type { MetaFragment } from "../sanity/generated/graphql";
+
+interface Props {
+  meta: MetaFragment | null | undefined;
+}
+
+const { meta }: Props = Astro.props;
+---
+
+<meta name="description" content={meta?.description} />
+
+<meta property="og:title" content={meta?.title ?? ""} />
+<meta property="og:description" content={meta?.description ?? ""} />
+<meta property="og:image" content={meta?.image?.asset?.url} />

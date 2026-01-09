@@ -1,0 +1,23 @@
+fragment Link on Link {
+  type
+  reference {
+    ... on Document {
+      __typename
+      _id
+      _type
+
+      ... on Page {
+        slug {
+          ...Slug
+        }
+      }
+    }
+  }
+  href
+  anchor
+  email
+  phone
+  file {
+    ...SanityFile
+  }
+}

@@ -1,0 +1,18 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import { sanityClient } from "../sanity/client";
+import type { HomeQueryQuery } from "../sanity/generated/graphql";
+import { homeQuery } from "../sanity/queries/home";
+import { selectDocument } from "../sanity/utils/drafts";
+import SectionsRenderer from "../sections/SectionsRenderer.astro";
+
+const pageQuery: HomeQueryQuery = await sanityClient.request(homeQuery);
+const pageData = selectDocument(pageQuery.allHome);
+---
+
+<PageLayout meta={pageData.meta}>
+  <h1>Astro</h1>
+  <h2>An astro test!</h2>
+
+  <SectionsRenderer sections={pageData.sections} />
+</PageLayout>

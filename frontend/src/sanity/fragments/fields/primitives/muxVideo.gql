@@ -1,0 +1,18 @@
+fragment MuxVideo on MuxVideo {
+  asset {
+    ...MuxVideoAsset
+  }
+}
+
+fragment MuxVideoAsset on MuxVideoAsset {
+  playbackId
+  filename
+  data {
+    ...MuxAssetData
+  }
+}
+
+fragment MuxAssetData on MuxAssetData {
+  aspect_ratio
+  duration
+}

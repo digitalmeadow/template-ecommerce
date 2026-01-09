@@ -1,0 +1,47 @@
+fragment SanityImage on Image {
+  asset {
+    ...SanityImageAsset
+  }
+  hotspot {
+    ...SanityImageHotspot
+  }
+  crop {
+    ...SanityImageCrop
+  }
+}
+
+fragment SanityImageAsset on SanityImageAsset {
+  url
+  altText
+  originalFilename
+  metadata {
+    ...SanityImageMetadata
+  }
+}
+
+fragment SanityImageMetadata on SanityImageMetadata {
+  lqip
+  dimensions {
+    ...SanityImageDimensions
+  }
+}
+
+fragment SanityImageDimensions on SanityImageDimensions {
+  width
+  height
+  aspectRatio
+}
+
+fragment SanityImageHotspot on SanityImageHotspot {
+  x
+  y
+  height
+  width
+}
+
+fragment SanityImageCrop on SanityImageCrop {
+  top
+  bottom
+  left
+  right
+}

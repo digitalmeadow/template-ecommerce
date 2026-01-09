@@ -1,0 +1,11 @@
+fragment Home on Home {
+  __typename
+  _id
+
+  sections {
+    ...SectionHero
+  }
+  meta {
+    ...Meta
+  }
+}

@@ -1,0 +1,47 @@
+---
+import type { LinkFragment } from "../sanity/generated/graphql";
+import { resolveLinkHref } from "../sanity/utils/links";
+
+interface Props {
+  linkData: LinkFragment | null | undefined;
+  class?: string;
+  [prop: string]: any;
+}
+
+const { linkData, class: className, ...rest } = Astro.props;
+
+function resolveAnchorRel(linkData: LinkFragment): string {
+  if (!linkData) return "";
+  if (linkData.type === "external") return "noopener noreferrer";
+  if (linkData.type === "file") return "noopener noreferrer";
+  if (linkData.type === "email") return "noopener noreferrer";
+  if (linkData.type === "phone") return "noopener noreferrer";
+
+  return "";
+}
+---
+
+{
+  linkData ? (
+    <a
+      class={className}
+      href={resolveLinkHref(linkData)}
+      target={
+        linkData.type === "external" || linkData.type === "file"
+          ? "_blank"
+          : undefined
+      }
+      rel={resolveAnchorRel(linkData)}
+      download={
+        linkData.type === "file"
+          ? linkData.file?.asset?.originalFilename
+          : undefined
+      }
+      {...rest}
+    >
+      <slot />
+    </a>
+  ) : (
+    <slot />
+  )
+}
