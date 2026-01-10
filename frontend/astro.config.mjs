@@ -6,9 +6,10 @@ import cloudflare from "@astrojs/cloudflare";
 export default defineConfig({
   env: {
     schema: {
-      PREVIEW: envField.string({
-        context: "client",
-        access: "public",
+      PREVIEW: envField.boolean({
+        context: "server",
+        access: "secret",
+        default: false,
       }),
 
       WEBSITE_URL: envField.string({
