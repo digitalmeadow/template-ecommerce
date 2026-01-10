@@ -19,7 +19,11 @@ export default defineConfig({
         context: "client",
         access: "public",
       }),
-      SANITY_API_TOKEN: envField.string({
+      SANITY_VIEWER_API_TOKEN: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+      SANITY_EDITOR_API_TOKEN: envField.string({
         context: "server",
         access: "secret",
       }),

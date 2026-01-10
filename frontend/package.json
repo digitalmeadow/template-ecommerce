@@ -17,6 +17,7 @@
     "@graphql-typed-document-node/core": "3.2.0",
     "@mux/blurup": "1.0.2",
     "@mux/mux-player": "3.10.2",
+    "@sanity/client": "7.14.0",
     "@sanity/webhook": "4.0.4",
     "astro": "5.16.6",
     "astro-portabletext": "0.12.0",

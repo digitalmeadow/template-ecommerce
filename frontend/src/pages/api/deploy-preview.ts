@@ -33,7 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
     auth: GIT_API_TOKEN,
   });
 
-  const res = await octokit.request(
+  const response = await octokit.request(
     `POST /repos/${GIT_OWNER}/${GIT_REPO}/actions/workflows/${GIT_WORKFLOW_ID_DEPLOY}/dispatches`,
     {
       ref: GIT_BRANCH,
@@ -44,9 +44,11 @@ export const POST: APIRoute = async ({ request }) => {
   );
 
   // GitHub returns a 204 No Content on success
-  if (res.status === 204) {
+  if (response.status === 204) {
     return new Response(null, { status: 204 });
   }
 
-  return new Response(JSON.stringify(res.data), { status: res.status });
+  return new Response(JSON.stringify(response.data), {
+    status: response.status,
+  });
 };

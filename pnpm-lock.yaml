@@ -74,6 +74,9 @@ importers:
       '@mux/mux-player':
         specifier: 3.10.2
         version: 3.10.2(react@19.2.3)
+      '@sanity/client':
+        specifier: ^7.14.0
+        version: 7.14.0(debug@4.4.3)
       '@sanity/webhook':
         specifier: 4.0.4
         version: 4.0.4
