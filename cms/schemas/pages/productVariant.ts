@@ -32,8 +32,8 @@ export const productVariant = defineType({
   ],
   preview: {
     select: {
-      title: 'shopifyProductVariant.title',
-      subtitle: 'shopifyProductVariant.sku',
+      title: 'shopify.title',
+      subtitle: 'shopify.sku',
     },
   },
 })

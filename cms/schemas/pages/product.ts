@@ -25,8 +25,8 @@ export const product = defineType({
   ],
   preview: {
     select: {
-      title: 'shopifyProduct.title',
-      subtitle: 'shopifyProduct.handle',
+      title: 'shopify.title',
+      subtitle: 'shopify.handle.current',
     },
   },
 })

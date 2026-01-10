@@ -5,13 +5,13 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { createClient } from "@sanity/client";
 
-const COLLECTION_DOCUMENT_TYPE = "collection";
 const PRODUCT_DOCUMENT_TYPE = "product";
 const PRODUCT_VARIANT_DOCUMENT_TYPE = "productVariant";
+const COLLECTION_DOCUMENT_TYPE = "collection";
 
 const SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX = "product-";
-const SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX = "collection-";
 const SHOPIFY_PRODUCT_VARIANT_DOCUMENT_ID_PREFIX = "productVariant-";
+const SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX = "collection-";
 
 const sanityClient = createClient({
   projectId: import.meta.env.SANITY_PROJECT_ID,
@@ -22,7 +22,16 @@ const sanityClient = createClient({
 });
 
 export const POST: APIRoute = async ({ request }) => {
+  const startTime = Date.now();
   const body = (await request.json()) as requestPayload;
+
+  console.log("🔵 Shopify Sync Started", {
+    action: body.action,
+    productCount: "products" in body ? body.products?.length : 0,
+    collectionCount: "collections" in body ? body.collections?.length : 0,
+    productIds: "productIds" in body ? body.productIds?.length : 0,
+    collectionIds: "collectionIds" in body ? body.collectionIds?.length : 0,
+  });
 
   try {
     switch (body.action) {
@@ -36,13 +45,29 @@ export const POST: APIRoute = async ({ request }) => {
         break;
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    const duration = Date.now() - startTime;
+    console.log(`✅ Shopify Sync Completed in ${duration}ms`);
+
+    return new Response(JSON.stringify({ success: true, duration }), {
       status: 200,
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: `Error: ${error}` }), {
-      status: 500,
+    const duration = Date.now() - startTime;
+    console.error("❌ Shopify Sync Failed", {
+      error: error.message,
+      stack: error.stack,
+      duration,
     });
+
+    return new Response(
+      JSON.stringify({
+        error: error.message || String(error),
+        duration,
+      }),
+      {
+        status: 500,
+      }
+    );
   }
 };
 
@@ -51,20 +76,37 @@ type deletePayload = payloadProductsDelete | payloadCollectionsDelete;
 
 async function syncCreateOrUpdate(body: requestPayload) {
   const transaction = sanityClient.transaction();
-
   const payload = body as createOrUpdatePayload;
 
   if ("products" in payload && payload.products?.length) {
+    const productStart = Date.now();
+    console.log(`  📦 Processing ${payload.products.length} products...`);
     await createOrUpdateProducts(transaction, payload.products);
-    // Variant updates are delivered as product sync payloads in Shopify
+    console.log(`  ✓ Products processed in ${Date.now() - productStart}ms`);
+
+    const variantStart = Date.now();
+    const variantCount = payload.products.reduce(
+      (sum, p) => sum + p.variants.length,
+      0
+    );
+    console.log(`  🔧 Processing ${variantCount} product variants...`);
     await createOrUpdateProductVariants(transaction, payload.products);
+    console.log(`  ✓ Variants processed in ${Date.now() - variantStart}ms`);
   }
 
   if ("collections" in payload && payload.collections?.length) {
+    const collectionStart = Date.now();
+    console.log(`  📚 Processing ${payload.collections.length} collections...`);
     await createOrUpdateCollections(transaction, payload.collections);
+    console.log(
+      `  ✓ Collections processed in ${Date.now() - collectionStart}ms`
+    );
   }
 
+  const commitStart = Date.now();
+  console.log("  💾 Committing transaction...");
   await transaction.commit();
+  console.log(`  ✓ Transaction committed in ${Date.now() - commitStart}ms`);
 }
 
 async function syncDelete(body: requestPayload) {
