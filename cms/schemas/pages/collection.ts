@@ -18,8 +18,9 @@ export const collection = defineType({
     }),
     defineField({
       type: 'shopifyCollection',
-      name: 'shopifyCollection',
+      name: 'shopify',
       validation: (Rule) => Rule.required(),
+      readOnly: true,
     }),
   ],
   preview: {

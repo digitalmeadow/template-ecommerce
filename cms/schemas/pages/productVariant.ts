@@ -18,14 +18,16 @@ export const productVariant = defineType({
     }),
     defineField({
       type: 'shopifyProductVariant',
-      name: 'shopifyProductVariant',
+      name: 'shopify',
       validation: (Rule) => Rule.required(),
+      readOnly: true,
     }),
     defineField({
       type: 'reference',
       name: 'product',
       to: [{type: 'product'}],
       validation: (Rule) => Rule.required(),
+      readOnly: true,
     }),
   ],
   preview: {

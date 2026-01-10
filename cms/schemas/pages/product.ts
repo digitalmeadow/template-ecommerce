@@ -18,8 +18,9 @@ export const product = defineType({
     }),
     defineField({
       type: 'shopifyProduct',
-      name: 'shopifyProduct',
+      name: 'shopify',
       validation: (Rule) => Rule.required(),
+      readOnly: true,
     }),
   ],
   preview: {
