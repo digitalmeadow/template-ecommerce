@@ -33,7 +33,7 @@ jobs:
         env:
           PREVIEW: false
 
-          WEBSITE_URL: https://template-astro-shopify-sanity-cloudflare-production.digital-meadow.workers.dev
+          WEBSITE_URL: https://template-ecommerce-production.digital-meadow.workers.dev
 
           SANITY_PROJECT_ID: iqfm6q7t
           SANITY_DATASET: production
@@ -43,7 +43,7 @@ jobs:
 
           GIT_API_TOKEN: ${{ secrets.GIT_API_TOKEN }}
           GIT_OWNER: digitalmeadow
-          GIT_REPO: template-astro-shopify-sanity-cloudflare
+          GIT_REPO: template-ecommerce
           GIT_WORKFLOW_ID_DEPLOY: 222218634
           GIT_BRANCH: main
 

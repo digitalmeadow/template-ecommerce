@@ -8,7 +8,7 @@ import {media} from 'sanity-plugin-media'
 
 export default defineConfig({
   name: 'default',
-  title: 'template-astro-shopify-sanity-cloudflare',
+  title: 'template-ecommerce',
 
   projectId: 'iqfm6q7t',
   dataset: 'production',

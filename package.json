@@ -1,5 +1,5 @@
 {
-  "name": "template-astro-shopify-sanity-cloudflare",
+  "name": "template-ecommerce",
   "private": true,
   "scripts": {
     "dev": "pnpm run --parallel -r dev",
