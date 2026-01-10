@@ -1,5 +1,5 @@
 import React from 'react'
-import {generateMuxThumbnailUrl} from '../../../utils/mux'
+import {generateMuxThumbnailUrl} from '../../utils/mux'
 import {defineField, defineType} from 'sanity'
 
 export const media = defineType({

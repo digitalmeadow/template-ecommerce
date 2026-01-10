@@ -20,13 +20,11 @@ export const page = defineType({
       },
       validation: (Rule) => Rule.required(),
     }),
-
     defineField({
       type: 'array',
       name: 'sections',
       of: pageSections,
     }),
-
     defineField({
       type: 'meta',
       name: 'meta',

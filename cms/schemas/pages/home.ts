@@ -12,7 +12,6 @@ export const home = defineType({
       name: 'sections',
       of: pageSections,
     }),
-
     defineField({
       type: 'meta',
       name: 'meta',

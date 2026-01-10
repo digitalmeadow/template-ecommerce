@@ -215,7 +215,7 @@ async function buildProductDocument(product: Product) {
     _id: productSanityId,
     _type: PRODUCT_DOCUMENT_TYPE,
     shopify: {
-      id: Number(productShopifyId),
+      id: productShopifyId,
       title: product.title,
       handle: { current: product.handle },
       status: product.status,
@@ -238,10 +238,10 @@ function buildProductVariantDocument(
     _id: variantSanityId,
     _type: PRODUCT_VARIANT_DOCUMENT_TYPE,
     shopify: {
-      id: Number(variantShopifyId),
+      id: variantShopifyId,
       title: variant.title,
       sku: variant.sku,
-      productId: Number(productShopifyId),
+      productId: productShopifyId,
     },
     product: {
       _type: "reference",

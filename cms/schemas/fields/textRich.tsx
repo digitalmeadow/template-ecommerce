@@ -1,5 +1,5 @@
 import {defineArrayMember, defineType} from 'sanity'
-import Italics from '../../../components/marks/Italics'
+import Italics from '../../components/marks/Italics'
 import {ImageIcon, TextIcon} from '@sanity/icons'
 
 // Basic rich text with default settings

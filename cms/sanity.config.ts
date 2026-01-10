@@ -5,6 +5,8 @@ import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemas'
 import {muxInput} from 'sanity-plugin-mux-input'
 import {media} from 'sanity-plugin-media'
+import resolveNewDocumentOptions from './document/resolveNewDocumentOptions'
+import resolveDocumentActions from './document/resolveDocumentActions'
 
 export default defineConfig({
   name: 'default',
@@ -17,5 +19,10 @@ export default defineConfig({
 
   schema: {
     types: schemaTypes,
+  },
+
+  document: {
+    newDocumentOptions: (previous, context) => resolveNewDocumentOptions(previous, context),
+    actions: (previous, context) => resolveDocumentActions(previous, context),
   },
 })
