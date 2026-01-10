@@ -6,6 +6,11 @@ import cloudflare from "@astrojs/cloudflare";
 export default defineConfig({
   env: {
     schema: {
+      PREVIEW: envField.string({
+        context: "client",
+        access: "public",
+      }),
+
       WEBSITE_URL: envField.string({
         context: "client",
         access: "public",
@@ -30,10 +35,6 @@ export default defineConfig({
       SANITY_WEBHOOK_SECRET: envField.string({
         context: "server",
         access: "secret",
-      }),
-      SANITY_PERSPECTIVE: envField.string({
-        context: "client",
-        access: "public",
       }),
 
       GIT_API_TOKEN: envField.string({
@@ -61,7 +62,7 @@ export default defineConfig({
   adapter: cloudflare({
     imageService: "passthrough",
   }),
-  output: "server",
+  output: process.env.PREVIEW === "true" ? "server" : "static",
   prefetch: {
     prefetchAll: true,
     defaultStrategy: "load",

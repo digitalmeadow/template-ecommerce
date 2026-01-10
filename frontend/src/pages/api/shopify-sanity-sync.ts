@@ -1,5 +1,7 @@
 // https://www.sanity.io/docs/custom-sync-handlers-for-sanity-connect
 
+export const prerender = false;
+
 import type { APIRoute } from "astro";
 import { createClient } from "@sanity/client";
 

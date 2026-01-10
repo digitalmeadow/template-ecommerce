@@ -16,32 +16,61 @@
     }
   },
   "env": {
-    "preview": {
+    "api": {
       "vars": {
-        "WEBSITE_URL": "https://template-astro-shopify-sanity-cloudflare-production.digital-meadow.workers.dev",
+        "PREVIEW": "false",
+
+        "WEBSITE_URL": "https://template-astro-shopify-sanity-cloudflare-api.digital-meadow.workers.dev",
 
         "SANITY_PROJECT_ID": "iqfm6q7t",
         "SANITY_DATASET": "production",
-        "SANITY_PERSPECTIVE": "raw",
-
-        "GIT_OWNER": "digitalmeadow",
-        "GIT_REPO": "template-astro-shopify-sanity-cloudflare",
-        "GIT_BRANCH": "main",
-        "GIT_WORKFLOW_ID_DEPLOY": "222218633"
-      }
-    },
-    "production": {
-      "vars": {
-        "WEBSITE_URL": "https://template-astro-shopify-sanity-cloudflare-production.digital-meadow.workers.dev",
-
-        "SANITY_PROJECT_ID": "iqfm6q7t",
-        "SANITY_DATASET": "production",
-        "SANITY_PERSPECTIVE": "published",
 
         "GIT_OWNER": "digitalmeadow",
         "GIT_REPO": "template-astro-shopify-sanity-cloudflare",
         "GIT_BRANCH": "main",
         "GIT_WORKFLOW_ID_DEPLOY": "222218634"
+      }
+    },
+    "production": {
+      "vars": {
+        "PREVIEW": "false",
+
+        "WEBSITE_URL": "https://template-astro-shopify-sanity-cloudflare-production.digital-meadow.workers.dev",
+
+        "SANITY_PROJECT_ID": "iqfm6q7t",
+        "SANITY_DATASET": "production",
+
+        "GIT_OWNER": "digitalmeadow",
+        "GIT_REPO": "template-astro-shopify-sanity-cloudflare",
+        "GIT_BRANCH": "main"
+      }
+    },
+    "production-preview": {
+      "vars": {
+        "PREVIEW": "true",
+
+        "WEBSITE_URL": "https://template-astro-shopify-sanity-cloudflare-production-preview.digital-meadow.workers.dev",
+
+        "SANITY_PROJECT_ID": "iqfm6q7t",
+        "SANITY_DATASET": "production",
+
+        "GIT_OWNER": "digitalmeadow",
+        "GIT_REPO": "template-astro-shopify-sanity-cloudflare",
+        "GIT_BRANCH": "main"
+      }
+    },
+    "staging": {
+      "vars": {
+        "PREVIEW": "false",
+
+        "WEBSITE_URL": "https://template-astro-shopify-sanity-cloudflare-staging.digital-meadow.workers.dev",
+
+        "SANITY_PROJECT_ID": "iqfm6q7t",
+        "SANITY_DATASET": "production",
+
+        "GIT_OWNER": "digitalmeadow",
+        "GIT_REPO": "template-astro-shopify-sanity-cloudflare",
+        "GIT_BRANCH": "staging"
       }
     }
   }
