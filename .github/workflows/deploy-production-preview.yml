@@ -30,7 +30,7 @@ jobs:
         run: pnpm build
         working-directory: frontend
         env:
-          PREVIEW: "true"
+          PREVIEW: true
 
           WEBSITE_URL: https://template-ecommerce-production-preview.digital-meadow.workers.dev
 
@@ -49,5 +49,5 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "frontend"
+          workingDirectory: frontend
           environment: production-preview
