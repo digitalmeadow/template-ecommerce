@@ -2,6 +2,14 @@ fragment Product on Product {
   __typename
   _id
 
+  mediaThumbnail {
+    ...Media
+  }
+
+  mediaGallery {
+    ...Media
+  }
+
   meta {
     ...Meta
   }

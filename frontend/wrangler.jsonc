@@ -19,14 +19,8 @@
     "api": {
       "vars": {
         "PREVIEW": "false",
-
         "WEBSITE_URL": "https://template-ecommerce-api.digital-meadow.workers.dev",
-
-        "SANITY_PROJECT_ID": "iqfm6q7t",
         "SANITY_DATASET": "production",
-
-        "GIT_OWNER": "digitalmeadow",
-        "GIT_REPO": "template-ecommerce",
         "GIT_BRANCH": "main",
         "GIT_WORKFLOW_ID_DEPLOY": "222218634"
       }
@@ -34,42 +28,24 @@
     "production": {
       "vars": {
         "PREVIEW": "false",
-
         "WEBSITE_URL": "https://template-ecommerce-production.digital-meadow.workers.dev",
-
-        "SANITY_PROJECT_ID": "iqfm6q7t",
         "SANITY_DATASET": "production",
-
-        "GIT_OWNER": "digitalmeadow",
-        "GIT_REPO": "template-ecommerce",
         "GIT_BRANCH": "main"
       }
     },
     "production-preview": {
       "vars": {
         "PREVIEW": "true",
-
         "WEBSITE_URL": "https://template-ecommerce-production-preview.digital-meadow.workers.dev",
-
-        "SANITY_PROJECT_ID": "iqfm6q7t",
         "SANITY_DATASET": "production",
-
-        "GIT_OWNER": "digitalmeadow",
-        "GIT_REPO": "template-ecommerce",
         "GIT_BRANCH": "main"
       }
     },
     "staging": {
       "vars": {
         "PREVIEW": "false",
-
         "WEBSITE_URL": "https://template-ecommerce-staging.digital-meadow.workers.dev",
-
-        "SANITY_PROJECT_ID": "iqfm6q7t",
         "SANITY_DATASET": "production",
-
-        "GIT_OWNER": "digitalmeadow",
-        "GIT_REPO": "template-ecommerce",
         "GIT_BRANCH": "staging"
       }
     }

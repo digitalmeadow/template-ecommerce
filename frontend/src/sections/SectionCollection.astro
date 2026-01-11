@@ -6,6 +6,7 @@ import {
   type ProductShopifySanity,
   fetchProductShopifySanity,
 } from "../lib/fetches/productShopifySanity";
+import ProductThumbnail from "../blocks/ProductThumbnail.astro";
 
 interface Props {
   section: SectionCollectionFragment;
@@ -36,19 +37,20 @@ for (const handle of productHandles || []) {
 <section>
   <h2>{section.collection?.shopify?.title}</h2>
 
-  <div>
-    {
-      products.map((product) => (
-        <div>
-          <h3>{product.shopify?.title}</h3>
-        </div>
-      ))
-    }
+  <div class="grid">
+    {products.map((product) => <ProductThumbnail product={product} />)}
   </div>
-
-  <style>
-    section {
-      padding: var(--s40) var(--margin);
-    }
-  </style>
 </section>
+
+<style>
+  section {
+    padding: var(--s40) var(--margin);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--s40);
+    margin-top: var(--s40);
+  }
+</style>

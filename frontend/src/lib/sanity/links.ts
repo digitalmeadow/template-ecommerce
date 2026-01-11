@@ -1,5 +1,6 @@
-import { SANITY_PROJECT_ID } from "astro:env/client";
-import type { LinkFragment } from "../generated/graphql";
+import { SANITY_PROJECT_ID } from "sanity/config";
+import type { LinkFragment } from "sanity/generated/graphql";
+import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "../../../config";
 
 export function resolveLinkHref(linkData: LinkFragment): string {
   if (!linkData) return "";
@@ -25,13 +26,24 @@ export function resolveLinkHref(linkData: LinkFragment): string {
 }
 
 function resolveReferenceHref(reference: LinkFragment["reference"]): string {
-  if (!reference) return "";
-  if (reference._type === "home") return "/";
-  if (reference._type === "page" && reference.__typename === "Page")
-    return `/${reference.slug?.current}`;
-  if (reference._type === "register") return "/register";
+  if (
+    !reference?._type ||
+    !(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)
+  ) {
+    throw new Error("Invalid reference type");
+  }
 
-  return "";
+  const pattern = SANITY_DOCUMENT_ROUTE_PATTERNS[reference._type]!;
+
+  if (
+    !pattern.includes("[slug]") ||
+    !("slug" in reference) ||
+    !reference.slug?.current
+  ) {
+    return pattern;
+  }
+
+  return pattern.replace("[slug]", reference.slug.current);
 }
 
 function sanityFileUrlFromRef(source: string | undefined): string {

@@ -4,7 +4,7 @@ import { type ProductFragment as ShopifyProductFragment } from "shopify/generate
 import type { ProductFragment as SanityProductFragment } from "sanity/generated/graphql";
 import { productByHandleQuery as shopifyProductByHandleQuery } from "shopify/queries/product";
 import { productByHandleQuery as sanityProductByHandleQuery } from "sanity/queries/product";
-import { selectDocument } from "sanity/utils/drafts";
+import { selectDocument } from "../sanity/drafts";
 
 export type ProductShopifySanity = {
   shopify: ShopifyProductFragment;

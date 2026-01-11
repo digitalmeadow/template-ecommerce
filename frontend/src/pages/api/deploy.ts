@@ -5,12 +5,11 @@ import { Octokit } from "octokit";
 import { isValidSignature, SIGNATURE_HEADER_NAME } from "sanity";
 import {
   GIT_BRANCH,
-  GIT_OWNER,
-  GIT_REPO,
   GIT_API_TOKEN,
   GIT_WORKFLOW_ID_DEPLOY,
   SANITY_WEBHOOK_SECRET,
 } from "astro:env/server";
+import { GIT_OWNER, GIT_REPO } from "../../../config";
 
 export const POST: APIRoute = async ({ request }) => {
   const signature = request.headers.get(SIGNATURE_HEADER_NAME);

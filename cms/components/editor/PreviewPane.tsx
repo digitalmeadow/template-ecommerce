@@ -1,14 +1,15 @@
 import {Card} from '@sanity/ui'
 import {ComponentProps} from 'react'
 import {UserViewComponent} from 'sanity/structure'
-import {PREVIEW_WEBSITE_URL, ROUTE_MAPS} from '../../config'
+import {PREVIEW_WEBSITE_URL} from '../../config'
+import {SANITY_DOCUMENT_ROUTE_PATTERNS} from 'frontend/config'
 
 export function PreviewPane({document}: ComponentProps<UserViewComponent>) {
   const {displayed} = document as any
   const documentType = displayed?._type
   const slug = displayed?.slug?.current
 
-  let route = ROUTE_MAPS[documentType] || '/'
+  let route = SANITY_DOCUMENT_ROUTE_PATTERNS[documentType] || '/'
   route = route.includes('[slug]') ? route.replace('[slug]', slug) : route
   const url = new URL(route, PREVIEW_WEBSITE_URL)
 

@@ -19,6 +19,7 @@
     "@sanity/icons": "^3.7.4",
     "@sanity/ui": "^3.0.7",
     "@sanity/vision": "^4.3.0",
+    "frontend": "workspace:*",
     "react": "^19.1",
     "react-dom": "^19.1",
     "sanity": "^4.3.0",

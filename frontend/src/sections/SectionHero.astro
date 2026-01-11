@@ -1,5 +1,5 @@
 ---
-import Media from "../fields/Media.astro";
+import SanityMedia from "../fields/SanityMedia.astro";
 import PortableText from "../fields/PortableText.astro";
 import type { SectionHeroFragment } from "sanity/generated/graphql";
 
@@ -12,7 +12,7 @@ const { section }: Props = Astro.props;
 
 <section>
   <div class="media">
-    <Media
+    <SanityMedia
       mediaData={section.backgroundMedia}
       layout="cover"
       sizes={[100, 100, 100]}

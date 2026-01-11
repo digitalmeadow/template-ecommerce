@@ -4,7 +4,7 @@ import SanityLink from "../fields/SanityLink.astro";
 import { sanityClient } from "sanity/client";
 import type { FooterQueryQuery } from "sanity/generated/graphql";
 import { footerQuery } from "sanity/queries/footer";
-import { selectDocument } from "sanity/utils/drafts";
+import { selectDocument } from "../lib/sanity/drafts";
 
 const componentQuery: FooterQueryQuery =
   await sanityClient.request(footerQuery);

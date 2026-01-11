@@ -16,10 +16,6 @@ export default defineConfig({
         access: "public",
       }),
 
-      SANITY_PROJECT_ID: envField.string({
-        context: "client",
-        access: "public",
-      }),
       SANITY_DATASET: envField.string({
         context: "client",
         access: "public",
@@ -41,14 +37,6 @@ export default defineConfig({
         context: "server",
         access: "secret",
       }),
-      GIT_OWNER: envField.string({
-        context: "server",
-        access: "secret",
-      }),
-      GIT_REPO: envField.string({
-        context: "server",
-        access: "secret",
-      }),
       GIT_WORKFLOW_ID_DEPLOY: envField.string({
         context: "server",
         access: "secret",
@@ -58,18 +46,6 @@ export default defineConfig({
         access: "secret",
       }),
 
-      SHOPIFY_PUBLIC_API_TOKEN: envField.string({
-        context: "client",
-        access: "public",
-      }),
-      SHOPIFY_STORE_DOMAIN: envField.string({
-        context: "client",
-        access: "public",
-      }),
-      SHOPIFY_API_VERSION: envField.string({
-        context: "client",
-        access: "public",
-      }),
       SHOPIFY_PRIVATE_API_TOKEN: envField.string({
         context: "server",
         access: "secret",
