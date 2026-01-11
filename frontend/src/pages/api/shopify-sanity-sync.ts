@@ -25,13 +25,29 @@ export const POST: APIRoute = async ({ request }) => {
   const startTime = Date.now();
   const body = (await request.json()) as requestPayload;
 
-  console.log("🔵 Shopify Sync Started", {
+  // Log detailed payload info
+  const logData: any = {
     action: body.action,
-    productCount: "products" in body ? body.products?.length : 0,
-    collectionCount: "collections" in body ? body.collections?.length : 0,
-    productIds: "productIds" in body ? body.productIds?.length : 0,
-    collectionIds: "collectionIds" in body ? body.collectionIds?.length : 0,
-  });
+  };
+
+  if ("products" in body) {
+    logData.productCount = body.products?.length || 0;
+    logData.productIds = body.products?.map((p) => extractIdFromGid(p.id));
+  }
+  if ("collections" in body) {
+    logData.collectionCount = body.collections?.length || 0;
+    logData.collectionIds = body.collections?.map((c) =>
+      extractIdFromGid(c.id)
+    );
+  }
+  if ("productIds" in body) {
+    logData.deleteProductIds = body.productIds;
+  }
+  if ("collectionIds" in body) {
+    logData.deleteCollectionIds = body.collectionIds;
+  }
+
+  console.log("🔵 Shopify Sync Started", logData);
 
   try {
     switch (body.action) {
@@ -57,6 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
       error: error.message,
       stack: error.stack,
       duration,
+      payload: logData,
     });
 
     return new Response(
