@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {BlockElementIcon} from '@sanity/icons'
+import {previewMedia} from '../../utils/preview'
 
 export const sectionHero = defineType({
   type: 'object',
@@ -21,4 +22,17 @@ export const sectionHero = defineType({
       name: 'text',
     }),
   ],
+  preview: {
+    select: {
+      heading: 'heading',
+      media: 'backgroundMedia',
+    },
+    prepare({heading, media}) {
+      return {
+        title: 'Section: Hero',
+        subtitle: heading,
+        media: previewMedia(media),
+      }
+    },
+  },
 })

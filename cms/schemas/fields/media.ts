@@ -1,4 +1,3 @@
-import React from 'react'
 import {defineField, defineType} from 'sanity'
 
 export const media = defineType({
@@ -16,6 +15,7 @@ export const media = defineType({
         ],
         layout: 'dropdown',
       },
+      initialValue: 'image',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -40,22 +40,4 @@ export const media = defineType({
         ),
     }),
   ],
-  options: {collapsible: true, collapsed: false},
-  preview: {
-    select: {
-      type: 'type',
-      playbackId: 'video.asset.playbackId',
-      image: 'image',
-    },
-    prepare({type, image, playbackId}) {
-      return {
-        media:
-          type === 'video' ? (
-            <img src={`https://image.mux.com/${playbackId}/thumbnail.jpg`} alt="" />
-          ) : (
-            image
-          ),
-      }
-    },
-  },
 })

@@ -45,6 +45,9 @@ jobs:
           GIT_REPO: template-ecommerce
           GIT_BRANCH: main
 
+          SHOPIFY_PUBLIC_API_TOKEN: 366c21826317e5ec21ac84a5cdd54b0a
+          SHOPIFY_PRIVATE_API_TOKEN: ${{ secrets.SHOPIFY_PRIVATE_API_TOKEN }}
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:

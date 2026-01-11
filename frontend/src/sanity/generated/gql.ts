@@ -24,9 +24,12 @@ type Documents = {
     "fragment SanityFile on File {\n  asset {\n    ...SanityFileAsset\n  }\n}\n\nfragment SanityFileAsset on SanityFileAsset {\n  url\n  originalFilename\n}": typeof types.SanityFileFragmentDoc,
     "fragment SanityImage on Image {\n  asset {\n    ...SanityImageAsset\n  }\n  hotspot {\n    ...SanityImageHotspot\n  }\n  crop {\n    ...SanityImageCrop\n  }\n}\n\nfragment SanityImageAsset on SanityImageAsset {\n  url\n  altText\n  originalFilename\n  metadata {\n    ...SanityImageMetadata\n  }\n}\n\nfragment SanityImageMetadata on SanityImageMetadata {\n  lqip\n  dimensions {\n    ...SanityImageDimensions\n  }\n}\n\nfragment SanityImageDimensions on SanityImageDimensions {\n  width\n  height\n  aspectRatio\n}\n\nfragment SanityImageHotspot on SanityImageHotspot {\n  x\n  y\n  height\n  width\n}\n\nfragment SanityImageCrop on SanityImageCrop {\n  top\n  bottom\n  left\n  right\n}": typeof types.SanityImageFragmentDoc,
     "fragment Slug on Slug {\n  current\n}": typeof types.SlugFragmentDoc,
-    "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.HomeFragmentDoc,
-    "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.PageFragmentDoc,
+    "fragment Collection on Collection {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}": typeof types.CollectionFragmentDoc,
+    "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.HomeFragmentDoc,
+    "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.PageFragmentDoc,
+    "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}": typeof types.SectionCollectionFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": typeof types.SectionHeroFragmentDoc,
+    "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}": typeof types.SectionTextFragmentDoc,
     "\n  query FooterQuery {\n    allFooter {\n      ...Footer\n    }\n  }\n": typeof types.FooterQueryDocument,
     "\n  query HeaderQuery {\n    allHeader {\n      ...Header\n    }\n  }\n": typeof types.HeaderQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": typeof types.HomeQueryDocument,
@@ -43,9 +46,12 @@ const documents: Documents = {
     "fragment SanityFile on File {\n  asset {\n    ...SanityFileAsset\n  }\n}\n\nfragment SanityFileAsset on SanityFileAsset {\n  url\n  originalFilename\n}": types.SanityFileFragmentDoc,
     "fragment SanityImage on Image {\n  asset {\n    ...SanityImageAsset\n  }\n  hotspot {\n    ...SanityImageHotspot\n  }\n  crop {\n    ...SanityImageCrop\n  }\n}\n\nfragment SanityImageAsset on SanityImageAsset {\n  url\n  altText\n  originalFilename\n  metadata {\n    ...SanityImageMetadata\n  }\n}\n\nfragment SanityImageMetadata on SanityImageMetadata {\n  lqip\n  dimensions {\n    ...SanityImageDimensions\n  }\n}\n\nfragment SanityImageDimensions on SanityImageDimensions {\n  width\n  height\n  aspectRatio\n}\n\nfragment SanityImageHotspot on SanityImageHotspot {\n  x\n  y\n  height\n  width\n}\n\nfragment SanityImageCrop on SanityImageCrop {\n  top\n  bottom\n  left\n  right\n}": types.SanityImageFragmentDoc,
     "fragment Slug on Slug {\n  current\n}": types.SlugFragmentDoc,
-    "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": types.HomeFragmentDoc,
-    "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}": types.PageFragmentDoc,
+    "fragment Collection on Collection {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}": types.CollectionFragmentDoc,
+    "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}": types.HomeFragmentDoc,
+    "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}": types.PageFragmentDoc,
+    "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}": types.SectionCollectionFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": types.SectionHeroFragmentDoc,
+    "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}": types.SectionTextFragmentDoc,
     "\n  query FooterQuery {\n    allFooter {\n      ...Footer\n    }\n  }\n": types.FooterQueryDocument,
     "\n  query HeaderQuery {\n    allHeader {\n      ...Header\n    }\n  }\n": types.HeaderQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": types.HomeQueryDocument,
@@ -109,15 +115,27 @@ export function graphql(source: "fragment Slug on Slug {\n  current\n}"): (typeo
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"): (typeof documents)["fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"];
+export function graphql(source: "fragment Collection on Collection {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}"): (typeof documents)["fragment Collection on Collection {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"): (typeof documents)["fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n  }\n  meta {\n    ...Meta\n  }\n}"];
+export function graphql(source: "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}"): (typeof documents)["fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}"): (typeof documents)["fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}"): (typeof documents)["fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}"): (typeof documents)["fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}"): (typeof documents)["fragment SectionText on SectionText {\n  __typename\n  textRaw\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

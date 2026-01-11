@@ -8,6 +8,8 @@ import SectionsRenderer from "../sections/SectionsRenderer.astro";
 
 const pageQuery: HomeQueryQuery = await sanityClient.request(homeQuery);
 const pageData = selectDocument(pageQuery.allHome);
+
+console.log(pageData);
 ---
 
 <PageLayout meta={pageData?.meta}>

@@ -1,0 +1,19 @@
+---
+import type { SectionCollectionFragment } from "../sanity/generated/graphql";
+
+interface Props {
+  section: SectionCollectionFragment;
+}
+
+const { section }: Props = Astro.props;
+---
+
+<section>
+  <h2>{section.collection?.shopify?.title}</h2>
+</section>
+
+<style>
+  section {
+    padding: var(--s40) var(--margin);
+  }
+</style>

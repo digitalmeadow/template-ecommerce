@@ -1,9 +1,14 @@
 ---
-import type { SectionHeroFragment } from "../sanity/generated/graphql";
+import type { SectionCollectionOrSectionHeroOrSectionText } from "../sanity/generated/graphql";
 import SectionHero from "./SectionHero.astro";
+import SectionText from "./SectionText.astro";
+import SectionCollection from "./SectionCollection.astro";
 
 interface Props {
-  sections: (SectionHeroFragment | null)[] | null | undefined;
+  sections:
+    | (SectionCollectionOrSectionHeroOrSectionText | null)[]
+    | null
+    | undefined;
 }
 
 const { sections }: Props = Astro.props;
@@ -15,6 +20,14 @@ const { sections }: Props = Astro.props;
 
     if (section.__typename === "SectionHero") {
       return <SectionHero section={section} />;
+    }
+
+    if (section.__typename === "SectionText") {
+      return <SectionText section={section} />;
+    }
+
+    if (section.__typename === "SectionCollection") {
+      return <SectionCollection section={section} />;
     }
 
     return null;

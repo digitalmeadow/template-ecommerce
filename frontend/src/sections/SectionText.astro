@@ -1,0 +1,20 @@
+---
+import PortableText from "../fields/PortableText.astro";
+import type { SectionTextFragment } from "../sanity/generated/graphql";
+
+interface Props {
+  section: SectionTextFragment;
+}
+
+const { section }: Props = Astro.props;
+---
+
+<section>
+  <PortableText value={section.textRaw} />
+</section>
+
+<style>
+  section {
+    padding: var(--s40) var(--margin);
+  }
+</style>

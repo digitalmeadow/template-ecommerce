@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {BlockElementIcon} from '@sanity/icons'
+import {previewTextRich} from '../../utils/preview'
 
 export const sectionText = defineType({
   type: 'object',
@@ -13,4 +14,15 @@ export const sectionText = defineType({
       validation: (Rule) => Rule.required(),
     }),
   ],
+  preview: {
+    select: {
+      text: 'text',
+    },
+    prepare({text}) {
+      return {
+        title: 'Section: Text',
+        subtitle: previewTextRich(text),
+      }
+    },
+  },
 })

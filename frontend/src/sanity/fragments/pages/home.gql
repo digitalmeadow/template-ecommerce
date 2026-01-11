@@ -4,6 +4,8 @@ fragment Home on Home {
 
   sections {
     ...SectionHero
+    ...SectionText
+    ...SectionCollection
   }
   meta {
     ...Meta

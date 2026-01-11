@@ -1,9 +1,5 @@
-fragment SectionHero on SectionHero {
+fragment SectionText on SectionText {
   __typename
 
-  backgroundMedia {
-    ...Media
-  }
-  heading
   textRaw
 }

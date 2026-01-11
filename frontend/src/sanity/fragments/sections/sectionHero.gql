@@ -1,0 +1,9 @@
+fragment SectionHero on SectionHero {
+  __typename
+
+  backgroundMedia {
+    ...Media
+  }
+  heading
+  textRaw
+}

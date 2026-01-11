@@ -57,6 +57,15 @@ export default defineConfig({
         context: "server",
         access: "secret",
       }),
+
+      SHOPIFY_PUBLIC_API_TOKEN: envField.string({
+        context: "client",
+        access: "public",
+      }),
+      SHOPIFY_PRIVATE_API_TOKEN: envField.string({
+        context: "server",
+        access: "secret",
+      }),
     },
   },
   adapter: cloudflare({

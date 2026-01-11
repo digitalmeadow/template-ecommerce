@@ -8,6 +8,8 @@ fragment Page on Page {
   }
   sections {
     ...SectionHero
+    ...SectionText
+    ...SectionCollection
   }
   meta {
     ...Meta
