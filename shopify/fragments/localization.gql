@@ -1,0 +1,10 @@
+fragment Country on Country {
+  currency {
+    isoCode
+    name
+    symbol
+  }
+  isoCode
+  name
+  unitSystem
+}

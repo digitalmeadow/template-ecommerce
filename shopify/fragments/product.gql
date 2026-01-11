@@ -1,0 +1,41 @@
+fragment Product on Product {
+  __typename
+  id
+  title
+  handle
+  availableForSale
+
+  priceRange {
+    ...PriceRange
+  }
+
+  compareAtPriceRange {
+    ...PriceRange
+  }
+
+  variants(first: 16) {
+    edges {
+      node {
+        ...ProductVariant
+      }
+    }
+  }
+
+  options {
+    ...ProductOption
+  }
+
+  collections(first: 8) {
+    edges {
+      node {
+        ...CollectionCore
+      }
+    }
+  }
+}
+
+fragment ProductOption on ProductOption {
+  id
+  name
+  values
+}

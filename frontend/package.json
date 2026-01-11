@@ -17,6 +17,7 @@
     "astro-portabletext": "0.12.0",
     "graphql-request": "7.4.0",
     "sanity": "workspace:*",
+    "shopify": "workspace:*",
     "octokit": "5.0.5"
   },
   "devDependencies": {

@@ -1,0 +1,8 @@
+fragment PriceRange on ProductPriceRange {
+  minVariantPrice {
+    ...Money
+  }
+  maxVariantPrice {
+    ...Money
+  }
+}

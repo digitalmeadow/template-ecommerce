@@ -1,0 +1,49 @@
+fragment Cart on Cart {
+  id
+  buyerIdentity {
+    countryCode
+  }
+  checkoutUrl
+  discountCodes {
+    applicable
+    code
+  }
+  cost {
+    totalAmount {
+      ...Money
+    }
+  }
+  lines(first: 20) {
+    edges {
+      node {
+        ...CartLine
+      }
+    }
+  }
+}
+
+fragment CartLine on CartLine {
+  id
+  quantity
+  discountAllocations {
+    discountedAmount {
+      ...Money
+    }
+  }
+  cost {
+    totalAmount {
+      ...Money
+    }
+  }
+  merchandise {
+    ... on ProductVariant {
+      ...MerchandiseFields
+    }
+  }
+}
+
+query cartById($id: ID!) {
+  cart(id: $id) {
+    ...Cart
+  }
+}

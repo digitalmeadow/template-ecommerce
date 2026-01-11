@@ -1,0 +1,23 @@
+fragment CollectionCore on Collection {
+  __typename
+  id
+  handle
+  title
+}
+
+fragment Collection on Collection {
+  ...CollectionCore
+
+  products(first: 42, after: $productCursor, sortKey: MANUAL, reverse: true) {
+    edges {
+      cursor
+      node {
+        ...Product
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

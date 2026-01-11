@@ -1,19 +1,54 @@
 ---
 import type { SectionCollectionFragment } from "sanity/generated/graphql";
+import { shopifyClient } from "shopify/client";
+import { collectionByHandleQuery } from "shopify/queries/collection";
+import {
+  type ProductShopifySanity,
+  fetchProductShopifySanity,
+} from "../lib/fetches/productShopifySanity";
 
 interface Props {
   section: SectionCollectionFragment;
 }
 
 const { section }: Props = Astro.props;
+
+if (!section.collection?.shopify?.handle?.current) {
+  throw new Error("Collection handle is missing");
+}
+
+const shopifyCollection = await shopifyClient.request(collectionByHandleQuery, {
+  handle: section.collection.shopify.handle.current,
+});
+
+const productHandles =
+  shopifyCollection.collectionByHandle?.products.edges.map(
+    (edge) => edge?.node?.handle
+  ) || [];
+
+let products: ProductShopifySanity[] = [];
+for (const handle of productHandles || []) {
+  const product = await fetchProductShopifySanity(handle);
+  products.push(product);
+}
 ---
 
 <section>
   <h2>{section.collection?.shopify?.title}</h2>
-</section>
 
-<style>
-  section {
-    padding: var(--s40) var(--margin);
-  }
-</style>
+  <div>
+    {
+      products.map((product) => (
+        <div>
+          <h3>{product.shopify?.title}</h3>
+        </div>
+      ))
+    }
+  </div>
+
+  <style>
+    section {
+      padding: var(--s40) var(--margin);
+    }
+  </style>
+</section>

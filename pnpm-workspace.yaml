@@ -2,6 +2,7 @@ packages:
   - 'frontend'
   - 'cms'
   - 'sanity'
+  - 'shopify'
   
 allowBuilds:
   esbuild: true

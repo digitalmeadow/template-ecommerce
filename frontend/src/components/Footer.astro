@@ -12,6 +12,8 @@ const footerData = selectDocument(componentQuery.allFooter);
 ---
 
 <footer class:list={[{ hidden: Astro.url.pathname === "/" }]}>
+  <PortableText value={footerData?.textRaw} />
+
   <div class="nav">
     {
       footerData?.navigationItems?.map((navigationItem) => {
@@ -24,8 +26,6 @@ const footerData = selectDocument(componentQuery.allFooter);
       })
     }
   </div>
-
-  <PortableText value={footerData?.textRaw} />
 </footer>
 
 <style>

@@ -3,7 +3,7 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import { createClient } from "@sanity/client";
+import { createClient } from "sanity";
 
 const PRODUCT_DOCUMENT_TYPE = "product";
 const PRODUCT_VARIANT_DOCUMENT_TYPE = "productVariant";

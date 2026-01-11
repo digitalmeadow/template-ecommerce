@@ -62,6 +62,14 @@ export default defineConfig({
         context: "client",
         access: "public",
       }),
+      SHOPIFY_STORE_DOMAIN: envField.string({
+        context: "client",
+        access: "public",
+      }),
+      SHOPIFY_API_VERSION: envField.string({
+        context: "client",
+        access: "public",
+      }),
       SHOPIFY_PRIVATE_API_TOKEN: envField.string({
         context: "server",
         access: "secret",

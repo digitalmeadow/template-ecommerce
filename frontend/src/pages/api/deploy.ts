@@ -2,7 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from "astro";
 import { Octokit } from "octokit";
-import { isValidSignature, SIGNATURE_HEADER_NAME } from "@sanity/webhook";
+import { isValidSignature, SIGNATURE_HEADER_NAME } from "sanity";
 import {
   GIT_BRANCH,
   GIT_OWNER,

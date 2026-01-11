@@ -1,0 +1,23 @@
+fragment ProductVariant on ProductVariant {
+  id
+  title
+  availableForSale
+  quantityAvailable
+
+  selectedOptions {
+    name
+    value
+  }
+
+  price {
+    ...Money
+  }
+
+  compareAtPrice {
+    ...Money
+  }
+
+  image {
+    ...Image
+  }
+}

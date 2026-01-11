@@ -1,0 +1,35 @@
+fragment Image on Image {
+  altText
+  url: transformedSrc(maxWidth: 1080)
+  thumbnailUrl: transformedSrc(maxWidth: 360)
+  blurUrl: transformedSrc(maxWidth: 10)
+  height
+  width
+}
+
+fragment VideoSource on VideoSource {
+  url
+  format
+  height
+  width
+}
+
+fragment Video on Video {
+  sources {
+    ...VideoSource
+  }
+}
+
+fragment MediaFields on Media {
+  __typename
+
+  ... on MediaImage {
+    image {
+      ...Image
+    }
+  }
+
+  ... on Video {
+    ...Video
+  }
+}

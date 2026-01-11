@@ -80,6 +80,9 @@ importers:
       sanity:
         specifier: workspace:*
         version: link:../sanity
+      shopify:
+        specifier: workspace:*
+        version: link:../shopify
     devDependencies:
       tsx:
         specifier: 4.21.0
@@ -105,6 +108,25 @@ importers:
       '@sanity/webhook':
         specifier: 4.0.4
         version: 4.0.4
+      graphql-request:
+        specifier: 7.4.0
+        version: 7.4.0(graphql@16.12.0)
+    devDependencies:
+      tsx:
+        specifier: 4.21.0
+        version: 4.21.0
+
+  shopify:
+    dependencies:
+      '@graphql-codegen/cli':
+        specifier: 6.1.0
+        version: 6.1.0(@types/node@25.0.3)(crossws@0.3.5)(graphql@16.12.0)(typescript@5.9.3)
+      '@graphql-codegen/client-preset':
+        specifier: 5.2.2
+        version: 5.2.2(graphql@16.12.0)
+      '@graphql-typed-document-node/core':
+        specifier: 3.2.0
+        version: 3.2.0(graphql@16.12.0)
       graphql-request:
         specifier: 7.4.0
         version: 7.4.0(graphql@16.12.0)
