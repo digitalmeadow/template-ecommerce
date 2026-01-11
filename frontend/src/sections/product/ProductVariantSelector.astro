@@ -1,0 +1,49 @@
+---
+// A variant selector for products with multiple variants (e.g., size, color).
+// Uses data- attributes to manage variant selection and update the displayed price accordingly.
+import type { ProductShopifySanity } from "../../lib/fetches/productShopifySanity";
+
+interface Props {
+  productData: ProductShopifySanity;
+}
+
+const { productData }: Props = Astro.props;
+---
+
+<div class="variant-selector">
+  <label for="variant-select">Choose a variant:</label>
+  <select
+    id="variant-select"
+    name="variant-select"
+    data-product-id={productData.shopify?.id}
+  >
+    {
+      productData.shopify?.variants?.edges.map((edge) => (
+        <option
+          value={edge.node.id}
+          data-price={edge.node.price?.amount}
+          data-available={edge.node}
+        >
+          {edge.node.title} - ${edge.node.price?.amount}
+        </option>
+      ))
+    }
+  </select>
+</div>
+
+<script>
+  const variantSelect = document.getElementById("variant-select");
+
+  variantSelect!.addEventListener("change", (event) => {
+    const selectElement = event.target as HTMLSelectElement;
+    if (!selectElement) return;
+
+    const selectedOption = selectElement.selectedOptions[0];
+    const price = selectedOption.getAttribute("data-price");
+
+    const priceElements = document.querySelectorAll("[data-bind-price]");
+    priceElements.forEach((el) => {
+      el.textContent = `$${price}`;
+    });
+  });
+</script>

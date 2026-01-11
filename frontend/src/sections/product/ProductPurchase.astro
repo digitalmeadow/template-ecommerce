@@ -1,0 +1,16 @@
+---
+import type { ProductShopifySanity } from "../../lib/fetches/productShopifySanity";
+import ProductPrice from "./ProductPrice.astro";
+import ProductVariantSelector from "./ProductVariantSelector.astro";
+
+interface Props {
+  productData: ProductShopifySanity;
+}
+
+const { productData }: Props = Astro.props;
+---
+
+<div class="product-purchase">
+  <h1>{productData.shopify?.title}</h1>
+  <ProductVariantSelector productData={productData} />
+</div>

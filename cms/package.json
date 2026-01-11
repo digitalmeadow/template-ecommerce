@@ -25,6 +25,7 @@
     "sanity": "^4.3.0",
     "sanity-plugin-media": "^4.0.0",
     "sanity-plugin-mux-input": "^2.9.0",
+    "shopify": "workspace:*",
     "styled-components": "^6.1.18"
   },
   "devDependencies": {

@@ -1,0 +1,20 @@
+---
+import SanityMedia from "../../fields/SanityMedia.astro";
+import type { ProductShopifySanity } from "../../lib/fetches/productShopifySanity";
+
+interface Props {
+  productData: ProductShopifySanity;
+}
+
+const { productData }: Props = Astro.props;
+---
+
+<div class="product-gallery">
+  {
+    productData.sanity.mediaGallery?.map((mediaItem) => (
+      <div class="media-item">
+        <SanityMedia mediaData={mediaItem} layout="contain" />
+      </div>
+    ))
+  }
+</div>

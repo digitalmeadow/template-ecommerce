@@ -36,7 +36,9 @@ type Documents = {
     "\n  query HeaderQuery {\n    allHeader {\n      ...Header\n    }\n  }\n": typeof types.HeaderQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": typeof types.HomeQueryDocument,
     "\n  query PageQuery($slug: String!) {\n    allPage(where: { slug: { current: { eq: $slug } } }) {\n      ...Page\n    }\n  }\n": typeof types.PageQueryDocument,
+    "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n": typeof types.PagesQueryDocument,
     "\n  query ProductByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Product\n    }\n  }\n": typeof types.ProductByHandleQueryDocument,
+    "\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n": typeof types.ProductsQueryDocument,
 };
 const documents: Documents = {
     "fragment Button on Button {\n  label\n  link {\n    ...Link\n  }\n}": types.ButtonFragmentDoc,
@@ -61,7 +63,9 @@ const documents: Documents = {
     "\n  query HeaderQuery {\n    allHeader {\n      ...Header\n    }\n  }\n": types.HeaderQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": types.HomeQueryDocument,
     "\n  query PageQuery($slug: String!) {\n    allPage(where: { slug: { current: { eq: $slug } } }) {\n      ...Page\n    }\n  }\n": types.PageQueryDocument,
+    "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n": types.PagesQueryDocument,
     "\n  query ProductByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Product\n    }\n  }\n": types.ProductByHandleQueryDocument,
+    "\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n": types.ProductsQueryDocument,
 };
 
 /**
@@ -169,7 +173,15 @@ export function graphql(source: "\n  query PageQuery($slug: String!) {\n    allP
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n"): (typeof documents)["\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  query ProductByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Product\n    }\n  }\n"): (typeof documents)["\n  query ProductByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Product\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n"): (typeof documents)["\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

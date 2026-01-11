@@ -27,10 +27,10 @@ const productHandles =
     (edge) => edge?.node?.handle
   ) || [];
 
-let products: ProductShopifySanity[] = [];
+let productsData: ProductShopifySanity[] = [];
 for (const handle of productHandles || []) {
-  const product = await fetchProductShopifySanity(handle);
-  products.push(product);
+  const productData = await fetchProductShopifySanity(handle);
+  productsData.push(productData);
 }
 ---
 
@@ -38,13 +38,17 @@ for (const handle of productHandles || []) {
   <h2>{section.collection?.shopify?.title}</h2>
 
   <div class="grid">
-    {products.map((product) => <ProductThumbnail product={product} />)}
+    {
+      productsData.map((productData) => (
+        <ProductThumbnail productData={productData} />
+      ))
+    }
   </div>
 </section>
 
 <style>
   section {
-    padding: var(--s40) var(--margin);
+    padding: var(--s40) var(--margin-dynamic);
   }
 
   .grid {

@@ -1,0 +1,23 @@
+---
+import { sanityClient } from "sanity/client";
+import PageLayout from "../layouts/PageLayout.astro";
+import SectionsRenderer from "../sections/SectionsRenderer.astro";
+import { selectDocument } from "../lib/sanity/drafts";
+import { pageQuery, pagesQuery } from "sanity/queries/page";
+
+export async function getStaticPaths() {
+  const pagesQueryQuery = await sanityClient.request(pagesQuery);
+  const slugs = pagesQueryQuery.allPage.map((page) => page.slug?.current);
+  return slugs.map((slug) => (slug ? { params: { slug } } : null));
+}
+
+let { slug } = Astro.params;
+const pageDataQuery = await sanityClient.request(pageQuery, {
+  slug,
+});
+const pageData = selectDocument(pageDataQuery.allPage);
+---
+
+<PageLayout metaData={pageData?.meta}>
+  <SectionsRenderer sections={pageData?.sections} />
+</PageLayout>

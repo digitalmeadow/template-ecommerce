@@ -17,10 +17,10 @@ import "../styles/fonts.css";
 import { WEBSITE_URL } from "astro:env/client";
 
 interface Props {
-  meta: MetaFragment | null | undefined;
+  metaData: MetaFragment | null | undefined;
 }
 
-const { meta }: Props = Astro.props;
+const { metaData }: Props = Astro.props;
 
 const canonicalUrl = new URL(Astro.url.pathname, WEBSITE_URL).href;
 ---
@@ -35,8 +35,8 @@ const canonicalUrl = new URL(Astro.url.pathname, WEBSITE_URL).href;
     />
     <meta name="theme" content="#000000" />
     <meta name="generator" content={Astro.generator} />
-    <title>{meta?.title}</title>
-    <Meta meta={meta} />
+    <title>{metaData?.title}</title>
+    <Meta metaData={metaData} />
     <link rel="canonical" href={canonicalUrl} />
   </head>
   <body>

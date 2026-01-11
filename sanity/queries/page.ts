@@ -7,3 +7,11 @@ export const pageQuery = graphql(`
     }
   }
 `);
+
+export const pagesQuery = graphql(`
+  query PagesQuery {
+    allPage {
+      ...Page
+    }
+  }
+`);

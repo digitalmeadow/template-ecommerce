@@ -6,6 +6,6 @@ export const SANITY_DOCUMENT_ROUTE_PATTERNS: Record<string, string> = {
   footer: "/",
   home: "/",
   page: "/[slug]",
-  product: "/product/[slug]",
-  collection: "/collection/[slug]",
+  product: "/products/[slug]",
+  collection: "/collections/[slug]",
 };

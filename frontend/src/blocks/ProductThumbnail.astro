@@ -4,33 +4,29 @@ import SanityMedia from "../fields/SanityMedia.astro";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "../../config";
 
 interface Props {
-  product: ProductShopifySanity;
+  productData: ProductShopifySanity;
 }
 
-const { product }: Props = Astro.props;
+const { productData }: Props = Astro.props;
 ---
 
 <a
   href={SANITY_DOCUMENT_ROUTE_PATTERNS.product.replace(
     "[slug]",
-    product.sanity.shopify!.handle!.current!
+    productData.sanity.shopify!.handle!.current!
   )}
 >
   <article class="product-thumbnail">
     <div class="media">
-      <SanityMedia mediaData={product.sanity.mediaThumbnail} layout="cover" />
+      <SanityMedia
+        mediaData={productData.sanity.mediaThumbnail}
+        layout="cover"
+      />
     </div>
-    <h3>{product.shopify?.title}</h3>
+    <h3>{productData.shopify?.title}</h3>
   </article>
 
   <style>
-    .product-thumbnail {
-      display: flex;
-      flex-direction: column;
-      gap: var(--s8);
-      text-align: center;
-    }
-
     .media {
       width: 100%;
       aspect-ratio: 1 / 1;

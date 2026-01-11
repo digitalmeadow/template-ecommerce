@@ -2,14 +2,14 @@
 import type { MetaFragment } from "sanity/generated/graphql";
 
 interface Props {
-  meta: MetaFragment | null | undefined;
+  metaData: MetaFragment | null | undefined;
 }
 
-const { meta }: Props = Astro.props;
+const { metaData }: Props = Astro.props;
 ---
 
-<meta name="description" content={meta?.description} />
+<meta name="description" content={metaData?.description} />
 
-<meta property="og:title" content={meta?.title ?? ""} />
-<meta property="og:description" content={meta?.description ?? ""} />
-<meta property="og:image" content={meta?.image?.asset?.url} />
+<meta property="og:title" content={metaData?.title ?? ""} />
+<meta property="og:description" content={metaData?.description ?? ""} />
+<meta property="og:image" content={metaData?.image?.asset?.url} />

@@ -1,0 +1,24 @@
+---
+import type { ProductShopifySanity } from "../../lib/fetches/productShopifySanity";
+import ProductGallery from "./ProductGallery.astro";
+import ProductPurchase from "./ProductPurchase.astro";
+
+interface Props {
+  productData: ProductShopifySanity;
+}
+
+const { productData }: Props = Astro.props;
+---
+
+<section>
+  <ProductGallery productData={productData} />
+  <ProductPurchase productData={productData} />
+</section>
+
+<style>
+  section {
+    display: grid;
+    gap: var(--s40);
+    grid-template-columns: 1fr 1fr;
+  }
+</style>

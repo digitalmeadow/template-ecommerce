@@ -7,3 +7,11 @@ export const productByHandleQuery = graphql(`
     }
   }
 `);
+
+export const productsQuery = graphql(`
+  query ProductsQuery {
+    allProduct {
+      ...Product
+    }
+  }
+`);

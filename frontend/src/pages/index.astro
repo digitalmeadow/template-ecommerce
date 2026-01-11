@@ -9,6 +9,6 @@ const pageQuery = await sanityClient.request(homeQuery);
 const pageData = selectDocument(pageQuery.allHome);
 ---
 
-<PageLayout meta={pageData?.meta}>
+<PageLayout metaData={pageData?.meta}>
   <SectionsRenderer sections={pageData?.sections} />
 </PageLayout>
