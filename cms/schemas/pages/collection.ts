@@ -26,7 +26,7 @@ export const collection = defineType({
   preview: {
     select: {
       title: 'shopify.title',
-      subtitle: 'shopify.handle',
+      subtitle: 'shopify.handle.current',
     },
   },
 })

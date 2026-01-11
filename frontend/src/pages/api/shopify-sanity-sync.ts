@@ -22,49 +22,9 @@ const sanityClient = createClient({
 });
 
 export const POST: APIRoute = async ({ request }) => {
-  // Generate unique request ID to track individual webhook calls
-  const requestId = `req-${Date.now()}-${Math.random()
-    .toString(36)
-    .substr(2, 9)}`;
-  const startTime = Date.now();
-
-  console.log(`\n🔷 [${requestId}] REQUEST RECEIVED`);
-
-  let body: requestPayload;
   try {
-    body = (await request.json()) as requestPayload;
-  } catch (error: any) {
-    console.error(`❌ [${requestId}] Failed to parse JSON:`, error.message);
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-      status: 400,
-    });
-  }
+    const body = (await request.json()) as requestPayload;
 
-  // Log detailed payload info
-  const logData: any = {
-    action: body.action,
-  };
-
-  if ("products" in body) {
-    logData.productCount = body.products?.length || 0;
-    logData.productIds = body.products?.map((p) => extractIdFromGid(p.id));
-  }
-  if ("collections" in body) {
-    logData.collectionCount = body.collections?.length || 0;
-    logData.collectionIds = body.collections?.map((c) =>
-      extractIdFromGid(c.id)
-    );
-  }
-  if ("productIds" in body) {
-    logData.deleteProductIds = body.productIds;
-  }
-  if ("collectionIds" in body) {
-    logData.deleteCollectionIds = body.collectionIds;
-  }
-
-  console.log(`🔵 [${requestId}] Shopify Sync Started`, logData);
-
-  try {
     switch (body.action) {
       case "create":
       case "update":
@@ -76,28 +36,16 @@ export const POST: APIRoute = async ({ request }) => {
         break;
     }
 
-    const duration = Date.now() - startTime;
-    console.log(`✅ [${requestId}] Shopify Sync Completed in ${duration}ms\n`);
-
-    return new Response(JSON.stringify({ success: true, duration }), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
       },
     });
   } catch (error: any) {
-    const duration = Date.now() - startTime;
-    console.error(`❌ [${requestId}] Shopify Sync Failed`, {
-      error: error.message,
-      stack: error.stack,
-      duration,
-      payload: logData,
-    });
-
     return new Response(
       JSON.stringify({
         error: error.message || String(error),
-        duration,
       }),
       {
         status: 500,
@@ -117,74 +65,15 @@ async function syncCreateOrUpdate(body: requestPayload) {
   const payload = body as createOrUpdatePayload;
 
   if ("products" in payload && payload.products?.length) {
-    try {
-      const productStart = Date.now();
-      console.log(`  📦 Processing ${payload.products.length} products...`);
-      await createOrUpdateProducts(transaction, payload.products);
-      console.log(`  ✓ Products processed in ${Date.now() - productStart}ms`);
-    } catch (error: any) {
-      console.error("  ❌ Products processing failed:", {
-        error: error.message,
-        stack: error.stack,
-      });
-      throw error;
-    }
-
-    try {
-      const variantStart = Date.now();
-      const variantCount = payload.products.reduce(
-        (sum, p) => sum + p.variants.length,
-        0
-      );
-      console.log(`  🔧 Processing ${variantCount} product variants...`);
-      await createOrUpdateProductVariants(transaction, payload.products);
-      console.log(`  ✓ Variants processed in ${Date.now() - variantStart}ms`);
-    } catch (error: any) {
-      console.error("  ❌ Variants processing failed:", {
-        error: error.message,
-        stack: error.stack,
-      });
-      throw error;
-    }
+    await createOrUpdateProducts(transaction, payload.products);
+    await createOrUpdateProductVariants(transaction, payload.products);
   }
 
   if ("collections" in payload && payload.collections?.length) {
-    try {
-      const collectionStart = Date.now();
-      console.log(
-        `  📚 Processing ${payload.collections.length} collections...`
-      );
-      console.log(
-        `  📚 Collection IDs: ${payload.collections
-          .map((c) => extractIdFromGid(c.id))
-          .join(", ")}`
-      );
-      await createOrUpdateCollections(transaction, payload.collections);
-      console.log(
-        `  ✓ Collections processed in ${Date.now() - collectionStart}ms`
-      );
-    } catch (error: any) {
-      console.error("  ❌ Collections processing failed:", {
-        error: error.message,
-        stack: error.stack,
-        collectionCount: payload.collections.length,
-      });
-      throw error;
-    }
+    await createOrUpdateCollections(transaction, payload.collections);
   }
 
-  try {
-    const commitStart = Date.now();
-    console.log("  💾 Committing transaction...");
-    await transaction.commit();
-    console.log(`  ✓ Transaction committed in ${Date.now() - commitStart}ms`);
-  } catch (error: any) {
-    console.error("  ❌ Transaction commit failed:", {
-      error: error.message,
-      stack: error.stack,
-    });
-    throw error;
-  }
+  await transaction.commit();
 }
 
 async function syncDelete(body: requestPayload) {
@@ -224,8 +113,6 @@ async function createOrUpdateProducts(
 
   for (const product of products) {
     try {
-      const productId = extractIdFromGid(product.id);
-      console.log(`    ➤ Product ${productId}: ${product.title}`);
       const document = await buildProductDocument(product);
       const draftId = `drafts.${document._id}`;
 
@@ -242,7 +129,7 @@ async function createOrUpdateProducts(
         );
       }
     } catch (error: any) {
-      console.error(`    ❌ Failed to process product ${product.id}:`, {
+      console.error(`❌ Failed to process product ${product.id}:`, {
         title: product.title,
         error: error.message,
       });
@@ -275,8 +162,6 @@ async function createOrUpdateCollections(
 
   for (const collection of collections) {
     try {
-      const collectionId = extractIdFromGid(collection.id);
-      console.log(`    ➤ Collection ${collectionId}: ${collection.title}`);
       const document = buildCollectionDocument(collection);
       const draftId = `drafts.${document._id}`;
 
@@ -293,7 +178,7 @@ async function createOrUpdateCollections(
         );
       }
     } catch (error: any) {
-      console.error(`    ❌ Failed to process collection ${collection.id}:`, {
+      console.error(`❌ Failed to process collection ${collection.id}:`, {
         title: collection.title,
         handle: collection.handle,
         error: error.message,
@@ -330,20 +215,29 @@ async function createOrUpdateProductVariants(
   const existingDrafts = await getExistingDocumentIds(draftIds);
 
   for (const { product, variant } of variants) {
-    const document = buildProductVariantDocument(product, variant);
-    const draftId = `drafts.${document._id}`;
+    try {
+      const document = buildProductVariantDocument(product, variant);
+      const draftId = `drafts.${document._id}`;
 
-    transaction
-      .createIfNotExists(document)
-      .patch(document._id, (patch) => patch.set(document));
+      transaction
+        .createIfNotExists(document)
+        .patch(document._id, (patch) => patch.set(document));
 
-    if (existingDrafts.has(draftId)) {
-      transaction.patch(draftId, (patch) =>
-        patch.set({
-          ...document,
-          _id: draftId,
-        })
-      );
+      if (existingDrafts.has(draftId)) {
+        transaction.patch(draftId, (patch) =>
+          patch.set({
+            ...document,
+            _id: draftId,
+          })
+        );
+      }
+    } catch (error: any) {
+      console.error(`❌ Failed to process variant ${variant.id}:`, {
+        title: variant.title,
+        productId: product.id,
+        error: error.message,
+      });
+      throw error;
     }
   }
 }
