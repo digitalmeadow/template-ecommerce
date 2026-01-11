@@ -77,7 +77,6 @@ export type Collection = Document & {
   /** Date the document was last modified */
   _updatedAt?: Maybe<Scalars['DateTime']['output']>;
   meta?: Maybe<Meta>;
-  sections?: Maybe<Array<Maybe<SectionCollectionOrSectionHeroOrSectionText>>>;
   shopify?: Maybe<ShopifyCollection>;
 };
 
@@ -900,7 +899,6 @@ export type Product = Document & {
   /** Date the document was last modified */
   _updatedAt?: Maybe<Scalars['DateTime']['output']>;
   meta?: Maybe<Meta>;
-  sections?: Maybe<Array<Maybe<SectionCollectionOrSectionHeroOrSectionText>>>;
   shopify?: Maybe<ShopifyProduct>;
 };
 
@@ -943,7 +941,6 @@ export type ProductVariant = Document & {
   _updatedAt?: Maybe<Scalars['DateTime']['output']>;
   meta?: Maybe<Meta>;
   product?: Maybe<Product>;
-  sections?: Maybe<Array<Maybe<SectionCollectionOrSectionHeroOrSectionText>>>;
   shopify?: Maybe<ShopifyProductVariant>;
 };
 

@@ -7,21 +7,16 @@
     "build": "astro build",
     "preview": "npx astro build && npx wrangler dev",
     "deploy": "npx astro build && npx wrangler deploy",
-    "astro": "astro",
-    "gen": "tsx --env-file='.env' src/sanity/codegen.ts"
+    "astro": "astro"
   },
   "dependencies": {
     "@astrojs/cloudflare": "12.6.12",
-    "@graphql-codegen/cli": "6.1.0",
-    "@graphql-codegen/client-preset": "5.2.2",
-    "@graphql-typed-document-node/core": "3.2.0",
     "@mux/blurup": "1.0.2",
     "@mux/mux-player": "3.10.2",
-    "@sanity/client": "7.14.0",
-    "@sanity/webhook": "4.0.4",
     "astro": "5.16.6",
     "astro-portabletext": "0.12.0",
     "graphql-request": "7.4.0",
+    "sanity": "workspace:*",
     "octokit": "5.0.5"
   },
   "devDependencies": {

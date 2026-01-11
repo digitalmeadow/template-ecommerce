@@ -1,9 +1,9 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
-import { sanityClient } from "../sanity/client";
-import type { HomeQueryQuery } from "../sanity/generated/graphql";
-import { homeQuery } from "../sanity/queries/home";
-import { selectDocument } from "../sanity/utils/drafts";
+import { sanityClient } from "sanity/client";
+import type { HomeQueryQuery } from "sanity/generated/graphql";
+import { homeQuery } from "sanity/queries/home";
+import { selectDocument } from "sanity/utils/drafts";
 import SectionsRenderer from "../sections/SectionsRenderer.astro";
 
 const pageQuery: HomeQueryQuery = await sanityClient.request(homeQuery);
