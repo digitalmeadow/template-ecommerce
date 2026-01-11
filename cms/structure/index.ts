@@ -4,7 +4,6 @@ import {components} from './components'
 import {pages} from './pages'
 import {collections} from './collections'
 import {products} from './products'
-import {productVariants} from './productVariant'
 
 export const structure: StructureResolver = (S) => {
   // prettier-ignore
@@ -18,6 +17,5 @@ export const structure: StructureResolver = (S) => {
 			S.divider(),
 			collections(S),
 			products(S),
-			productVariants(S),
 		])
 }

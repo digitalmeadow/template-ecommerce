@@ -1,5 +1,4 @@
 import React from 'react'
-import {generateMuxThumbnailUrl} from '../../utils/mux'
 import {defineField, defineType} from 'sanity'
 
 export const media = defineType({
@@ -27,28 +26,18 @@ export const media = defineType({
         hotspot: true,
       },
       validation: (Rule) =>
-        Rule.custom((fields, context) => {
-          // @ts-expect-error
-          if (context.parent.type === 'image' && !fields.asset) {
-            return 'Image required'
-          } else {
-            return true
-          }
-        }),
+        Rule.custom((fields, context) =>
+          (context.parent as any).type === 'image' && !fields?.asset ? 'Image required' : true,
+        ),
     }),
     defineField({
       type: 'mux.video',
       name: 'video',
       hidden: ({parent}) => parent?.type !== 'video',
       validation: (Rule) =>
-        Rule.custom((video, context) => {
-          // @ts-expect-error
-          if (context.parent.type === 'video' && !video) {
-            return 'Video Required'
-          } else {
-            return true
-          }
-        }),
+        Rule.custom((video, context) =>
+          (context.parent as any).type === 'video' && !video ? 'Video Required' : true,
+        ),
     }),
   ],
   options: {collapsible: true, collapsed: false},
@@ -58,13 +47,11 @@ export const media = defineType({
       playbackId: 'video.asset.playbackId',
       image: 'image',
     },
-    prepare(selection) {
-      const {type, image} = selection
-
+    prepare({type, image, playbackId}) {
       return {
         media:
           type === 'video' ? (
-            <img src={generateMuxThumbnailUrl(selection.playbackId)} alt="" />
+            <img src={`https://image.mux.com/${playbackId}/thumbnail.jpg`} alt="" />
           ) : (
             image
           ),

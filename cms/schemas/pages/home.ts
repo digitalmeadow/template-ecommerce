@@ -5,6 +5,7 @@ import {pageSections} from '../sections/sections'
 export const home = defineType({
   type: 'document',
   name: 'home',
+  title: 'Home',
   icon: HomeIcon,
   fields: [
     defineField({
@@ -17,4 +18,9 @@ export const home = defineType({
       name: 'meta',
     }),
   ],
+  preview: {
+    select: {
+      title: 'Home',
+    },
+  },
 })

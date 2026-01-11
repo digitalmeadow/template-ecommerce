@@ -10,7 +10,29 @@ export const products = (S: StructureBuilder) => {
 		.schemaType('product')
 		.child(
 			S.documentTypeList('product').child(
-				(id) => documentEditor(S, 'product', id)
+				(productId) =>
+					S.list()
+						.title('Product')
+						.items([
+							// Product
+							S.listItem()
+								.title('Product Details')
+								.icon(DocumentsIcon)
+								.child(documentEditor(S, 'product', productId)),
+							S.divider(),
+							// Product variants
+							S.listItem()
+								.title('Variants')
+								.icon(DocumentsIcon)
+								.child(
+									S.documentList()
+										.title('Variants')
+										.schemaType('productVariant')
+										.filter('_type == "productVariant" && product._ref == $productId')
+										.params({productId})
+										.child((variantId) => documentEditor(S, 'productVariant', variantId))
+								),
+						])
 			)
 		)
 }

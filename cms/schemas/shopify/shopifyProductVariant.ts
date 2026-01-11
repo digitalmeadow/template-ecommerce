@@ -8,6 +8,7 @@ export const shopifyProductVariant = defineType({
     defineField({
       type: 'string',
       name: 'id',
+      title: 'ID',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -18,11 +19,12 @@ export const shopifyProductVariant = defineType({
     defineField({
       type: 'string',
       name: 'sku',
-      validation: (Rule) => Rule.required(),
+      title: 'SKU',
     }),
     defineField({
       type: 'string',
       name: 'productId',
+      title: 'Product ID',
       validation: (Rule) => Rule.required(),
     }),
   ],

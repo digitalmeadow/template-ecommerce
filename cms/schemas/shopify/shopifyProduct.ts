@@ -8,6 +8,7 @@ export const shopifyProduct = defineType({
     defineField({
       type: 'string',
       name: 'id',
+      title: 'ID',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
