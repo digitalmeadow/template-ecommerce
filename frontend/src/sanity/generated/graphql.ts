@@ -63,6 +63,48 @@ export type ButtonSorting = {
   link?: InputMaybe<LinkSorting>;
 };
 
+export type Collection = Document & {
+  __typename: 'Collection';
+  /** Date the document was created */
+  _createdAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Document ID */
+  _id?: Maybe<Scalars['ID']['output']>;
+  _key?: Maybe<Scalars['String']['output']>;
+  /** Current document revision */
+  _rev?: Maybe<Scalars['String']['output']>;
+  /** Document type */
+  _type?: Maybe<Scalars['String']['output']>;
+  /** Date the document was last modified */
+  _updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  meta?: Maybe<Meta>;
+  sections?: Maybe<Array<Maybe<SectionHero>>>;
+  shopify?: Maybe<ShopifyCollection>;
+};
+
+export type CollectionFilter = {
+  /** Apply filters on document level */
+  _?: InputMaybe<Sanity_DocumentFilter>;
+  _createdAt?: InputMaybe<DatetimeFilter>;
+  _id?: InputMaybe<IdFilter>;
+  _key?: InputMaybe<StringFilter>;
+  _rev?: InputMaybe<StringFilter>;
+  _type?: InputMaybe<StringFilter>;
+  _updatedAt?: InputMaybe<DatetimeFilter>;
+  meta?: InputMaybe<MetaFilter>;
+  shopify?: InputMaybe<ShopifyCollectionFilter>;
+};
+
+export type CollectionSorting = {
+  _createdAt?: InputMaybe<SortOrder>;
+  _id?: InputMaybe<SortOrder>;
+  _key?: InputMaybe<SortOrder>;
+  _rev?: InputMaybe<SortOrder>;
+  _type?: InputMaybe<SortOrder>;
+  _updatedAt?: InputMaybe<SortOrder>;
+  meta?: InputMaybe<MetaSorting>;
+  shopify?: InputMaybe<ShopifyCollectionSorting>;
+};
+
 export type CrossDatasetReference = {
   __typename: 'CrossDatasetReference';
   _dataset?: Maybe<Scalars['String']['output']>;
@@ -844,8 +886,95 @@ export type PageSorting = {
   title?: InputMaybe<SortOrder>;
 };
 
+export type Product = Document & {
+  __typename: 'Product';
+  /** Date the document was created */
+  _createdAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Document ID */
+  _id?: Maybe<Scalars['ID']['output']>;
+  _key?: Maybe<Scalars['String']['output']>;
+  /** Current document revision */
+  _rev?: Maybe<Scalars['String']['output']>;
+  /** Document type */
+  _type?: Maybe<Scalars['String']['output']>;
+  /** Date the document was last modified */
+  _updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  meta?: Maybe<Meta>;
+  sections?: Maybe<Array<Maybe<SectionHero>>>;
+  shopify?: Maybe<ShopifyProduct>;
+};
+
+export type ProductFilter = {
+  /** Apply filters on document level */
+  _?: InputMaybe<Sanity_DocumentFilter>;
+  _createdAt?: InputMaybe<DatetimeFilter>;
+  _id?: InputMaybe<IdFilter>;
+  _key?: InputMaybe<StringFilter>;
+  _rev?: InputMaybe<StringFilter>;
+  _type?: InputMaybe<StringFilter>;
+  _updatedAt?: InputMaybe<DatetimeFilter>;
+  meta?: InputMaybe<MetaFilter>;
+  shopify?: InputMaybe<ShopifyProductFilter>;
+};
+
+export type ProductSorting = {
+  _createdAt?: InputMaybe<SortOrder>;
+  _id?: InputMaybe<SortOrder>;
+  _key?: InputMaybe<SortOrder>;
+  _rev?: InputMaybe<SortOrder>;
+  _type?: InputMaybe<SortOrder>;
+  _updatedAt?: InputMaybe<SortOrder>;
+  meta?: InputMaybe<MetaSorting>;
+  shopify?: InputMaybe<ShopifyProductSorting>;
+};
+
+export type ProductVariant = Document & {
+  __typename: 'ProductVariant';
+  /** Date the document was created */
+  _createdAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Document ID */
+  _id?: Maybe<Scalars['ID']['output']>;
+  _key?: Maybe<Scalars['String']['output']>;
+  /** Current document revision */
+  _rev?: Maybe<Scalars['String']['output']>;
+  /** Document type */
+  _type?: Maybe<Scalars['String']['output']>;
+  /** Date the document was last modified */
+  _updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  meta?: Maybe<Meta>;
+  product?: Maybe<Product>;
+  sections?: Maybe<Array<Maybe<SectionHero>>>;
+  shopify?: Maybe<ShopifyProductVariant>;
+};
+
+export type ProductVariantFilter = {
+  /** Apply filters on document level */
+  _?: InputMaybe<Sanity_DocumentFilter>;
+  _createdAt?: InputMaybe<DatetimeFilter>;
+  _id?: InputMaybe<IdFilter>;
+  _key?: InputMaybe<StringFilter>;
+  _rev?: InputMaybe<StringFilter>;
+  _type?: InputMaybe<StringFilter>;
+  _updatedAt?: InputMaybe<DatetimeFilter>;
+  meta?: InputMaybe<MetaFilter>;
+  product?: InputMaybe<ProductFilter>;
+  shopify?: InputMaybe<ShopifyProductVariantFilter>;
+};
+
+export type ProductVariantSorting = {
+  _createdAt?: InputMaybe<SortOrder>;
+  _id?: InputMaybe<SortOrder>;
+  _key?: InputMaybe<SortOrder>;
+  _rev?: InputMaybe<SortOrder>;
+  _type?: InputMaybe<SortOrder>;
+  _updatedAt?: InputMaybe<SortOrder>;
+  meta?: InputMaybe<MetaSorting>;
+  shopify?: InputMaybe<ShopifyProductVariantSorting>;
+};
+
 export type RootQuery = {
   __typename: 'RootQuery';
+  Collection?: Maybe<Collection>;
   Document?: Maybe<Document>;
   Footer?: Maybe<Footer>;
   Header?: Maybe<Header>;
@@ -853,8 +982,11 @@ export type RootQuery = {
   MediaTag?: Maybe<MediaTag>;
   MuxVideoAsset?: Maybe<MuxVideoAsset>;
   Page?: Maybe<Page>;
+  Product?: Maybe<Product>;
+  ProductVariant?: Maybe<ProductVariant>;
   SanityFileAsset?: Maybe<SanityFileAsset>;
   SanityImageAsset?: Maybe<SanityImageAsset>;
+  allCollection: Array<Collection>;
   allDocument: Array<Document>;
   allFooter: Array<Footer>;
   allHeader: Array<Header>;
@@ -862,8 +994,15 @@ export type RootQuery = {
   allMediaTag: Array<MediaTag>;
   allMuxVideoAsset: Array<MuxVideoAsset>;
   allPage: Array<Page>;
+  allProduct: Array<Product>;
+  allProductVariant: Array<ProductVariant>;
   allSanityFileAsset: Array<SanityFileAsset>;
   allSanityImageAsset: Array<SanityImageAsset>;
+};
+
+
+export type RootQueryCollectionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -902,6 +1041,16 @@ export type RootQueryPageArgs = {
 };
 
 
+export type RootQueryProductArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type RootQueryProductVariantArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type RootQuerySanityFileAssetArgs = {
   id: Scalars['ID']['input'];
 };
@@ -909,6 +1058,14 @@ export type RootQuerySanityFileAssetArgs = {
 
 export type RootQuerySanityImageAssetArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type RootQueryAllCollectionArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<Array<CollectionSorting>>;
+  where?: InputMaybe<CollectionFilter>;
 };
 
 
@@ -965,6 +1122,22 @@ export type RootQueryAllPageArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
   sort?: InputMaybe<Array<PageSorting>>;
   where?: InputMaybe<PageFilter>;
+};
+
+
+export type RootQueryAllProductArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<Array<ProductSorting>>;
+  where?: InputMaybe<ProductFilter>;
+};
+
+
+export type RootQueryAllProductVariantArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<Array<ProductVariantSorting>>;
+  where?: InputMaybe<ProductVariantFilter>;
 };
 
 
@@ -1379,6 +1552,87 @@ export type SectionHeroSorting = {
   _type?: InputMaybe<SortOrder>;
   backgroundMedia?: InputMaybe<MediaSorting>;
   heading?: InputMaybe<SortOrder>;
+};
+
+export type ShopifyCollection = {
+  __typename: 'ShopifyCollection';
+  _key?: Maybe<Scalars['String']['output']>;
+  _type?: Maybe<Scalars['String']['output']>;
+  handle?: Maybe<Slug>;
+  id?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+};
+
+export type ShopifyCollectionFilter = {
+  _key?: InputMaybe<StringFilter>;
+  _type?: InputMaybe<StringFilter>;
+  handle?: InputMaybe<SlugFilter>;
+  id?: InputMaybe<StringFilter>;
+  title?: InputMaybe<StringFilter>;
+};
+
+export type ShopifyCollectionSorting = {
+  _key?: InputMaybe<SortOrder>;
+  _type?: InputMaybe<SortOrder>;
+  handle?: InputMaybe<SlugSorting>;
+  id?: InputMaybe<SortOrder>;
+  title?: InputMaybe<SortOrder>;
+};
+
+export type ShopifyProduct = {
+  __typename: 'ShopifyProduct';
+  _key?: Maybe<Scalars['String']['output']>;
+  _type?: Maybe<Scalars['String']['output']>;
+  handle?: Maybe<Slug>;
+  id?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+};
+
+export type ShopifyProductFilter = {
+  _key?: InputMaybe<StringFilter>;
+  _type?: InputMaybe<StringFilter>;
+  handle?: InputMaybe<SlugFilter>;
+  id?: InputMaybe<StringFilter>;
+  status?: InputMaybe<StringFilter>;
+  title?: InputMaybe<StringFilter>;
+};
+
+export type ShopifyProductSorting = {
+  _key?: InputMaybe<SortOrder>;
+  _type?: InputMaybe<SortOrder>;
+  handle?: InputMaybe<SlugSorting>;
+  id?: InputMaybe<SortOrder>;
+  status?: InputMaybe<SortOrder>;
+  title?: InputMaybe<SortOrder>;
+};
+
+export type ShopifyProductVariant = {
+  __typename: 'ShopifyProductVariant';
+  _key?: Maybe<Scalars['String']['output']>;
+  _type?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['String']['output']>;
+  productId?: Maybe<Scalars['String']['output']>;
+  sku?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+};
+
+export type ShopifyProductVariantFilter = {
+  _key?: InputMaybe<StringFilter>;
+  _type?: InputMaybe<StringFilter>;
+  id?: InputMaybe<StringFilter>;
+  productId?: InputMaybe<StringFilter>;
+  sku?: InputMaybe<StringFilter>;
+  title?: InputMaybe<StringFilter>;
+};
+
+export type ShopifyProductVariantSorting = {
+  _key?: InputMaybe<SortOrder>;
+  _type?: InputMaybe<SortOrder>;
+  id?: InputMaybe<SortOrder>;
+  productId?: InputMaybe<SortOrder>;
+  sku?: InputMaybe<SortOrder>;
+  title?: InputMaybe<SortOrder>;
 };
 
 export type Slug = {

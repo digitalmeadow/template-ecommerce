@@ -11,12 +11,8 @@ const componentQuery: FooterQueryQuery =
 const footerData = selectDocument(componentQuery.allFooter);
 ---
 
-<footer id="footer" class:list={[{ hidden: Astro.url.pathname === "/" }]}>
-  <div class="row">
-    <div class="description">
-      <PortableText value={footerData?.textRaw} />
-    </div>
-
+<footer class:list={[{ hidden: Astro.url.pathname === "/" }]}>
+  <div class="nav">
     {
       footerData?.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
@@ -28,6 +24,8 @@ const footerData = selectDocument(componentQuery.allFooter);
       })
     }
   </div>
+
+  <PortableText value={footerData?.textRaw} />
 </footer>
 
 <style>
@@ -35,8 +33,12 @@ const footerData = selectDocument(componentQuery.allFooter);
     margin-top: var(--s200);
     padding: 0 var(--margin) var(--margin);
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    color: var(--color-grey);
+    justify-content: space-between;
+  }
+
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s8);
   }
 </style>

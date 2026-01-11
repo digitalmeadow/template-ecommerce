@@ -10,13 +10,10 @@ const componentQuery: HeaderQueryQuery =
 const headerData = selectDocument(componentQuery.allHeader);
 ---
 
-<header id="header">
-  <nav class="buttons">
-    <a
-      class:list={["button", "main", { active: Astro.url.pathname === "/" }]}
-      href="/">Home</a
-    >
+<header>
+  <a href="/"> Template Ecommerce </a>
 
+  <nav>
     {
       headerData?.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
@@ -32,13 +29,15 @@ const headerData = selectDocument(componentQuery.allHeader);
 
 <style>
   header {
-    position: fixed;
-    z-index: 10;
-    top: 0;
-    left: 0;
     width: 100%;
     padding: var(--margin) var(--margin);
     display: flex;
     justify-content: space-between;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s8);
   }
 </style>

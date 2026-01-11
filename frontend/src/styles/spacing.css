@@ -17,9 +17,9 @@
   --s300: 300px;
   --s400: 400px;
 
-  --number-of-columns: 4;
-  --margin: 80px;
-  --gutter: 60px;
+  --number-of-columns: 16;
+  --margin: 20px;
+  --gutter: 20px;
 
   --container-max-width: 1400px;
   --container-width: min(
@@ -37,13 +37,7 @@
   --margin-dynamic: calc((100 * var(--vw) - var(--container-width)) / 2);
 }
 
-@media (max-width: 1000px) {
-  :root {
-    --margin-inner: var(--margin);
-  }
-}
-
-@media (max-width: 500px) {
+@media (max-width: 800px) {
   :root {
     --s16: 8px;
     --s24: 16px;
@@ -55,8 +49,5 @@
     --s200: 120px;
     --s300: 200px;
     --s400: 300px;
-
-    --margin: 24px;
-    --margin-inner: var(--margin);
   }
 }

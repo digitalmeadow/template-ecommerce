@@ -14,6 +14,7 @@ import {collection} from './pages/collection'
 import {shopifyProduct} from './shopify/shopifyProduct'
 import {shopifyProductVariant} from './shopify/shopifyProductVariant'
 import {shopifyCollection} from './shopify/shopifyCollection'
+import {sectionText} from './sections/sectionText'
 
 export const schemaTypes = [
   // Fields
@@ -33,6 +34,7 @@ export const schemaTypes = [
 
   // Sections
   sectionHero,
+  sectionText,
 
   // Components
   header,

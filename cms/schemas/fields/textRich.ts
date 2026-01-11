@@ -2,7 +2,6 @@ import {defineArrayMember, defineType} from 'sanity'
 import Italics from '../../components/marks/Italics'
 import {ImageIcon, TextIcon} from '@sanity/icons'
 
-// Basic rich text with default settings
 export const textRich = defineType({
   type: 'array',
   name: 'textRich',

@@ -11,13 +11,36 @@ const { section }: Props = Astro.props;
 ---
 
 <section>
+  <div class="media">
+    <Media
+      mediaData={section.backgroundMedia}
+      layout="cover"
+      sizes={[100, 100, 100]}
+    />
+  </div>
+
   <h1>{section.heading}</h1>
-
-  <Media
-    mediaData={section.backgroundMedia}
-    layout="contain"
-    sizes={[100, 100, 100]}
-  />
-
   <PortableText value={section.textRaw} />
 </section>
+
+<style>
+  section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--s200) var(--margin);
+    color: var(--color-white);
+  }
+
+  .media {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+</style>
