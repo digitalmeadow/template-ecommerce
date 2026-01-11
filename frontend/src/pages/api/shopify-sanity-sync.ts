@@ -81,6 +81,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({ success: true, duration }), {
       status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   } catch (error: any) {
     const duration = Date.now() - startTime;
@@ -98,6 +101,9 @@ export const POST: APIRoute = async ({ request }) => {
       }),
       {
         status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     );
   }
