@@ -10,7 +10,7 @@ interface Props {
 const { productData }: Props = Astro.props;
 ---
 
-<section>
+<section data-product-root>
   <ProductGallery productData={productData} />
   <ProductPurchase productData={productData} />
 </section>

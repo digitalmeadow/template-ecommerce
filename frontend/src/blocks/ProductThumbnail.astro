@@ -1,10 +1,10 @@
 ---
-import type { ProductShopifySanity } from "../lib/fetches/productShopifySanity";
+import type { ProductThumbnailShopifySanity } from "../lib/fetches/productShopifySanity";
 import SanityMedia from "../fields/SanityMedia.astro";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "../../config";
 
 interface Props {
-  productData: ProductShopifySanity;
+  productData: ProductThumbnailShopifySanity;
 }
 
 const { productData }: Props = Astro.props;

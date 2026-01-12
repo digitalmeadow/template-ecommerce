@@ -7,11 +7,13 @@ import ProductSection from "../../sections/product/ProductSection.astro";
 
 export async function getStaticPaths() {
   const productsQueryQuery = await sanityClient.request(productsQuery);
-  const paths = productsQueryQuery.allProduct.map((product) => {
-    return {
-      params: { slug: product.shopify!.handle!.current! },
-    };
-  });
+  const paths = productsQueryQuery.allProduct
+    .filter((product) => product.shopify!.status === "active")
+    .map((product) => {
+      return {
+        params: { slug: product.shopify!.handle!.current! },
+      };
+    });
   return paths;
 }
 

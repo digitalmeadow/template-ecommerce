@@ -1,3 +1,20 @@
+fragment ProductThumbnail on Product {
+  __typename
+  _id
+
+  mediaThumbnail {
+    ...Media
+  }
+
+  shopify {
+    title
+    handle {
+      ...Slug
+    }
+    status
+  }
+}
+
 fragment Product on Product {
   __typename
   _id
@@ -19,5 +36,6 @@ fragment Product on Product {
     handle {
       ...Slug
     }
+    status
   }
 }

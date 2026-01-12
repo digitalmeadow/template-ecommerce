@@ -3,8 +3,8 @@ import type { SectionCollectionFragment } from "sanity/generated/graphql";
 import { shopifyClient } from "shopify/client";
 import { collectionByHandleQuery } from "shopify/queries/collection";
 import {
-  type ProductShopifySanity,
-  fetchProductShopifySanity,
+  type ProductThumbnailShopifySanity,
+  fetchProductThumbnailShopifySanity,
 } from "../lib/fetches/productShopifySanity";
 import ProductThumbnail from "../blocks/ProductThumbnail.astro";
 
@@ -27,9 +27,9 @@ const productHandles =
     (edge) => edge?.node?.handle
   ) || [];
 
-let productsData: ProductShopifySanity[] = [];
+let productsData: ProductThumbnailShopifySanity[] = [];
 for (const handle of productHandles || []) {
-  const productData = await fetchProductShopifySanity(handle);
+  const productData = await fetchProductThumbnailShopifySanity(handle);
   productsData.push(productData);
 }
 ---

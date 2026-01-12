@@ -23,6 +23,8 @@ fragment Cart on Cart {
 }
 
 fragment CartLine on CartLine {
+  __typename
+
   id
   quantity
   discountAllocations {
@@ -39,11 +41,5 @@ fragment CartLine on CartLine {
     ... on ProductVariant {
       ...MerchandiseFields
     }
-  }
-}
-
-query cartById($id: ID!) {
-  cart(id: $id) {
-    ...Cart
   }
 }

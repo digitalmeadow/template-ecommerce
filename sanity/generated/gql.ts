@@ -27,7 +27,7 @@ type Documents = {
     "fragment Collection on Collection {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}": typeof types.CollectionFragmentDoc,
     "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.HomeFragmentDoc,
     "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}": typeof types.PageFragmentDoc,
-    "fragment Product on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  mediaGallery {\n    ...Media\n  }\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}": typeof types.ProductFragmentDoc,
+    "fragment ProductThumbnail on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n    status\n  }\n}\n\nfragment Product on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  mediaGallery {\n    ...Media\n  }\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n    status\n  }\n}": typeof types.ProductThumbnailFragmentDoc,
     "fragment ProductVariant on ProductVariant {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n  }\n}": typeof types.ProductVariantFragmentDoc,
     "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}": typeof types.SectionCollectionFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": typeof types.SectionHeroFragmentDoc,
@@ -37,6 +37,7 @@ type Documents = {
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": typeof types.HomeQueryDocument,
     "\n  query PageQuery($slug: String!) {\n    allPage(where: { slug: { current: { eq: $slug } } }) {\n      ...Page\n    }\n  }\n": typeof types.PageQueryDocument,
     "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n": typeof types.PagesQueryDocument,
+    "\n  query ProductThumbnailByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...ProductThumbnail\n    }\n  }\n": typeof types.ProductThumbnailByHandleQueryDocument,
     "\n  query ProductByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Product\n    }\n  }\n": typeof types.ProductByHandleQueryDocument,
     "\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n": typeof types.ProductsQueryDocument,
 };
@@ -54,7 +55,7 @@ const documents: Documents = {
     "fragment Collection on Collection {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}": types.CollectionFragmentDoc,
     "fragment Home on Home {\n  __typename\n  _id\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}": types.HomeFragmentDoc,
     "fragment Page on Page {\n  __typename\n  _id\n  title\n  slug {\n    ...Slug\n  }\n  sections {\n    ...SectionHero\n    ...SectionText\n    ...SectionCollection\n  }\n  meta {\n    ...Meta\n  }\n}": types.PageFragmentDoc,
-    "fragment Product on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  mediaGallery {\n    ...Media\n  }\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}": types.ProductFragmentDoc,
+    "fragment ProductThumbnail on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n    status\n  }\n}\n\nfragment Product on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  mediaGallery {\n    ...Media\n  }\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n    status\n  }\n}": types.ProductThumbnailFragmentDoc,
     "fragment ProductVariant on ProductVariant {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n  }\n}": types.ProductVariantFragmentDoc,
     "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}": types.SectionCollectionFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": types.SectionHeroFragmentDoc,
@@ -64,6 +65,7 @@ const documents: Documents = {
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": types.HomeQueryDocument,
     "\n  query PageQuery($slug: String!) {\n    allPage(where: { slug: { current: { eq: $slug } } }) {\n      ...Page\n    }\n  }\n": types.PageQueryDocument,
     "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n": types.PagesQueryDocument,
+    "\n  query ProductThumbnailByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...ProductThumbnail\n    }\n  }\n": types.ProductThumbnailByHandleQueryDocument,
     "\n  query ProductByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Product\n    }\n  }\n": types.ProductByHandleQueryDocument,
     "\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n": types.ProductsQueryDocument,
 };
@@ -137,7 +139,7 @@ export function graphql(source: "fragment Page on Page {\n  __typename\n  _id\n 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Product on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  mediaGallery {\n    ...Media\n  }\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}"): (typeof documents)["fragment Product on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  mediaGallery {\n    ...Media\n  }\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n  }\n}"];
+export function graphql(source: "fragment ProductThumbnail on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n    status\n  }\n}\n\nfragment Product on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  mediaGallery {\n    ...Media\n  }\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n    status\n  }\n}"): (typeof documents)["fragment ProductThumbnail on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n    status\n  }\n}\n\nfragment Product on Product {\n  __typename\n  _id\n  mediaThumbnail {\n    ...Media\n  }\n  mediaGallery {\n    ...Media\n  }\n  meta {\n    ...Meta\n  }\n  shopify {\n    title\n    handle {\n      ...Slug\n    }\n    status\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -174,6 +176,10 @@ export function graphql(source: "\n  query PageQuery($slug: String!) {\n    allP
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n"): (typeof documents)["\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProductThumbnailByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...ProductThumbnail\n    }\n  }\n"): (typeof documents)["\n  query ProductThumbnailByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...ProductThumbnail\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

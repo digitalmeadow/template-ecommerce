@@ -1,6 +1,4 @@
 ---
-// A variant selector for products with multiple variants (e.g., size, color).
-// Uses data- attributes to manage variant selection and update the displayed price accordingly.
 import type { ProductShopifySanity } from "../../lib/fetches/productShopifySanity";
 
 interface Props {
@@ -8,23 +6,32 @@ interface Props {
 }
 
 const { productData }: Props = Astro.props;
+
+const selectIdSafe = productData.shopify.id.replace(/[^a-zA-Z0-9_-]/g, "_");
+const variantSelectId = `variant-select-${selectIdSafe}`;
 ---
 
-<div class="variant-selector">
-  <label for="variant-select">Choose a variant:</label>
+<div class="variant-selector" data-variant-selector>
+  <label for={variantSelectId}>Choose a variant</label>
+
   <select
-    id="variant-select"
-    name="variant-select"
-    data-product-id={productData.shopify?.id}
+    id={variantSelectId}
+    name="variantId"
+    data-variant-select
+    data-product-id={productData.shopify.id}
   >
     {
-      productData.shopify?.variants?.edges.map((edge) => (
+      productData.shopify.variants.edges.map(({ node }) => (
         <option
-          value={edge.node.id}
-          data-price={edge.node.price?.amount}
-          data-available={edge.node}
+          value={node.id}
+          data-title={node.title}
+          data-available={node.availableForSale ? "true" : "false"}
+          data-price-amount={node.price?.amount}
+          data-price-currency={node.price?.currencyCode}
+          data-compare-at-amount={node.compareAtPrice?.amount ?? ""}
+          data-compare-at-currency={node.compareAtPrice?.currencyCode ?? ""}
         >
-          {edge.node.title} - ${edge.node.price?.amount}
+          {node.title}
         </option>
       ))
     }
@@ -32,18 +39,65 @@ const { productData }: Props = Astro.props;
 </div>
 
 <script>
-  const variantSelect = document.getElementById("variant-select");
+  function initialiseVariantSelector(rootElement: Element) {
+    const productRoot = rootElement.closest(
+      "[data-product-root]"
+    ) as HTMLElement;
+    if (!productRoot)
+      throw new Error("ProductVariantSelector: missing [data-product-root]");
 
-  variantSelect!.addEventListener("change", (event) => {
-    const selectElement = event.target as HTMLSelectElement;
-    if (!selectElement) return;
+    const selectElement = rootElement.querySelector(
+      "[data-variant-select]"
+    ) as HTMLSelectElement;
+    if (!(selectElement instanceof HTMLSelectElement))
+      throw new Error(
+        "ProductVariantSelector: expected <select data-variant-select>"
+      );
 
-    const selectedOption = selectElement.selectedOptions[0];
-    const price = selectedOption.getAttribute("data-price");
+    function selectedVariantDetail() {
+      const option = selectElement.selectedOptions[0];
+      if (!option)
+        throw new Error("ProductVariantSelector: no selected option");
 
-    const priceElements = document.querySelectorAll("[data-bind-price]");
-    priceElements.forEach((el) => {
-      el.textContent = `$${price}`;
-    });
-  });
+      const priceAmount = option.dataset.priceAmount;
+      const priceCurrency = option.dataset.priceCurrency;
+      const compareAtAmount = option.dataset.compareAtAmount;
+      const compareAtCurrency = option.dataset.compareAtCurrency;
+
+      return {
+        productId: selectElement.dataset.productId,
+        variantId: option.value,
+        title: option.dataset.title ?? option.textContent ?? "",
+        available: option.dataset.available === "true",
+        price:
+          priceAmount && priceCurrency
+            ? { amount: priceAmount, currencyCode: priceCurrency }
+            : null,
+        compareAtPrice:
+          compareAtAmount && compareAtCurrency
+            ? { amount: compareAtAmount, currencyCode: compareAtCurrency }
+            : null,
+      };
+    }
+
+    function emitVariantChange() {
+      if (!productRoot)
+        throw new Error("ProductVariantSelector: missing [data-product-root]");
+
+      productRoot.dispatchEvent(
+        new CustomEvent("product:variant-change", {
+          bubbles: true,
+          detail: selectedVariantDetail(),
+        })
+      );
+    }
+
+    selectElement.addEventListener("change", emitVariantChange);
+    document.addEventListener("DOMContentLoaded", emitVariantChange);
+  }
+
+  const rootElements = document.querySelectorAll("[data-variant-selector]");
+  for (const rootElement of rootElements) {
+    initialiseVariantSelector(rootElement);
+  }
 </script>

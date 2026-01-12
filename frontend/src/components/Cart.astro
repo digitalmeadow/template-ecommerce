@@ -1,0 +1,237 @@
+<div class="cart" data-cart>
+  <ul data-cart-items></ul>
+
+  <template data-cart-line-template>
+    <li data-cart-line>
+      <img data-cart-line-image />
+      <span data-cart-line-title></span>
+      <span data-cart-line-quantity></span>
+      <span data-cart-line-price></span>
+      <button data-cart-line-remove>Remove</button>
+    </li>
+  </template>
+
+  <div data-cart-total></div>
+  <button data-cart-checkout style="display: none;">Checkout</button>
+</div>
+
+<script>
+  import { shopifyClient } from "shopify/client";
+  import { cartByIdQuery } from "shopify/queries/cart";
+  import { cartLinesRemoveMutation } from "shopify/mutations/cart";
+  import { sanityClient } from "sanity/client";
+  import { productThumbnailByHandleQuery } from "sanity/queries/product";
+  import { getSanityImageProps } from "../lib/sanity/image";
+  import { selectDocument } from "../lib/sanity/drafts";
+
+  async function initialiseCart(rootElement: HTMLElement) {
+    const itemsList = rootElement.querySelector(
+      "[data-cart-items]"
+    ) as HTMLElement;
+    const totalElement = rootElement.querySelector(
+      "[data-cart-total]"
+    ) as HTMLElement;
+    const checkoutBtn = rootElement.querySelector(
+      "[data-cart-checkout]"
+    ) as HTMLButtonElement;
+    const cartLineTemplate = rootElement.querySelector(
+      "[data-cart-line-template]"
+    ) as HTMLTemplateElement;
+
+    if (!itemsList || !totalElement || !cartLineTemplate || !checkoutBtn)
+      throw new Error("Cart: missing required elements inside [data-cart]");
+
+    function formatMoney(amount: number, currencyCode: string) {
+      const numericAmount = Number(amount);
+      if (!Number.isFinite(numericAmount)) return "";
+      try {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: currencyCode,
+        }).format(numericAmount);
+      } catch {
+        return String(numericAmount);
+      }
+    }
+
+    async function fetchCart(cartId: string) {
+      const response = await shopifyClient.request(cartByIdQuery, { cartId });
+      return response.cart;
+    }
+
+    async function fetchThumbnail(variantHandle: string) {
+      try {
+        const res = await sanityClient.request(productThumbnailByHandleQuery, {
+          handle: variantHandle,
+        });
+        return selectDocument(res.allProduct);
+      } catch (err) {
+        console.warn("Failed to fetch thumbnail for", variantHandle, err);
+        return null;
+      }
+    }
+
+    // caches
+    const thumbnailCache: Record<string, any> = {};
+    const storedThumbnails = localStorage.getItem("cartThumbnailCache");
+    if (storedThumbnails) {
+      try {
+        Object.assign(thumbnailCache, JSON.parse(storedThumbnails));
+      } catch {}
+    }
+
+    async function renderCartLines(cart: any) {
+      itemsList.innerHTML = "";
+
+      if (!cart.lines?.edges?.length) return;
+
+      for (const edge of cart.lines.edges) {
+        const line = edge.node;
+        if (line.__typename !== "CartLine") continue;
+
+        const variant = line.merchandise;
+        const lineTotal = line.cost?.totalAmount;
+        const handle = variant.product.handle;
+
+        // clone template
+        const fragment = cartLineTemplate.content.cloneNode(
+          true
+        ) as DocumentFragment;
+        const itemElement = fragment.firstElementChild as HTMLElement;
+        if (!itemElement) continue;
+        itemElement.setAttribute("data-handle", handle);
+        itemsList.appendChild(itemElement);
+
+        const imgEl = itemElement.querySelector(
+          "[data-cart-line-image]"
+        ) as HTMLImageElement;
+        const titleEl = itemElement.querySelector("[data-cart-line-title]");
+        const quantityEl = itemElement.querySelector(
+          "[data-cart-line-quantity]"
+        );
+        const priceEl = itemElement.querySelector("[data-cart-line-price]");
+        const removeBtn = itemElement.querySelector(
+          "[data-cart-line-remove]"
+        ) as HTMLButtonElement;
+
+        if (titleEl) titleEl.textContent = variant?.title ?? "Unknown variant";
+        if (quantityEl) quantityEl.textContent = String(line.quantity);
+        if (priceEl && lineTotal)
+          priceEl.textContent = formatMoney(
+            lineTotal.amount,
+            lineTotal.currencyCode
+          );
+
+        // cached thumbnail
+        if (thumbnailCache[handle] && imgEl) {
+          const thumb = thumbnailCache[handle];
+          Object.assign(imgEl, {
+            src: thumb.src,
+            srcset: thumb.srcset,
+            sizes: thumb.sizes,
+            alt: thumb.alt ?? "",
+          });
+        }
+
+        // fetch fresh thumbnail
+        fetchThumbnail(handle).then((fresh) => {
+          if (fresh) {
+            const props = getSanityImageProps({
+              sanityImage: fresh.mediaThumbnail?.image,
+            });
+            thumbnailCache[handle] = props;
+            localStorage.setItem(
+              "cartThumbnailCache",
+              JSON.stringify(thumbnailCache)
+            );
+            if (imgEl)
+              Object.assign(imgEl, {
+                src: props.src,
+                srcset: props.srcset,
+                sizes: props.sizes,
+                alt: props.alt ?? "",
+              });
+          }
+        });
+
+        // remove button
+        if (removeBtn) {
+          removeBtn.textContent = "Remove";
+          removeBtn.disabled = false;
+
+          removeBtn.addEventListener("click", async () => {
+            if (!cart.id || !line.id) return;
+            removeBtn.textContent = "Removing...";
+            removeBtn.disabled = true;
+            try {
+              await shopifyClient.request(cartLinesRemoveMutation, {
+                cartId: cart.id,
+                lineIds: [line.id],
+              });
+              renderCart();
+            } catch (err) {
+              console.error("Failed to remove line:", err);
+              removeBtn.textContent = "Remove";
+              removeBtn.disabled = false;
+            }
+          });
+        }
+      }
+    }
+
+    async function renderCart() {
+      const cartId = localStorage.getItem("shopifyCartId");
+      if (!cartId) {
+        itemsList.innerHTML = "<li>Your cart is empty.</li>";
+        totalElement.textContent = "";
+        checkoutBtn.style.display = "none";
+        return;
+      }
+
+      // cached cart render
+      const cachedCart = localStorage.getItem("shopifyCartData");
+      if (cachedCart) renderCartLines(JSON.parse(cachedCart));
+
+      // fetch fresh cart
+      try {
+        const freshCart = await fetchCart(cartId);
+        if (freshCart) {
+          localStorage.setItem("shopifyCartData", JSON.stringify(freshCart));
+          renderCartLines(freshCart);
+
+          const total = freshCart.cost?.totalAmount;
+          totalElement.textContent = total
+            ? `Total: ${formatMoney(total.amount, total.currencyCode)}`
+            : "";
+
+          // show checkout if cart has items
+          if (freshCart.lines?.edges?.length && freshCart.checkoutUrl) {
+            checkoutBtn.style.display = "inline-block";
+            checkoutBtn.onclick = () =>
+              (window.location.href = freshCart.checkoutUrl);
+          } else {
+            checkoutBtn.style.display = "none";
+          }
+        }
+      } catch (err) {
+        console.warn("[Cart] Failed to refresh cart:", err);
+      }
+    }
+
+    renderCart();
+    document.addEventListener("product:add-to-cart", async () => renderCart());
+  }
+
+  const rootElements = document.querySelectorAll("[data-cart]");
+  for (const rootElement of rootElements) {
+    initialiseCart(rootElement as HTMLElement);
+  }
+</script>
+
+<style>
+  img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+  }
+</style>

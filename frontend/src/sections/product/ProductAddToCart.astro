@@ -1,0 +1,144 @@
+---
+interface Props {
+  label?: string;
+}
+
+const { label = "Add to Cart" }: Props = Astro.props;
+---
+
+<div class="product-add-to-cart" data-product-add-to-cart>
+  <button type="button" data-add-to-cart-button>{label}</button>
+</div>
+
+<script>
+  import { shopifyClient } from "shopify/client";
+  import {
+    cartCreateMutation,
+    cartLinesAddMutation,
+  } from "shopify/mutations/cart";
+
+  async function initialiseProductAddToCart(rootElement: HTMLElement) {
+    const productRoot = rootElement.closest("[data-product-root]");
+    if (!productRoot)
+      throw new Error("ProductAddToCart: missing [data-product-root]");
+
+    const button = rootElement.querySelector(
+      "[data-add-to-cart-button]"
+    ) as HTMLButtonElement;
+
+    // Read the currently selected variant from the product root
+    function getCurrentVariantId() {
+      if (!productRoot)
+        throw new Error("ProductAddToCart: missing [data-product-root]");
+
+      const variantSelect = productRoot.querySelector(
+        "[data-variant-select]"
+      ) as HTMLSelectElement;
+      if (!variantSelect)
+        throw new Error(
+          "ProductAddToCart: missing [data-variant-select] inside product root"
+        );
+
+      return variantSelect.value;
+    }
+
+    // Read the currently selected quantity
+    function getCurrentQuantity() {
+      if (!productRoot)
+        throw new Error("ProductAddToCart: missing [data-product-root]");
+
+      const quantityInput = productRoot.querySelector(
+        "[data-quantity-input]"
+      ) as HTMLInputElement;
+      if (!quantityInput)
+        throw new Error(
+          "ProductAddToCart: missing [data-quantity-input] inside product root"
+        );
+
+      return Number(quantityInput.value);
+    }
+
+    async function addToCart(variantId: string, quantity: number) {
+      if (!productRoot)
+        throw new Error("ProductAddToCart: missing [data-product-root]");
+
+      if (!variantId)
+        throw new Error("ProductAddToCart: variantId is required");
+
+      if (!Number.isFinite(quantity) || quantity < 1)
+        throw new Error("ProductAddToCart: quantity must be at least 1");
+
+      // UI state
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = "Adding to cart...";
+
+      try {
+        // Retrieve or create a cart ID in localStorage
+        let cartId = localStorage.getItem("shopifyCartId");
+
+        let result;
+
+        if (!cartId) {
+          // Create a new cart with the initial line
+          const createResponse = await shopifyClient.request(
+            cartCreateMutation,
+            {
+              cartInput: {
+                lines: [{ merchandiseId: variantId, quantity }],
+              },
+            }
+          );
+
+          result = createResponse.cartCreate;
+          if (!result?.cart)
+            throw new Error(
+              result?.userErrors?.[0]?.message || "Cart creation failed"
+            );
+
+          cartId = result.cart.id;
+          localStorage.setItem("shopifyCartId", cartId);
+        } else {
+          // Add to existing cart
+          const addResponse = await shopifyClient.request(
+            cartLinesAddMutation,
+            {
+              cartId,
+              lines: [{ merchandiseId: variantId, quantity }],
+            }
+          );
+
+          result = addResponse.cartLinesAdd;
+          if (!result?.cart)
+            throw new Error(
+              result?.userErrors?.[0]?.message || "Adding to cart failed"
+            );
+        }
+
+        productRoot.dispatchEvent(
+          new CustomEvent("product:add-to-cart", {
+            bubbles: true,
+            detail: { variantId, quantity, cart: result.cart },
+          })
+        );
+      } catch (error: any) {
+        console.error("[ProductAddToCart] Error:", error);
+        alert(error.message ?? "Failed to add item to cart");
+      } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
+      }
+    }
+
+    button.addEventListener("click", async () => {
+      const variantId = getCurrentVariantId();
+      const quantity = getCurrentQuantity();
+      await addToCart(variantId, quantity);
+    });
+  }
+
+  const rootElements = document.querySelectorAll("[data-product-add-to-cart]");
+  for (const rootElement of rootElements) {
+    initialiseProductAddToCart(rootElement as HTMLElement);
+  }
+</script>
