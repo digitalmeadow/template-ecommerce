@@ -5,7 +5,7 @@ interface Props {
   max?: number;
 }
 
-const { initial = 1, min = 1, max }: Props = Astro.props;
+const { initial = 1, min = 1, max = Infinity }: Props = Astro.props;
 ---
 
 <div
@@ -34,65 +34,32 @@ const { initial = 1, min = 1, max }: Props = Astro.props;
 </div>
 
 <script>
-  function initialiseProductQuantitySelector(rootElement: HTMLElement) {
-    const productRoot = rootElement.closest(
-      "[data-product-root]"
-    ) as HTMLElement;
-    if (!productRoot)
-      throw new Error("ProductQuantitySelector: missing [data-product-root]");
-
-    const decreaseButton = rootElement.querySelector(
-      "[data-quantity-decrease]"
-    ) as HTMLElement;
-    const increaseButton = rootElement.querySelector(
-      "[data-quantity-increase]"
-    ) as HTMLElement;
-    const inputElement = rootElement.querySelector(
-      "[data-quantity-input]"
-    ) as HTMLInputElement;
-
-    const min = Number(rootElement.dataset.min ?? 1);
-    const max = Number(rootElement.dataset.max ?? Infinity);
-
-    function clampQuantity(value: number) {
-      let quantity = Math.floor(value);
-      if (Number.isNaN(quantity) || quantity < min) quantity = min;
-      if (Number.isFinite(max) && quantity > max) quantity = max;
-      return quantity;
-    }
-
-    function emitQuantityChange(quantity: number) {
-      productRoot.dispatchEvent(
-        new CustomEvent("product:quantity-change", {
-          bubbles: true,
-          detail: { quantity },
-        })
-      );
-    }
-
-    function setQuantity(nextQuantity: number) {
-      const quantity = clampQuantity(nextQuantity);
-      inputElement.value = String(quantity);
-      emitQuantityChange(quantity);
-    }
-
-    decreaseButton.addEventListener("click", () => {
-      setQuantity(Number(inputElement.value) - 1);
-    });
-
-    increaseButton.addEventListener("click", () => {
-      setQuantity(Number(inputElement.value) + 1);
-    });
-
-    inputElement.addEventListener("change", () => {
-      setQuantity(Number(inputElement.value));
-    });
-
-    setQuantity(Number(inputElement.value));
-  }
+  import { initQuantitySelector } from "../../lib/shopify/quantity";
 
   const rootElements = document.querySelectorAll("[data-product-quantity]");
   for (const rootElement of rootElements) {
-    initialiseProductQuantitySelector(rootElement as HTMLElement);
+    const productRoot = rootElement.closest(
+      "[data-product-root]"
+    ) as HTMLElement;
+
+    const initial = Number(rootElement.getAttribute("data-initial"));
+    const min = Number(rootElement.getAttribute("data-min"));
+    const max = Number(rootElement.getAttribute("data-max"));
+
+    initQuantitySelector(rootElement as HTMLElement, {
+      initial: initial,
+      min: min,
+      max: max,
+      onChange: (quantity) => {
+        if (productRoot) {
+          productRoot.dispatchEvent(
+            new CustomEvent("product:quantity-change", {
+              bubbles: true,
+              detail: { quantity },
+            })
+          );
+        }
+      },
+    });
   }
 </script>
