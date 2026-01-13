@@ -1,0 +1,74 @@
+---
+import CartLineQuantitySelector from "./CartLineQuantitySelector.astro";
+import CartLineRemoveButton from "./CartLineRemoveButton.astro";
+---
+
+<cart-line-item>
+  <span data-title></span>
+  <CartLineQuantitySelector />
+  <span data-price></span>
+  <CartLineRemoveButton />
+</cart-line-item>
+
+<script>
+  import type { CartLineQuantitySelectorElement } from "./CartLineQuantitySelector.astro.0.mts";
+  import type { CartLineItemRemoveButtonElement } from "./CartLineRemoveButton.astro.0.mts";
+
+  export class CartLineItemElement extends HTMLElement {
+    private titleElement!: HTMLSpanElement;
+    private priceElement!: HTMLSpanElement;
+    private quantitySelector!: CartLineQuantitySelectorElement;
+    private removeButton!: CartLineItemRemoveButtonElement;
+
+    connectedCallback() {
+      this.titleElement = this.querySelector("[data-title]")!;
+      this.priceElement = this.querySelector("[data-price]")!;
+      this.quantitySelector = this.querySelector(
+        "cart-line-quantity-selector"
+      )!;
+      this.removeButton = this.querySelector("cart-line-item-remove-button")!;
+
+      // Read attributes once on mount
+      const title = this.getAttribute("title")!;
+      const price = Number(this.getAttribute("price"));
+      const quantity = Number(this.getAttribute("quantity"));
+
+      // Initialize display
+      this.titleElement.textContent = title;
+      this.priceElement.textContent = price.toFixed(2);
+      this.quantitySelector.setAttribute("initial", String(quantity));
+
+      this.quantitySelector.addEventListener(
+        "quantity-selector:value-updated",
+        this.onQuantityChange
+      );
+      this.removeButton.addEventListener("cart-line:remove", this.onRemove);
+    }
+
+    disconnectedCallback() {
+      this.quantitySelector.removeEventListener(
+        "quantity-selector:value-updated",
+        this.onQuantityChange
+      );
+      this.removeButton.removeEventListener("cart-line:remove", this.onRemove);
+    }
+
+    onQuantityChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ value: number }>;
+      this.dispatchEvent(
+        new CustomEvent("cart-line:quantity-changed", {
+          detail: { quantity: customEvent.detail.value },
+          bubbles: true,
+        })
+      );
+    };
+
+    onRemove = (_e: Event) => {
+      this.dispatchEvent(
+        new CustomEvent("cart-line:remove", { bubbles: true })
+      );
+    };
+  }
+
+  customElements.define("cart-line-item", CartLineItemElement);
+</script>

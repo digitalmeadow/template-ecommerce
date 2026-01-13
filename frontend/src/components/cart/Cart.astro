@@ -1,0 +1,234 @@
+---
+import CartLineItem from "./CartLineItem.astro";
+---
+
+<cart-root>
+  <template data-cart-line-template>
+    <li>
+      <CartLineItem />
+    </li>
+  </template>
+
+  <ul data-cart-line-items></ul>
+  <div data-cart-total>
+    <span>Total: <span data-cart-total-price>$0.00</span></span>
+    <button data-cart-checkout>Checkout</button>
+  </div>
+</cart-root>
+
+<script>
+  import { shopifyClient } from "shopify/client";
+  import { cartByIdQuery } from "shopify/queries/cart";
+  import {
+    cartLinesUpdateMutation,
+    cartLinesRemoveMutation,
+  } from "shopify/mutations/cart";
+  import type { CartFragment } from "shopify/generated/graphql";
+
+  class CartRootElement extends HTMLElement {
+    private template!: HTMLTemplateElement;
+    private lineItemsContainer!: HTMLUListElement;
+    private totalElement!: HTMLDivElement;
+    private totalPriceElement!: HTMLSpanElement;
+    private checkoutButton!: HTMLButtonElement;
+
+    private cart: CartFragment | null = null;
+    private mutationQueue: Promise<void> = Promise.resolve();
+
+    connectedCallback() {
+      this.template = this.querySelector("[data-cart-line-template]")!;
+      this.lineItemsContainer = this.querySelector("[data-cart-line-items]")!;
+      this.totalElement = this.querySelector("[data-cart-total]")!;
+      this.totalPriceElement = this.querySelector("[data-cart-total-price]")!;
+      this.checkoutButton = this.querySelector("[data-cart-checkout]")!;
+
+      // Checkout click
+      this.checkoutButton.addEventListener("click", this.onCheckoutClick);
+
+      // Event delegation for child components
+      this.addEventListener(
+        "cart-line:quantity-changed",
+        this.onQuantityChange
+      );
+      this.addEventListener("cart-line:remove", this.onRemove);
+
+      // Re-render on "add-to-cart"
+      document.addEventListener("product:add-to-cart", this.onProductAdded);
+
+      // Load cart initially
+      this.loadCart();
+    }
+
+    disconnectedCallback() {
+      this.checkoutButton.removeEventListener("click", this.onCheckoutClick);
+      this.removeEventListener(
+        "cart-line:quantity-changed",
+        this.onQuantityChange
+      );
+      this.removeEventListener("cart-line:remove", this.onRemove);
+      document.removeEventListener("product:add-to-cart", this.onProductAdded);
+    }
+
+    onCheckoutClick = (_event: MouseEvent) => {
+      if (this.cart?.checkoutUrl) {
+        window.location.href = this.cart.checkoutUrl;
+      }
+    };
+
+    onProductAdded = async () => {
+      // Wait for any queued mutations to finish
+      await this.mutationQueue;
+      await this.loadCart();
+    };
+
+    onQuantityChange = async (e: Event) => {
+      const event = e as CustomEvent<{ quantity: number }>;
+      const li = (event.target as HTMLElement).closest("li") as HTMLLIElement;
+      const lineId = li?.dataset.lineId;
+      const newQuantity = event.detail.quantity;
+
+      const cartId = localStorage.getItem("shopifyCartId");
+      if (!cartId || !lineId) return;
+
+      this.mutationQueue = this.mutationQueue.then(async () => {
+        await shopifyClient.request(cartLinesUpdateMutation, {
+          cartId,
+          lines: [{ id: lineId, quantity: newQuantity }],
+        });
+        await this.loadCart(true);
+      });
+      await this.mutationQueue;
+    };
+
+    onRemove = async (e: Event) => {
+      const li = (e.target as HTMLElement).closest("li") as HTMLLIElement;
+      const lineId = li?.dataset.lineId;
+
+      const cartId = localStorage.getItem("shopifyCartId");
+      if (!cartId || !lineId) throw new Error("Missing cart ID or line ID");
+
+      this.mutationQueue = this.mutationQueue.then(async () => {
+        await shopifyClient.request(cartLinesRemoveMutation, {
+          cartId,
+          lineIds: [lineId],
+        });
+        await this.loadCart(true);
+      });
+      await this.mutationQueue;
+    };
+
+    async loadCart(skipCache = false) {
+      const cartId = localStorage.getItem("shopifyCartId");
+      if (!cartId) {
+        this.renderEmpty();
+        return;
+      }
+
+      // Load from cache first (unless skipped after mutations)
+      if (!skipCache) {
+        const cached = localStorage.getItem("shopifyCartData");
+        if (cached) {
+          this.cart = JSON.parse(cached) as CartFragment;
+          this.renderCart();
+        }
+      }
+
+      // Fetch fresh
+      try {
+        const freshCart = (
+          await shopifyClient.request(cartByIdQuery, { cartId })
+        ).cart;
+
+        if (!freshCart) {
+          // Cart no longer exists, clear everything
+          localStorage.removeItem("shopifyCartId");
+          localStorage.removeItem("shopifyCartData");
+          this.renderEmpty();
+          return;
+        }
+
+        this.cart = freshCart;
+        localStorage.setItem("shopifyCartData", JSON.stringify(freshCart));
+        this.renderCart();
+      } catch (error) {
+        console.error("Failed to load cart:", error);
+        // Keep showing cached data on error
+      }
+    }
+
+    clearLineItems() {
+      this.lineItemsContainer.innerHTML = "";
+    }
+
+    renderEmpty() {
+      this.setAttribute("state", "empty");
+      this.clearLineItems();
+
+      this.totalPriceElement.textContent = "$0.00";
+      this.checkoutButton.setAttribute("disabled", "true");
+      this.removeAttribute("checkout-valid");
+    }
+
+    renderCart() {
+      if (!this.cart || !this.cart.lines?.edges?.length) {
+        this.renderEmpty();
+        return;
+      }
+
+      this.setAttribute("state", "loaded");
+
+      this.clearLineItems();
+
+      for (const edge of this.cart.lines.edges) {
+        const line = edge.node;
+        if (line.__typename !== "CartLine") continue;
+
+        // Clone template
+        const li = (this.template.content.cloneNode(true) as DocumentFragment)
+          .firstElementChild as HTMLLIElement;
+        const cartLineItem = li.querySelector("cart-line-item") as HTMLElement;
+
+        // Populate attributes
+        cartLineItem.setAttribute(
+          "title",
+          line.merchandise?.title ?? "Unknown variant"
+        );
+        cartLineItem.setAttribute("quantity", String(line.quantity));
+        cartLineItem.setAttribute(
+          "price",
+          String(line.cost?.totalAmount?.amount ?? 0)
+        );
+
+        // Attach line id for event delegation
+        li.dataset.lineId = line.id;
+
+        this.lineItemsContainer.appendChild(li);
+      }
+
+      // Update total via attribute
+      const total = this.cart.cost?.totalAmount;
+      this.totalPriceElement.textContent = `${total.amount} ${total.currencyCode}`;
+
+      // Set checkout-valid if cart has items and checkout URL exists
+      if (this.cart.checkoutUrl && this.cart.lines?.edges?.length) {
+        this.setAttribute("checkout-valid", "");
+      } else {
+        this.removeAttribute("checkout-valid");
+      }
+    }
+  }
+
+  customElements.define("cart-root", CartRootElement);
+</script>
+
+<style>
+  cart-root[state="empty"] [data-cart-line-items]::before {
+    content: "Your cart is empty.";
+    display: block;
+  }
+
+  cart-root:not([checkout-valid]) [data-cart-checkout] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>

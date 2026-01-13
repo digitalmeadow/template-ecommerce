@@ -53,7 +53,7 @@ const { initial = 1, min = 1, max = Infinity }: Props = Astro.props;
       onChange: (quantity) => {
         if (productRoot) {
           productRoot.dispatchEvent(
-            new CustomEvent("product:quantity-change", {
+            new CustomEvent("product:quantity-changed", {
               bubbles: true,
               detail: { quantity },
             })

@@ -1,0 +1,132 @@
+<cart-line-quantity-selector>
+  <button type="button" data-decrease-button aria-label="Decrease quantity"
+    >−</button
+  >
+  <input
+    type="number"
+    inputmode="numeric"
+    min="1"
+    step="1"
+    pattern="[0-9]+"
+    data-input
+  />
+  <button type="button" data-increase-button aria-label="Increase quantity"
+    >+</button
+  >
+</cart-line-quantity-selector>
+
+<script>
+  import { z } from "astro/zod";
+
+  export class CartLineQuantitySelectorElement extends HTMLElement {
+    private input!: HTMLInputElement;
+    private decreaseButton!: HTMLButtonElement;
+    private increaseButton!: HTMLButtonElement;
+    private value!: number;
+
+    connectedCallback() {
+      this.input = this.querySelector("[data-input]")!;
+      this.decreaseButton = this.querySelector("[data-decrease-button]")!;
+      this.increaseButton = this.querySelector("[data-increase-button]")!;
+
+      // Initialize from 'initial' attribute, default to 1
+      this.value = Math.max(Number(this.getAttribute("initial")) || 1, 1);
+
+      // Set accessibility attributes
+      this.input.setAttribute("aria-label", "Quantity");
+
+      this.render();
+
+      this.decreaseButton.addEventListener("click", this.decrease);
+      this.increaseButton.addEventListener("click", this.increase);
+      this.input.addEventListener("change", this.onInputChange);
+    }
+
+    disconnectedCallback() {
+      this.decreaseButton.removeEventListener("click", this.decrease);
+      this.increaseButton.removeEventListener("click", this.increase);
+      this.input.removeEventListener("change", this.onInputChange);
+    }
+
+    render() {
+      this.input.value = String(this.value);
+      this.decreaseButton.disabled = this.value <= 1;
+    }
+
+    setUpdatingState(updating: boolean) {
+      if (updating) {
+        this.setAttribute("state", "updating");
+        this.input.setAttribute("aria-busy", "true");
+        this.decreaseButton.disabled = true;
+        this.increaseButton.disabled = true;
+        this.input.disabled = true;
+      } else {
+        this.removeAttribute("state");
+        this.input.removeAttribute("aria-busy");
+        this.input.disabled = false;
+        this.increaseButton.disabled = false;
+        this.render(); // Re-enable decrease button based on value
+      }
+    }
+
+    emitChange() {
+      this.setUpdatingState(true);
+      this.dispatchEvent(
+        new CustomEvent("quantity-selector:value-updated", {
+          detail: { value: this.value },
+          bubbles: true,
+        })
+      );
+    }
+
+    decrease = (event: MouseEvent) => {
+      event.preventDefault();
+      if (this.value > 1) {
+        this.value--;
+        this.render();
+        this.emitChange();
+      }
+    };
+
+    increase = (event: MouseEvent) => {
+      event.preventDefault();
+      this.value++;
+      this.render();
+      this.emitChange();
+    };
+
+    onInputChange = (_e: Event) => {
+      const quantitySchema = z.coerce.number().int().positive().min(1);
+      const result = quantitySchema.safeParse(this.input.value);
+
+      if (result.success) {
+        const next = result.data;
+        if (next !== this.value) {
+          this.value = next;
+          this.render();
+          this.emitChange();
+        }
+      } else {
+        // Invalid input - reset to current valid value
+        this.render();
+      }
+    };
+  }
+
+  customElements.define(
+    "cart-line-quantity-selector",
+    CartLineQuantitySelectorElement
+  );
+</script>
+
+<style>
+  cart-line-quantity-selector[state="updating"] {
+    cursor: wait;
+  }
+
+  cart-line-quantity-selector[state="updating"] input,
+  cart-line-quantity-selector[state="updating"] button {
+    opacity: 0.5;
+    cursor: wait;
+  }
+</style>

@@ -1,3 +1,7 @@
+---
+import CartLineQuantitySelector from "./CartLineQuantitySelector.astro";
+---
+
 <div class="cart" data-cart>
   <ul data-cart-items></ul>
 
@@ -6,15 +10,7 @@
       <img data-cart-line-image />
       <span data-cart-line-title></span>
 
-      <div
-        class="product-quantity-selector"
-        data-cart-line-quantity
-        data-min="1"
-      >
-        <button type="button" data-quantity-decrease>−</button>
-        <input type="number" data-quantity-input inputmode="numeric" />
-        <button type="button" data-quantity-increase>+</button>
-      </div>
+      <CartLineQuantitySelector min={1} />
 
       <span data-cart-line-price></span>
       <button data-cart-line-remove>Remove</button>
@@ -34,9 +30,9 @@
   } from "shopify/mutations/cart";
   import { sanityClient } from "sanity/client";
   import { productThumbnailByHandleQuery } from "sanity/queries/product";
-  import { getSanityImageProps } from "../lib/sanity/image";
-  import { selectDocument } from "../lib/sanity/drafts";
-  import { initQuantitySelector } from "../lib/shopify/quantity";
+  import { getSanityImageProps } from "../../lib/sanity/image";
+  import { selectDocument } from "../../lib/sanity/drafts";
+  import { initQuantitySelector } from "../../lib/shopify/quantity";
   import type { CartFragment } from "shopify/generated/graphql";
 
   async function initialiseCart(root: HTMLElement) {
@@ -152,54 +148,60 @@
         const priceEl = itemEl.querySelector(
           "[data-cart-line-price]"
         ) as HTMLSpanElement;
-        const quantityRoot = itemEl.querySelector(
-          "[data-cart-line-quantity]"
+        const quantitySelectorElement = itemEl.querySelector(
+          "cart-line-quantity-selector"
         ) as HTMLElement;
         const removeBtn = itemEl.querySelector(
           "[data-cart-line-remove]"
         ) as HTMLButtonElement;
 
-        if (titleEl)
-          titleEl.textContent = line.merchandise?.title ?? "Unknown variant";
+        titleEl.textContent = line.merchandise?.title ?? "Unknown variant";
 
-        if (priceEl && line.cost?.totalAmount)
+        if (line.cost?.totalAmount)
           priceEl.textContent = formatMoney(
             line.cost.totalAmount.amount,
             line.cost.totalAmount.currencyCode
           );
 
-        if (thumbnailElement)
-          updateThumbnail(line.merchandise.product.handle, thumbnailElement);
+        updateThumbnail(line.merchandise.product.handle, thumbnailElement);
 
-        if (quantityRoot) {
-          initQuantitySelector(quantityRoot, {
-            initial: line.quantity,
-            min: 1,
-            onChange: (quantity) =>
-              runCartMutation(async () => {
-                await shopifyClient.request(cartLinesUpdateMutation, {
-                  cartId: cart.id,
-                  lines: [{ id: line.id, quantity }],
-                });
-                await renderCart(true);
-              }),
-          });
-        }
-
-        if (removeBtn) {
-          removeBtn.onclick = () =>
+        // initQuantitySelector(quantitySelectorElement, {
+        //   initial: line.quantity,
+        //   min: 1,
+        //   onChange: (quantity) =>
+        //     runCartMutation(async () => {
+        //       await shopifyClient.request(cartLinesUpdateMutation, {
+        //         cartId: cart.id,
+        //         lines: [{ id: line.id, quantity }],
+        //       });
+        //       await renderCart(true);
+        //     }),
+        // });
+        quantitySelectorElement.addEventListener(
+          "quantity-selector:value-updated",
+          (e) => {
             runCartMutation(async () => {
-              removeBtn.textContent = "Removing...";
-              removeBtn.disabled = true;
-
-              await shopifyClient.request(cartLinesRemoveMutation, {
+              await shopifyClient.request(cartLinesUpdateMutation, {
                 cartId: cart.id,
-                lineIds: [line.id],
+                lines: [{ id: line.id, quantity: e.detail.value }],
               });
-
-              await renderCart();
+              await renderCart(true);
             });
-        }
+          }
+        );
+
+        removeBtn.onclick = () =>
+          runCartMutation(async () => {
+            removeBtn.textContent = "Removing...";
+            removeBtn.disabled = true;
+
+            await shopifyClient.request(cartLinesRemoveMutation, {
+              cartId: cart.id,
+              lineIds: [line.id],
+            });
+
+            await renderCart();
+          });
       }
     };
 
