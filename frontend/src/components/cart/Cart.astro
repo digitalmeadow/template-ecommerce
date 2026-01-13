@@ -1,8 +1,14 @@
 ---
+import QuantitySelector from "../QuantitySelector.astro";
 import CartLineItem from "./CartLineItem.astro";
 ---
 
 <cart-root>
+  <!-- Astro dedup fails to mount custom component when within <template> tags -->
+  <div style="display: none">
+    <QuantitySelector />
+  </div>
+
   <template data-cart-line-template>
     <li>
       <CartLineItem />
@@ -46,11 +52,8 @@ import CartLineItem from "./CartLineItem.astro";
       this.checkoutButton.addEventListener("click", this.onCheckoutClick);
 
       // Event delegation for child components
-      this.addEventListener(
-        "cart-line:quantity-changed",
-        this.onQuantityChange
-      );
-      this.addEventListener("cart-line:remove", this.onRemove);
+      this.addEventListener("quantity-changed", this.onQuantityChange);
+      this.addEventListener("click", this.onRemoveClick);
 
       // Re-render on "add-to-cart"
       document.addEventListener("product:add-to-cart", this.onProductAdded);
@@ -61,11 +64,8 @@ import CartLineItem from "./CartLineItem.astro";
 
     disconnectedCallback() {
       this.checkoutButton.removeEventListener("click", this.onCheckoutClick);
-      this.removeEventListener(
-        "cart-line:quantity-changed",
-        this.onQuantityChange
-      );
-      this.removeEventListener("cart-line:remove", this.onRemove);
+      this.removeEventListener("quantity-changed", this.onQuantityChange);
+      this.removeEventListener("click", this.onRemoveClick);
       document.removeEventListener("product:add-to-cart", this.onProductAdded);
     }
 
@@ -82,13 +82,21 @@ import CartLineItem from "./CartLineItem.astro";
     };
 
     onQuantityChange = async (e: Event) => {
-      const event = e as CustomEvent<{ quantity: number }>;
-      const li = (event.target as HTMLElement).closest("li") as HTMLLIElement;
-      const lineId = li?.dataset.lineId;
-      const newQuantity = event.detail.quantity;
+      const event = e as CustomEvent<{ value: number }>;
+      const quantitySelector = event.target as HTMLElement;
+      const li = quantitySelector.closest("li") as HTMLLIElement;
+      const lineId = li.dataset.lineId!;
+      const newQuantity = event.detail.value;
+      const cartId = localStorage.getItem("shopifyCartId")!;
 
-      const cartId = localStorage.getItem("shopifyCartId");
-      if (!cartId || !lineId) return;
+      // Set updating state on the quantity selector
+      const selectorElement = quantitySelector as any;
+      if (selectorElement.setUpdatingState) {
+        selectorElement.setUpdatingState(true);
+      }
+
+      // Set document cursor
+      document.body.style.cursor = "wait";
 
       this.mutationQueue = this.mutationQueue.then(async () => {
         await shopifyClient.request(cartLinesUpdateMutation, {
@@ -96,16 +104,25 @@ import CartLineItem from "./CartLineItem.astro";
           lines: [{ id: lineId, quantity: newQuantity }],
         });
         await this.loadCart(true);
+        document.body.style.cursor = "";
       });
       await this.mutationQueue;
     };
 
-    onRemove = async (e: Event) => {
-      const li = (e.target as HTMLElement).closest("li") as HTMLLIElement;
-      const lineId = li?.dataset.lineId;
+    onRemoveClick = async (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (!target.hasAttribute("data-remove-button")) return;
 
-      const cartId = localStorage.getItem("shopifyCartId");
-      if (!cartId || !lineId) throw new Error("Missing cart ID or line ID");
+      const removeButton = target as HTMLButtonElement;
+      const lineItem = removeButton.parentElement as HTMLDivElement;
+      const lineId = removeButton.dataset.lineId!;
+      const cartId = localStorage.getItem("shopifyCartId")!;
+
+      // Set state on line item container
+      lineItem.setAttribute("data-state", "removing");
+
+      // Set document cursor
+      document.body.style.cursor = "wait";
 
       this.mutationQueue = this.mutationQueue.then(async () => {
         await shopifyClient.request(cartLinesRemoveMutation, {
@@ -113,6 +130,7 @@ import CartLineItem from "./CartLineItem.astro";
           lineIds: [lineId],
         });
         await this.loadCart(true);
+        document.body.style.cursor = "";
       });
       await this.mutationQueue;
     };
@@ -186,18 +204,27 @@ import CartLineItem from "./CartLineItem.astro";
         // Clone template
         const li = (this.template.content.cloneNode(true) as DocumentFragment)
           .firstElementChild as HTMLLIElement;
-        const cartLineItem = li.querySelector("cart-line-item") as HTMLElement;
+        const lineItem = li.querySelector("[data-line-item]") as HTMLDivElement;
+        const titleElement = lineItem.querySelector(
+          "[data-title]"
+        ) as HTMLSpanElement;
+        const priceElement = lineItem.querySelector(
+          "[data-price]"
+        ) as HTMLSpanElement;
+        const quantitySelector = lineItem.querySelector(
+          "quantity-selector"
+        ) as HTMLElement;
+        const removeButton = lineItem.querySelector(
+          "[data-remove-button]"
+        ) as HTMLButtonElement;
 
-        // Populate attributes
-        cartLineItem.setAttribute(
-          "title",
-          line.merchandise?.title ?? "Unknown variant"
-        );
-        cartLineItem.setAttribute("quantity", String(line.quantity));
-        cartLineItem.setAttribute(
-          "price",
-          String(line.cost?.totalAmount?.amount ?? 0)
-        );
+        // Populate elements
+        titleElement.textContent = line.merchandise?.title ?? "Unknown variant";
+        priceElement.textContent = (
+          Number(line.cost?.totalAmount?.amount) ?? 0
+        ).toFixed(2);
+        quantitySelector.setAttribute("initial", String(line.quantity));
+        removeButton.dataset.lineId = line.id;
 
         // Attach line id for event delegation
         li.dataset.lineId = line.id;

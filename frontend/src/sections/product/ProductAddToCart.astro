@@ -48,11 +48,11 @@ const { label = "Add to Cart" }: Props = Astro.props;
         throw new Error("ProductAddToCart: missing [data-product-root]");
 
       const quantityInput = productRoot.querySelector(
-        "[data-quantity-input]"
+        "quantity-selector [data-input]"
       ) as HTMLInputElement;
       if (!quantityInput)
         throw new Error(
-          "ProductAddToCart: missing [data-quantity-input] inside product root"
+          "ProductAddToCart: missing quantity-selector inside product root"
         );
 
       return Number(quantityInput.value);
@@ -72,6 +72,7 @@ const { label = "Add to Cart" }: Props = Astro.props;
       const originalLabel = button.textContent;
       button.disabled = true;
       button.textContent = "Adding to cart...";
+      document.body.style.cursor = "wait";
 
       try {
         // Retrieve or create a cart ID in localStorage
@@ -127,6 +128,7 @@ const { label = "Add to Cart" }: Props = Astro.props;
       } finally {
         button.disabled = false;
         button.textContent = originalLabel;
+        document.body.style.cursor = "";
       }
     }
 

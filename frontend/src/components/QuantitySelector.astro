@@ -1,4 +1,4 @@
-<cart-line-quantity-selector>
+<quantity-selector>
   <button type="button" data-decrease-button aria-label="Decrease quantity"
     >−</button
   >
@@ -9,31 +9,36 @@
     step="1"
     pattern="[0-9]+"
     data-input
+    aria-label="Quantity"
   />
   <button type="button" data-increase-button aria-label="Increase quantity"
     >+</button
   >
-</cart-line-quantity-selector>
+</quantity-selector>
 
 <script>
   import { z } from "astro/zod";
 
-  export class CartLineQuantitySelectorElement extends HTMLElement {
+  export class QuantitySelectorElement extends HTMLElement {
     private input!: HTMLInputElement;
     private decreaseButton!: HTMLButtonElement;
     private increaseButton!: HTMLButtonElement;
     private value!: number;
+    private min!: number;
+    private max!: number;
 
     connectedCallback() {
       this.input = this.querySelector("[data-input]")!;
       this.decreaseButton = this.querySelector("[data-decrease-button]")!;
       this.increaseButton = this.querySelector("[data-increase-button]")!;
 
-      // Initialize from 'initial' attribute, default to 1
-      this.value = Math.max(Number(this.getAttribute("initial")) || 1, 1);
-
-      // Set accessibility attributes
-      this.input.setAttribute("aria-label", "Quantity");
+      // Read configuration from attributes
+      this.min = Math.max(Number(this.getAttribute("min")) || 1, 1);
+      this.max = Number(this.getAttribute("max")) || Infinity;
+      this.value = Math.max(
+        this.min,
+        Math.min(this.max, Number(this.getAttribute("initial")) || 1)
+      );
 
       this.render();
 
@@ -50,7 +55,12 @@
 
     render() {
       this.input.value = String(this.value);
-      this.decreaseButton.disabled = this.value <= 1;
+      this.input.min = String(this.min);
+      if (this.max !== Infinity) {
+        this.input.max = String(this.max);
+      }
+      this.decreaseButton.disabled = this.value <= this.min;
+      this.increaseButton.disabled = this.value >= this.max;
     }
 
     setUpdatingState(updating: boolean) {
@@ -64,15 +74,13 @@
         this.removeAttribute("state");
         this.input.removeAttribute("aria-busy");
         this.input.disabled = false;
-        this.increaseButton.disabled = false;
-        this.render(); // Re-enable decrease button based on value
+        this.render();
       }
     }
 
     emitChange() {
-      this.setUpdatingState(true);
       this.dispatchEvent(
-        new CustomEvent("quantity-selector:value-updated", {
+        new CustomEvent("quantity-changed", {
           detail: { value: this.value },
           bubbles: true,
         })
@@ -81,7 +89,7 @@
 
     decrease = (event: MouseEvent) => {
       event.preventDefault();
-      if (this.value > 1) {
+      if (this.value > this.min) {
         this.value--;
         this.render();
         this.emitChange();
@@ -90,13 +98,20 @@
 
     increase = (event: MouseEvent) => {
       event.preventDefault();
-      this.value++;
-      this.render();
-      this.emitChange();
+      if (this.value < this.max) {
+        this.value++;
+        this.render();
+        this.emitChange();
+      }
     };
 
     onInputChange = (_e: Event) => {
-      const quantitySchema = z.coerce.number().int().positive().min(1);
+      const quantitySchema = z.coerce
+        .number()
+        .int()
+        .positive()
+        .min(this.min)
+        .max(this.max);
       const result = quantitySchema.safeParse(this.input.value);
 
       if (result.success) {
@@ -107,26 +122,22 @@
           this.emitChange();
         }
       } else {
-        // Invalid input - reset to current valid value
         this.render();
       }
     };
   }
 
-  customElements.define(
-    "cart-line-quantity-selector",
-    CartLineQuantitySelectorElement
-  );
+  customElements.define("quantity-selector", QuantitySelectorElement);
 </script>
 
 <style>
-  cart-line-quantity-selector[state="updating"] {
-    cursor: wait;
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
-  cart-line-quantity-selector[state="updating"] input,
-  cart-line-quantity-selector[state="updating"] button {
+  quantity-selector[state="updating"] input,
+  quantity-selector[state="updating"] button {
     opacity: 0.5;
-    cursor: wait;
   }
 </style>

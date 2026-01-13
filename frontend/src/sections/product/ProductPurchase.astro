@@ -1,8 +1,8 @@
 ---
 import type { ProductShopifySanity } from "../../lib/fetches/productShopifySanity";
+import QuantitySelector from "../../components/QuantitySelector.astro";
 import ProductAddToCart from "./ProductAddToCart.astro";
 import ProductPrice from "./ProductPrice.astro";
-import ProductQuantitySelector from "./ProductQuantitySelector.astro";
 import ProductVariantSelector from "./ProductVariantSelector.astro";
 
 interface Props {
@@ -16,6 +16,6 @@ const { productData }: Props = Astro.props;
   <h1>{productData.shopify?.title}</h1>
   <ProductVariantSelector productData={productData} />
   <ProductPrice />
-  <ProductQuantitySelector initial={1} />
+  <QuantitySelector />
   <ProductAddToCart />
 </div>
