@@ -2,8 +2,6 @@
 
 Next task:
 
-- Default Title variants
-
 - Localisation:
   - Ideally, avoid server rending if possible by statically rendering different routes for each locale eg: /fr/ or something (we want site responsiveness > build times)
   - Then we can pass this into our inContext() in Shopify requests which should get the correct currencies

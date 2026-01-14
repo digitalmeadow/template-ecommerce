@@ -1,15 +1,24 @@
 <price-display {...Astro.props}>
+  <span data-price-prefix></span>
   <span data-price-value></span>
 </price-display>
 
 <script>
+  import { getCurrency, getStoredLocale } from "../lib/locale";
+
   export class PriceDisplayElement extends HTMLElement {
+    private prefixElement!: HTMLSpanElement;
     private priceElement!: HTMLSpanElement;
     private locale!: string;
+    private currency!: string;
 
     connectedCallback() {
+      this.prefixElement = this.querySelector("[data-price-prefix]")!;
       this.priceElement = this.querySelector("[data-price-value]")!;
-      this.locale = this.getAttribute("locale") || "en-US";
+
+      // Get locale and currency from localStorage
+      this.locale = this.getAttribute("locale") || getStoredLocale();
+      this.currency = this.getAttribute("currency") || getCurrency();
 
       // Initialize with attributes
       this.updatePrice();
@@ -17,45 +26,32 @@
 
     updatePrice() {
       const amount = this.getAttribute("amount");
-      const currency = this.getAttribute("currency") || "USD";
+      const currency = this.getAttribute("currency") || this.currency;
       const variant = this.getAttribute("variant");
+      const prefix = this.getAttribute("prefix");
 
-      if (!amount) {
-        this.priceElement.textContent = "";
-        this.style.display = "none";
-        return;
-      }
-
-      const numericAmount = Number(amount);
-
-      if (!Number.isFinite(numericAmount)) {
-        this.priceElement.textContent = "";
-        this.style.display = "none";
-        return;
-      }
-
-      this.style.display = "";
+      const numericAmount = Number(amount || 0);
 
       // Apply variant styling
-      if (variant === "compare-at") {
-        this.setAttribute("data-variant", "compare-at");
+      this.setAttribute("data-variant", variant || "standard");
+
+      // Set prefix text
+      if (prefix) {
+        this.prefixElement.textContent = prefix + " ";
       } else {
-        this.removeAttribute("data-variant");
+        this.prefixElement.textContent = "";
       }
 
-      try {
-        this.priceElement.textContent = new Intl.NumberFormat(this.locale, {
-          style: "currency",
-          currency: currency,
-        }).format(numericAmount);
-      } catch {
-        this.priceElement.textContent = `${numericAmount}`;
-      }
+      this.priceElement.textContent = new Intl.NumberFormat(this.locale, {
+        style: "currency",
+        currency: currency,
+        currencyDisplay: "code",
+      }).format(numericAmount);
     }
 
     // Called when attributes change
     static get observedAttributes() {
-      return ["amount", "currency", "locale", "variant"];
+      return ["amount", "currency", "locale", "variant", "prefix"];
     }
 
     attributeChangedCallback() {

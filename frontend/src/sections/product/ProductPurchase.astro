@@ -13,7 +13,7 @@ interface Props {
 const { productData }: Props = Astro.props;
 ---
 
-<div class="product-purchase" data-product-root data-locale="en-US">
+<div class="product-purchase" data-product-root>
   <h1>{productData.shopify?.title}</h1>
   <ProductVariantSelector productData={productData} />
   <ProductPrice />

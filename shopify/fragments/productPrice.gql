@@ -1,0 +1,15 @@
+fragment ProductPrice on Product {
+  variants(first: 16) {
+    edges {
+      node {
+        id
+        price {
+          amount
+        }
+        compareAtPrice {
+          amount
+        }
+      }
+    }
+  }
+}

@@ -32,6 +32,11 @@ import CartLineItem from "./CartLineItem.astro";
     cartLinesRemoveMutation,
   } from "shopify/mutations/cart";
   import type { CartFragment } from "shopify/generated/graphql";
+  import {
+    getCountryCode,
+    getCurrency,
+    getStoredLocale,
+  } from "../../lib/locale";
 
   class CartRootElement extends HTMLElement {
     private template!: HTMLTemplateElement;
@@ -41,6 +46,12 @@ import CartLineItem from "./CartLineItem.astro";
 
     private cart: CartFragment | null = null;
     private mutationQueue: Promise<void> = Promise.resolve();
+
+    private getStorageKey(suffix: string): string {
+      const locale = getStoredLocale();
+      const currency = getCurrency();
+      return `shopify_${locale}_${currency}_${suffix}`;
+    }
 
     connectedCallback() {
       this.template = this.querySelector("[data-cart-line-template]")!;
@@ -89,7 +100,8 @@ import CartLineItem from "./CartLineItem.astro";
       const li = quantitySelector.closest("li") as HTMLLIElement;
       const lineId = li.dataset.lineId!;
       const newQuantity = event.detail.value;
-      const cartId = localStorage.getItem("shopifyCartId")!;
+      const cartIdKey = this.getStorageKey("cartId");
+      const cartId = localStorage.getItem(cartIdKey)!;
 
       // Set updating state on the quantity selector
       const selectorElement = quantitySelector as any;
@@ -101,9 +113,12 @@ import CartLineItem from "./CartLineItem.astro";
       document.body.style.cursor = "wait";
 
       this.mutationQueue = this.mutationQueue.then(async () => {
+        const countryCode = getCountryCode();
+
         await shopifyClient.request(cartLinesUpdateMutation, {
           cartId,
           lines: [{ id: lineId, quantity: newQuantity }],
+          countryCode,
         });
         await this.loadCart(true);
         document.body.style.cursor = "";
@@ -118,7 +133,8 @@ import CartLineItem from "./CartLineItem.astro";
       const removeButton = target as HTMLButtonElement;
       const lineItem = removeButton.parentElement as HTMLDivElement;
       const lineId = removeButton.dataset.lineId!;
-      const cartId = localStorage.getItem("shopifyCartId")!;
+      const cartIdKey = this.getStorageKey("cartId");
+      const cartId = localStorage.getItem(cartIdKey)!;
 
       // Set state on line item container
       lineItem.setAttribute("data-state", "removing");
@@ -127,9 +143,11 @@ import CartLineItem from "./CartLineItem.astro";
       document.body.style.cursor = "wait";
 
       this.mutationQueue = this.mutationQueue.then(async () => {
+        const countryCode = getCountryCode();
         await shopifyClient.request(cartLinesRemoveMutation, {
           cartId,
           lineIds: [lineId],
+          countryCode,
         });
         await this.loadCart(true);
         document.body.style.cursor = "";
@@ -138,7 +156,10 @@ import CartLineItem from "./CartLineItem.astro";
     };
 
     async loadCart(skipCache = false) {
-      const cartId = localStorage.getItem("shopifyCartId");
+      const cartIdKey = this.getStorageKey("cartId");
+      const cartDataKey = this.getStorageKey("cartData");
+
+      const cartId = localStorage.getItem(cartIdKey);
       if (!cartId) {
         this.renderEmpty();
         return;
@@ -146,7 +167,7 @@ import CartLineItem from "./CartLineItem.astro";
 
       // Load from cache first (unless skipped after mutations)
       if (!skipCache) {
-        const cached = localStorage.getItem("shopifyCartData");
+        const cached = localStorage.getItem(cartDataKey);
         if (cached) {
           this.cart = JSON.parse(cached) as CartFragment;
           this.renderCart();
@@ -161,14 +182,14 @@ import CartLineItem from "./CartLineItem.astro";
 
         if (!freshCart) {
           // Cart no longer exists, clear everything
-          localStorage.removeItem("shopifyCartId");
-          localStorage.removeItem("shopifyCartData");
+          localStorage.removeItem(cartIdKey);
+          localStorage.removeItem(cartDataKey);
           this.renderEmpty();
           return;
         }
 
         this.cart = freshCart;
-        localStorage.setItem("shopifyCartData", JSON.stringify(freshCart));
+        localStorage.setItem(cartDataKey, JSON.stringify(freshCart));
         this.renderCart();
       } catch (error) {
         console.error("Failed to load cart:", error);

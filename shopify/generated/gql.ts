@@ -22,6 +22,7 @@ type Documents = {
     "fragment Money on MoneyV2 {\n  amount\n  currencyCode\n}": typeof types.MoneyFragmentDoc,
     "fragment PriceRange on ProductPriceRange {\n  minVariantPrice {\n    ...Money\n  }\n  maxVariantPrice {\n    ...Money\n  }\n}": typeof types.PriceRangeFragmentDoc,
     "fragment Product on Product {\n  __typename\n  id\n  title\n  handle\n  availableForSale\n  priceRange {\n    ...PriceRange\n  }\n  compareAtPriceRange {\n    ...PriceRange\n  }\n  variants(first: 16) {\n    edges {\n      node {\n        ...ProductVariant\n      }\n    }\n  }\n  options {\n    ...ProductOption\n  }\n  collections(first: 8) {\n    edges {\n      node {\n        ...CollectionCore\n      }\n    }\n  }\n}\n\nfragment ProductOption on ProductOption {\n  id\n  name\n  values\n}": typeof types.ProductFragmentDoc,
+    "fragment ProductPrice on Product {\n  variants(first: 16) {\n    edges {\n      node {\n        id\n        price {\n          amount\n        }\n        compareAtPrice {\n          amount\n        }\n      }\n    }\n  }\n}": typeof types.ProductPriceFragmentDoc,
     "fragment ProductVariant on ProductVariant {\n  id\n  title\n  availableForSale\n  quantityAvailable\n  selectedOptions {\n    name\n    value\n  }\n  price {\n    ...Money\n  }\n  compareAtPrice {\n    ...Money\n  }\n  image {\n    ...Image\n  }\n}": typeof types.ProductVariantFragmentDoc,
     "\n  mutation CartCreate($cartInput: CartInput) {\n    cartCreate(input: $cartInput) {\n      cart {\n        ...Cart\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n": typeof types.CartCreateDocument,
     "\n  mutation CartLinesUpdate($lines: [CartLineUpdateInput!]!, $cartId: ID!) {\n    cartLinesUpdate(lines: $lines, cartId: $cartId) {\n      cart {\n        ...Cart\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n": typeof types.CartLinesUpdateDocument,
@@ -30,7 +31,9 @@ type Documents = {
     "\n  mutation CartBuyerUpdate(\n    $buyerIdentity: CartBuyerIdentityInput!\n    $cartId: ID!\n  ) {\n    cartBuyerIdentityUpdate(buyerIdentity: $buyerIdentity, cartId: $cartId) {\n      cart {\n        ...Cart\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n": typeof types.CartBuyerUpdateDocument,
     "\n  query CartById($cartId: ID!) {\n    cart(id: $cartId) {\n      ...Cart\n    }\n  }\n": typeof types.CartByIdDocument,
     "\n  query CollectionQuery($handle: String!, $productCursor: String) {\n    collectionByHandle(handle: $handle) {\n      ...Collection\n    }\n  }\n": typeof types.CollectionQueryDocument,
+    "\n  query AllLocalizations {\n    localization {\n      availableCountries {\n        isoCode\n        name\n        currency {\n          isoCode\n        }\n        availableLanguages {\n          isoCode\n          endonymName\n        }\n      }\n    }\n  }\n": typeof types.AllLocalizationsDocument,
     "\n  query ProductByHandle($handle: String!) {\n    productByHandle(handle: $handle) {\n      ...Product\n    }\n  }\n": typeof types.ProductByHandleDocument,
+    "\n  query ProductPriceByHandle($handle: String!, $countryCode: CountryCode)\n  @inContext(country: $countryCode) {\n    productByHandle(handle: $handle) {\n      ...ProductPrice\n    }\n  }\n": typeof types.ProductPriceByHandleDocument,
 };
 const documents: Documents = {
     "fragment Cart on Cart {\n  id\n  buyerIdentity {\n    countryCode\n  }\n  checkoutUrl\n  discountCodes {\n    applicable\n    code\n  }\n  cost {\n    totalAmount {\n      ...Money\n    }\n  }\n  lines(first: 20) {\n    edges {\n      node {\n        ...CartLine\n      }\n    }\n  }\n}\n\nfragment CartLine on CartLine {\n  __typename\n  id\n  quantity\n  discountAllocations {\n    discountedAmount {\n      ...Money\n    }\n  }\n  cost {\n    totalAmount {\n      ...Money\n    }\n  }\n  merchandise {\n    ... on ProductVariant {\n      ...MerchandiseFields\n    }\n  }\n}": types.CartFragmentDoc,
@@ -41,6 +44,7 @@ const documents: Documents = {
     "fragment Money on MoneyV2 {\n  amount\n  currencyCode\n}": types.MoneyFragmentDoc,
     "fragment PriceRange on ProductPriceRange {\n  minVariantPrice {\n    ...Money\n  }\n  maxVariantPrice {\n    ...Money\n  }\n}": types.PriceRangeFragmentDoc,
     "fragment Product on Product {\n  __typename\n  id\n  title\n  handle\n  availableForSale\n  priceRange {\n    ...PriceRange\n  }\n  compareAtPriceRange {\n    ...PriceRange\n  }\n  variants(first: 16) {\n    edges {\n      node {\n        ...ProductVariant\n      }\n    }\n  }\n  options {\n    ...ProductOption\n  }\n  collections(first: 8) {\n    edges {\n      node {\n        ...CollectionCore\n      }\n    }\n  }\n}\n\nfragment ProductOption on ProductOption {\n  id\n  name\n  values\n}": types.ProductFragmentDoc,
+    "fragment ProductPrice on Product {\n  variants(first: 16) {\n    edges {\n      node {\n        id\n        price {\n          amount\n        }\n        compareAtPrice {\n          amount\n        }\n      }\n    }\n  }\n}": types.ProductPriceFragmentDoc,
     "fragment ProductVariant on ProductVariant {\n  id\n  title\n  availableForSale\n  quantityAvailable\n  selectedOptions {\n    name\n    value\n  }\n  price {\n    ...Money\n  }\n  compareAtPrice {\n    ...Money\n  }\n  image {\n    ...Image\n  }\n}": types.ProductVariantFragmentDoc,
     "\n  mutation CartCreate($cartInput: CartInput) {\n    cartCreate(input: $cartInput) {\n      cart {\n        ...Cart\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n": types.CartCreateDocument,
     "\n  mutation CartLinesUpdate($lines: [CartLineUpdateInput!]!, $cartId: ID!) {\n    cartLinesUpdate(lines: $lines, cartId: $cartId) {\n      cart {\n        ...Cart\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n": types.CartLinesUpdateDocument,
@@ -49,7 +53,9 @@ const documents: Documents = {
     "\n  mutation CartBuyerUpdate(\n    $buyerIdentity: CartBuyerIdentityInput!\n    $cartId: ID!\n  ) {\n    cartBuyerIdentityUpdate(buyerIdentity: $buyerIdentity, cartId: $cartId) {\n      cart {\n        ...Cart\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n": types.CartBuyerUpdateDocument,
     "\n  query CartById($cartId: ID!) {\n    cart(id: $cartId) {\n      ...Cart\n    }\n  }\n": types.CartByIdDocument,
     "\n  query CollectionQuery($handle: String!, $productCursor: String) {\n    collectionByHandle(handle: $handle) {\n      ...Collection\n    }\n  }\n": types.CollectionQueryDocument,
+    "\n  query AllLocalizations {\n    localization {\n      availableCountries {\n        isoCode\n        name\n        currency {\n          isoCode\n        }\n        availableLanguages {\n          isoCode\n          endonymName\n        }\n      }\n    }\n  }\n": types.AllLocalizationsDocument,
     "\n  query ProductByHandle($handle: String!) {\n    productByHandle(handle: $handle) {\n      ...Product\n    }\n  }\n": types.ProductByHandleDocument,
+    "\n  query ProductPriceByHandle($handle: String!, $countryCode: CountryCode)\n  @inContext(country: $countryCode) {\n    productByHandle(handle: $handle) {\n      ...ProductPrice\n    }\n  }\n": types.ProductPriceByHandleDocument,
 };
 
 /**
@@ -101,6 +107,10 @@ export function graphql(source: "fragment Product on Product {\n  __typename\n  
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "fragment ProductPrice on Product {\n  variants(first: 16) {\n    edges {\n      node {\n        id\n        price {\n          amount\n        }\n        compareAtPrice {\n          amount\n        }\n      }\n    }\n  }\n}"): (typeof documents)["fragment ProductPrice on Product {\n  variants(first: 16) {\n    edges {\n      node {\n        id\n        price {\n          amount\n        }\n        compareAtPrice {\n          amount\n        }\n      }\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "fragment ProductVariant on ProductVariant {\n  id\n  title\n  availableForSale\n  quantityAvailable\n  selectedOptions {\n    name\n    value\n  }\n  price {\n    ...Money\n  }\n  compareAtPrice {\n    ...Money\n  }\n  image {\n    ...Image\n  }\n}"): (typeof documents)["fragment ProductVariant on ProductVariant {\n  id\n  title\n  availableForSale\n  quantityAvailable\n  selectedOptions {\n    name\n    value\n  }\n  price {\n    ...Money\n  }\n  compareAtPrice {\n    ...Money\n  }\n  image {\n    ...Image\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -133,7 +143,15 @@ export function graphql(source: "\n  query CollectionQuery($handle: String!, $pr
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  query AllLocalizations {\n    localization {\n      availableCountries {\n        isoCode\n        name\n        currency {\n          isoCode\n        }\n        availableLanguages {\n          isoCode\n          endonymName\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query AllLocalizations {\n    localization {\n      availableCountries {\n        isoCode\n        name\n        currency {\n          isoCode\n        }\n        availableLanguages {\n          isoCode\n          endonymName\n        }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  query ProductByHandle($handle: String!) {\n    productByHandle(handle: $handle) {\n      ...Product\n    }\n  }\n"): (typeof documents)["\n  query ProductByHandle($handle: String!) {\n    productByHandle(handle: $handle) {\n      ...Product\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProductPriceByHandle($handle: String!, $countryCode: CountryCode)\n  @inContext(country: $countryCode) {\n    productByHandle(handle: $handle) {\n      ...ProductPrice\n    }\n  }\n"): (typeof documents)["\n  query ProductPriceByHandle($handle: String!, $countryCode: CountryCode)\n  @inContext(country: $countryCode) {\n    productByHandle(handle: $handle) {\n      ...ProductPrice\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

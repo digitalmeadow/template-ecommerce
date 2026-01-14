@@ -1,20 +1,28 @@
 import { shopifyClient } from "shopify/client";
 import { sanityClient } from "sanity/client";
-import { type ProductFragment as ShopifyProductFragment } from "shopify/generated/graphql";
+import {
+  type ProductFragment as ShopifyProductFragment,
+  type ProductPriceFragment as ShopifyProductPriceFragment,
+} from "shopify/generated/graphql";
 import type {
   ProductFragment as SanityProductFragment,
   ProductThumbnailFragment as SanityProductThumbnailFragment,
 } from "sanity/generated/graphql";
-import { productByHandleQuery as shopifyProductByHandleQuery } from "shopify/queries/product";
+import {
+  productByHandleQuery as shopifyProductByHandleQuery,
+  productPriceByHandleQuery as shopifyProductPriceByHandleQuery,
+} from "shopify/queries/product";
 import {
   productByHandleQuery as sanityProductByHandleQuery,
   productThumbnailByHandleQuery as sanityProductThumbnailByHandleQuery,
 } from "sanity/queries/product";
 import { selectDocument } from "../sanity/drafts";
+import { LOCALE_CONFIG, type LocaleCode } from "../locale";
 
 export type ProductThumbnailShopifySanity = {
   shopify: ShopifyProductFragment;
   sanity: SanityProductThumbnailFragment;
+  pricesPerLocale: Record<LocaleCode, ShopifyProductPriceFragment>;
 };
 
 export async function fetchProductThumbnailShopifySanity(
@@ -38,15 +46,19 @@ export async function fetchProductThumbnailShopifySanity(
     );
   }
 
+  const pricesPerLocale = await fetchPricesPerLocale(handle);
+
   return {
     shopify: shopifyProduct,
     sanity: sanityProduct,
+    pricesPerLocale,
   };
 }
 
 export type ProductShopifySanity = {
   shopify: ShopifyProductFragment;
   sanity: SanityProductFragment;
+  pricesPerLocale: Record<LocaleCode, ShopifyProductPriceFragment>;
 };
 
 export async function fetchProductShopifySanity(
@@ -70,8 +82,38 @@ export async function fetchProductShopifySanity(
     );
   }
 
+  const pricesPerLocale = await fetchPricesPerLocale(handle);
+
   return {
     shopify: shopifyProduct,
     sanity: sanityProduct,
+    pricesPerLocale,
   };
+}
+
+async function fetchPricesPerLocale(handle: string) {
+  const prices: Record<LocaleCode, ShopifyProductPriceFragment> = {} as Record<
+    LocaleCode,
+    ShopifyProductPriceFragment
+  >;
+
+  const localeCodes = Object.keys(LOCALE_CONFIG) as LocaleCode[];
+
+  await Promise.all(
+    localeCodes.map(async (locale) => {
+      const countryCode = LOCALE_CONFIG[locale].country;
+
+      const shopifyProductPriceQuery = await shopifyClient.request(
+        shopifyProductPriceByHandleQuery,
+        { handle, countryCode }
+      );
+      const shopifyProduct = shopifyProductPriceQuery.productByHandle;
+
+      if (shopifyProduct) {
+        prices[locale] = shopifyProduct;
+      }
+    })
+  );
+
+  return prices;
 }

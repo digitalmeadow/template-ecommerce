@@ -7,3 +7,12 @@ export const productByHandleQuery = graphql(`
     }
   }
 `);
+
+export const productPriceByHandleQuery = graphql(`
+  query ProductPriceByHandle($handle: String!, $countryCode: CountryCode)
+  @inContext(country: $countryCode) {
+    productByHandle(handle: $handle) {
+      ...ProductPrice
+    }
+  }
+`);

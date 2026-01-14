@@ -4,6 +4,13 @@ import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
 export default defineConfig({
+  i18n: {
+    locales: ["en-AU"],
+    defaultLocale: "en-AU",
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
   env: {
     schema: {
       PREVIEW: envField.string({

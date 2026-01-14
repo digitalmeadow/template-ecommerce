@@ -1,0 +1,14 @@
+<script>
+  import { LOCALE_CONFIG, isValidLocale, type LocaleCode } from "../lib/locale";
+
+  const LOCALE_STORAGE_KEY = "preferred-locale";
+  const DEFAULT_LOCALE: LocaleCode = "en-AU";
+
+  // Initialize localStorage if not set or invalid
+  const storedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
+
+  if (!storedLocale || !isValidLocale(storedLocale)) {
+    // No valid stored preference, set default
+    localStorage.setItem(LOCALE_STORAGE_KEY, DEFAULT_LOCALE);
+  }
+</script>

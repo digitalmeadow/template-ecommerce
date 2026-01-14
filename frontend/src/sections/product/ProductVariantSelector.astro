@@ -15,7 +15,11 @@ const isSingleDefaultVariant =
   variants.length === 1 && variants[0].node.title === "Default Title";
 ---
 
-<div class="variant-selector" data-variant-selector>
+<div
+  class="variant-selector"
+  data-variant-selector
+  data-prices-per-locale={JSON.stringify(productData.pricesPerLocale)}
+>
   {
     !isSingleDefaultVariant && (
       <label for={variantSelectId}>Choose a variant</label>
@@ -35,10 +39,6 @@ const isSingleDefaultVariant =
           value={node.id}
           data-title={node.title}
           data-available={node.availableForSale ? "true" : "false"}
-          data-price-amount={node.price?.amount}
-          data-price-currency={node.price?.currencyCode}
-          data-compare-at-amount={node.compareAtPrice?.amount ?? ""}
-          data-compare-at-currency={node.compareAtPrice?.currencyCode ?? ""}
         >
           {node.title}
         </option>
@@ -48,6 +48,8 @@ const isSingleDefaultVariant =
 </div>
 
 <script>
+  import { getStoredLocale } from "../../lib/locale";
+
   function initialiseVariantSelector(rootElement: Element) {
     const productRoot = rootElement.closest(
       "[data-product-root]"
@@ -63,29 +65,55 @@ const isSingleDefaultVariant =
         "ProductVariantSelector: expected <select data-variant-select>"
       );
 
+    // Parse pricesPerLocale from data attribute
+    const pricesPerLocaleJson = (rootElement as HTMLElement).dataset
+      .pricesPerLocale;
+    if (!pricesPerLocaleJson)
+      throw new Error("ProductVariantSelector: missing pricesPerLocale data");
+
+    const pricesPerLocale = JSON.parse(pricesPerLocaleJson);
+
     function selectedVariantDetail() {
       const option = selectElement.selectedOptions[0];
       if (!option)
         throw new Error("ProductVariantSelector: no selected option");
 
-      const priceAmount = option.dataset.priceAmount;
-      const priceCurrency = option.dataset.priceCurrency;
-      const compareAtAmount = option.dataset.compareAtAmount;
-      const compareAtCurrency = option.dataset.compareAtCurrency;
+      const variantId = option.value;
+      const locale = getStoredLocale();
+      const priceData = pricesPerLocale[locale];
+
+      if (!priceData)
+        throw new Error(
+          `ProductVariantSelector: no price data for locale ${locale}`
+        );
+
+      // Find the variant in the price data
+      const variant = priceData.variants.edges.find(
+        (edge: any) => edge.node.id === variantId
+      )?.node;
+
+      if (!variant)
+        throw new Error(
+          `ProductVariantSelector: variant ${variantId} not found in price data`
+        );
 
       return {
         productId: selectElement.dataset.productId,
         variantId: option.value,
         title: option.dataset.title ?? option.textContent ?? "",
         available: option.dataset.available === "true",
-        price:
-          priceAmount && priceCurrency
-            ? { amount: priceAmount, currencyCode: priceCurrency }
-            : null,
-        compareAtPrice:
-          compareAtAmount && compareAtCurrency
-            ? { amount: compareAtAmount, currencyCode: compareAtCurrency }
-            : null,
+        price: variant.price
+          ? {
+              amount: variant.price.amount,
+              currencyCode: variant.price.currencyCode,
+            }
+          : null,
+        compareAtPrice: variant.compareAtPrice
+          ? {
+              amount: variant.compareAtPrice.amount,
+              currencyCode: variant.compareAtPrice.currencyCode,
+            }
+          : null,
       };
     }
 
@@ -102,7 +130,18 @@ const isSingleDefaultVariant =
     }
 
     selectElement.addEventListener("change", emitVariantChange);
-    document.addEventListener("DOMContentLoaded", emitVariantChange);
+
+    // Emit on locale change (when page loads)
+    window.addEventListener("storage", (e) => {
+      if (e.key === "preferred-locale") {
+        emitVariantChange();
+      }
+    });
+
+    // Listen for manual update requests from other components
+    productRoot.addEventListener("product:request-variant-update", () => {
+      emitVariantChange();
+    });
   }
 
   const rootElements = document.querySelectorAll("[data-variant-selector]");

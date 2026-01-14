@@ -16,6 +16,7 @@ const { label = "Add to Cart" }: Props = Astro.props;
     cartCreateMutation,
     cartLinesAddMutation,
   } from "shopify/mutations/cart";
+  import { getCurrency, getStoredLocale } from "../../lib/locale";
 
   async function initialiseProductAddToCart(rootElement: HTMLElement) {
     const productRoot = rootElement.closest("[data-product-root]");
@@ -68,6 +69,12 @@ const { label = "Add to Cart" }: Props = Astro.props;
       if (!Number.isFinite(quantity) || quantity < 1)
         throw new Error("ProductAddToCart: quantity must be at least 1");
 
+      // Get locale-specific storage keys from localStorage
+      const locale = getStoredLocale();
+      const currency = getCurrency();
+      const cartIdKey = `shopify_${locale}_${currency}_cartId`;
+      const cartDataKey = `shopify_${locale}_${currency}_cartData`;
+
       // UI state
       const originalLabel = button.textContent;
       button.disabled = true;
@@ -76,7 +83,7 @@ const { label = "Add to Cart" }: Props = Astro.props;
 
       try {
         // Retrieve or create a cart ID in localStorage
-        let cartId = localStorage.getItem("shopifyCartId");
+        let cartId = localStorage.getItem(cartIdKey);
 
         let result;
 
@@ -98,7 +105,8 @@ const { label = "Add to Cart" }: Props = Astro.props;
             );
 
           cartId = result.cart.id;
-          localStorage.setItem("shopifyCartId", cartId);
+          localStorage.setItem(cartIdKey, cartId);
+          localStorage.setItem(cartDataKey, JSON.stringify(result.cart));
         } else {
           // Add to existing cart
           const addResponse = await shopifyClient.request(
