@@ -15,11 +15,7 @@ const isSingleDefaultVariant =
   variants.length === 1 && variants[0].node.title === "Default Title";
 ---
 
-<div
-  class="variant-selector"
-  data-variant-selector
-  data-prices-per-locale={JSON.stringify(productData.pricesPerLocale)}
->
+<div class="variant-selector" data-variant-selector>
   {
     !isSingleDefaultVariant && (
       <label for={variantSelectId}>Choose a variant</label>
@@ -65,13 +61,14 @@ const isSingleDefaultVariant =
         "ProductVariantSelector: expected <select data-variant-select>"
       );
 
-    // Parse pricesPerLocale from data attribute
-    const pricesPerLocaleJson = (rootElement as HTMLElement).dataset
-      .pricesPerLocale;
-    if (!pricesPerLocaleJson)
-      throw new Error("ProductVariantSelector: missing pricesPerLocale data");
+    // Parse pricesPerLocale from parent product root
+    const pricesJson = productRoot.dataset.prices;
+    if (!pricesJson)
+      throw new Error(
+        "ProductVariantSelector: missing prices data on product root"
+      );
 
-    const pricesPerLocale = JSON.parse(pricesPerLocaleJson);
+    const pricesPerLocale = JSON.parse(pricesJson);
 
     function selectedVariantDetail() {
       const option = selectElement.selectedOptions[0];
@@ -144,8 +141,17 @@ const isSingleDefaultVariant =
     });
   }
 
-  const rootElements = document.querySelectorAll("[data-variant-selector]");
-  for (const rootElement of rootElements) {
-    initialiseVariantSelector(rootElement);
+  function init() {
+    const rootElements = document.querySelectorAll("[data-variant-selector]");
+    for (const rootElement of rootElements) {
+      initialiseVariantSelector(rootElement);
+    }
+  }
+
+  // Ensure DOM is ready before initializing
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
   }
 </script>

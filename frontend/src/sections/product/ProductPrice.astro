@@ -35,8 +35,9 @@ import Price from "../../components/Price.astro";
 
       if (compareAtPrice) {
         compareAtElement.setAttribute("amount", String(compareAtPrice.amount));
+        compareAtElement.style.display = "";
       } else {
-        compareAtElement.removeAttribute("amount");
+        compareAtElement.style.display = "none";
       }
     }
 

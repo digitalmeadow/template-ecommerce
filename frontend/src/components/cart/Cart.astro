@@ -228,8 +228,11 @@ import CartLineItem from "./CartLineItem.astro";
         const li = (this.template.content.cloneNode(true) as DocumentFragment)
           .firstElementChild as HTMLLIElement;
         const lineItem = li.querySelector("[data-line-item]") as HTMLDivElement;
-        const titleElement = lineItem.querySelector(
-          "[data-title]"
+        const productTitleElement = lineItem.querySelector(
+          "[data-product-title]"
+        ) as HTMLSpanElement;
+        const productVariantTitleElement = lineItem.querySelector(
+          "[data-product-variant-title]"
         ) as HTMLSpanElement;
         const priceDisplay = lineItem.querySelector(
           "[data-bind-price]"
@@ -250,8 +253,9 @@ import CartLineItem from "./CartLineItem.astro";
           productTitle &&
           line.merchandise?.product?.variants?.edges.length === 1;
 
-        titleElement.textContent = isSingleDefaultVariant
-          ? productTitle
+        productTitleElement.textContent = productTitle;
+        productVariantTitleElement.textContent = isSingleDefaultVariant
+          ? ""
           : variantTitle;
 
         priceDisplay.setAttribute(

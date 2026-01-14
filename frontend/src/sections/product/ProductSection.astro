@@ -10,7 +10,10 @@ interface Props {
 const { productData }: Props = Astro.props;
 ---
 
-<section data-product-root>
+<section
+  data-product-root
+  data-prices={JSON.stringify(productData.pricesPerLocale)}
+>
   <ProductGallery productData={productData} />
   <ProductPurchase productData={productData} />
 </section>
