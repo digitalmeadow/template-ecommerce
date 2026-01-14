@@ -9,19 +9,28 @@ const { productData }: Props = Astro.props;
 
 const selectIdSafe = productData.shopify.id.replace(/[^a-zA-Z0-9_-]/g, "_");
 const variantSelectId = `variant-select-${selectIdSafe}`;
+
+const variants = productData.shopify.variants.edges;
+const isSingleDefaultVariant =
+  variants.length === 1 && variants[0].node.title === "Default Title";
 ---
 
 <div class="variant-selector" data-variant-selector>
-  <label for={variantSelectId}>Choose a variant</label>
+  {
+    !isSingleDefaultVariant && (
+      <label for={variantSelectId}>Choose a variant</label>
+    )
+  }
 
   <select
     id={variantSelectId}
     name="variantId"
     data-variant-select
     data-product-id={productData.shopify.id}
+    style={isSingleDefaultVariant ? "display: none;" : undefined}
   >
     {
-      productData.shopify.variants.edges.map(({ node }) => (
+      variants.map(({ node }) => (
         <option
           value={node.id}
           data-title={node.title}

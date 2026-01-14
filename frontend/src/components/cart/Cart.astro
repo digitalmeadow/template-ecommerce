@@ -221,7 +221,18 @@ import CartLineItem from "./CartLineItem.astro";
         ) as HTMLButtonElement;
 
         // Populate elements
-        titleElement.textContent = line.merchandise?.title ?? "Unknown variant";
+        const variantTitle = line.merchandise?.title;
+        const productTitle = line.merchandise?.product?.title;
+
+        const isSingleDefaultVariant =
+          variantTitle === "Default Title" &&
+          productTitle &&
+          line.merchandise?.product?.variants?.edges.length === 1;
+
+        titleElement.textContent = isSingleDefaultVariant
+          ? productTitle
+          : variantTitle;
+
         priceDisplay.setAttribute(
           "amount",
           String(line.cost?.totalAmount?.amount ?? 0)
