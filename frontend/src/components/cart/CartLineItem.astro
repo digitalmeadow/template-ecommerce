@@ -1,11 +1,12 @@
 ---
 import QuantitySelector from "../QuantitySelector.astro";
+import Price from "../Price.astro";
 ---
 
 <div data-line-item>
   <span data-title></span>
   <QuantitySelector />
-  <span data-price></span>
+  <Price data-bind-price />
   <button type="button" data-remove-button aria-label="Remove item from cart"
   ></button>
 </div>

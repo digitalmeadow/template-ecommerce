@@ -1,33 +1,13 @@
 ---
-interface Props {
-  locale?: string;
-}
-
-const { locale = "en-US" }: Props = Astro.props;
+import Price from "../../components/Price.astro";
 ---
 
-<div class="product-price" data-product-price data-locale={locale}>
-  <span data-bind-price></span>
-  <span data-bind-compare-at hidden></span>
+<div class="product-price" data-product-price data-locale="en-US">
+  <Price variant="compare-at" data-bind-compare-at />
+  <Price data-bind-price />
 </div>
 
 <script>
-  function formatMoney(amount: number, currencyCode: string, locale: string) {
-    const numericAmount = Number(amount);
-
-    if (!Number.isFinite(numericAmount))
-      throw new Error("ProductPrice: invalid price amount");
-
-    try {
-      return new Intl.NumberFormat(locale, {
-        style: "currency",
-        currency: currencyCode,
-      }).format(numericAmount);
-    } catch {
-      return `${numericAmount}`;
-    }
-  }
-
   function initialiseProductPrice(rootElement: HTMLElement) {
     const productRoot = rootElement.closest(
       "[data-product-root]"
@@ -39,47 +19,28 @@ const { locale = "en-US" }: Props = Astro.props;
       "[data-bind-price]"
     ) as HTMLElement;
     if (!priceElement)
-      throw new Error("ProductPrice: missing [data-bind-price]");
+      throw new Error("ProductPrice: missing [data-bind-price] element");
 
     const compareAtElement = rootElement.querySelector(
       "[data-bind-compare-at]"
     ) as HTMLElement;
-    if (!compareAtElement)
-      throw new Error("ProductPrice: missing [data-bind-compare-at]");
 
     const locale = rootElement.dataset.locale || "en-US";
 
     function handleVariantChange(event: CustomEvent) {
       const { price, compareAtPrice } = event.detail;
 
-      if (!price) {
-        priceElement.textContent = "";
-        compareAtElement.textContent = "";
-        compareAtElement.setAttribute("hidden", "");
-        return;
-      }
+      if (!price)
+        throw new Error("ProductPrice: missing price in variant-change event");
 
-      priceElement.textContent = formatMoney(
-        price.amount,
-        price.currencyCode,
-        locale
-      );
+      priceElement.setAttribute("amount", String(price.amount));
 
       if (compareAtPrice) {
-        compareAtElement.textContent = formatMoney(
-          compareAtPrice.amount,
-          compareAtPrice.currencyCode,
-          locale
-        );
-        compareAtElement.removeAttribute("hidden");
+        compareAtElement.setAttribute("amount", String(compareAtPrice.amount));
       } else {
-        compareAtElement.textContent = "";
-        compareAtElement.setAttribute("hidden", "");
+        compareAtElement.removeAttribute("amount");
       }
     }
-
-    if (!productRoot)
-      throw new Error("ProductPrice: missing [data-product-root]");
 
     productRoot.addEventListener(
       "product:variant-change",

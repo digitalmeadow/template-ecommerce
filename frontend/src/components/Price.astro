@@ -1,0 +1,76 @@
+<price-display {...Astro.props}>
+  <span data-price-value></span>
+</price-display>
+
+<script>
+  export class PriceDisplayElement extends HTMLElement {
+    private priceElement!: HTMLSpanElement;
+    private locale!: string;
+
+    connectedCallback() {
+      this.priceElement = this.querySelector("[data-price-value]")!;
+      this.locale = this.getAttribute("locale") || "en-US";
+
+      // Initialize with attributes
+      this.updatePrice();
+    }
+
+    updatePrice() {
+      const amount = this.getAttribute("amount");
+      const currency = this.getAttribute("currency") || "USD";
+      const variant = this.getAttribute("variant");
+
+      if (!amount) {
+        this.priceElement.textContent = "";
+        this.style.display = "none";
+        return;
+      }
+
+      const numericAmount = Number(amount);
+
+      if (!Number.isFinite(numericAmount)) {
+        this.priceElement.textContent = "";
+        this.style.display = "none";
+        return;
+      }
+
+      this.style.display = "";
+
+      // Apply variant styling
+      if (variant === "compare-at") {
+        this.setAttribute("data-variant", "compare-at");
+      } else {
+        this.removeAttribute("data-variant");
+      }
+
+      try {
+        this.priceElement.textContent = new Intl.NumberFormat(this.locale, {
+          style: "currency",
+          currency: currency,
+        }).format(numericAmount);
+      } catch {
+        this.priceElement.textContent = `${numericAmount}`;
+      }
+    }
+
+    // Called when attributes change
+    static get observedAttributes() {
+      return ["amount", "currency", "locale", "variant"];
+    }
+
+    attributeChangedCallback() {
+      if (this.priceElement) {
+        this.updatePrice();
+      }
+    }
+  }
+
+  customElements.define("price-display", PriceDisplayElement);
+</script>
+
+<style>
+  price-display[data-variant="compare-at"] span {
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+</style>

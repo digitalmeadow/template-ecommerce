@@ -1,12 +1,14 @@
 ---
 import QuantitySelector from "../QuantitySelector.astro";
+import Price from "../Price.astro";
 import CartLineItem from "./CartLineItem.astro";
 ---
 
 <cart-root>
-  <!-- Astro dedup fails to mount custom component when within <template> tags -->
+  <!-- BUG: Astro dedup fails to mount native web components when within <template> tags -->
   <div style="display: none">
     <QuantitySelector />
+    <Price />
   </div>
 
   <template data-cart-line-template>
@@ -17,7 +19,7 @@ import CartLineItem from "./CartLineItem.astro";
 
   <ul data-cart-line-items></ul>
   <div data-cart-total>
-    <span>Total: <span data-cart-total-price>$0.00</span></span>
+    <span>Total: <Price data-bind-price /></span>
     <button data-cart-checkout>Checkout</button>
   </div>
 </cart-root>
@@ -34,9 +36,8 @@ import CartLineItem from "./CartLineItem.astro";
   class CartRootElement extends HTMLElement {
     private template!: HTMLTemplateElement;
     private lineItemsContainer!: HTMLUListElement;
-    private totalElement!: HTMLDivElement;
-    private totalPriceElement!: HTMLSpanElement;
     private checkoutButton!: HTMLButtonElement;
+    private totalPriceDisplay!: HTMLElement;
 
     private cart: CartFragment | null = null;
     private mutationQueue: Promise<void> = Promise.resolve();
@@ -44,8 +45,9 @@ import CartLineItem from "./CartLineItem.astro";
     connectedCallback() {
       this.template = this.querySelector("[data-cart-line-template]")!;
       this.lineItemsContainer = this.querySelector("[data-cart-line-items]")!;
-      this.totalElement = this.querySelector("[data-cart-total]")!;
-      this.totalPriceElement = this.querySelector("[data-cart-total-price]")!;
+      this.totalPriceDisplay = this.querySelector(
+        "[data-cart-total] [data-bind-price]"
+      )!;
       this.checkoutButton = this.querySelector("[data-cart-checkout]")!;
 
       // Checkout click
@@ -182,7 +184,7 @@ import CartLineItem from "./CartLineItem.astro";
       this.setAttribute("state", "empty");
       this.clearLineItems();
 
-      this.totalPriceElement.textContent = "$0.00";
+      this.totalPriceDisplay.removeAttribute("amount");
       this.checkoutButton.setAttribute("disabled", "true");
       this.removeAttribute("checkout-valid");
     }
@@ -208,9 +210,9 @@ import CartLineItem from "./CartLineItem.astro";
         const titleElement = lineItem.querySelector(
           "[data-title]"
         ) as HTMLSpanElement;
-        const priceElement = lineItem.querySelector(
-          "[data-price]"
-        ) as HTMLSpanElement;
+        const priceDisplay = lineItem.querySelector(
+          "[data-bind-price]"
+        ) as HTMLElement;
         const quantitySelector = lineItem.querySelector(
           "quantity-selector"
         ) as HTMLElement;
@@ -220,9 +222,15 @@ import CartLineItem from "./CartLineItem.astro";
 
         // Populate elements
         titleElement.textContent = line.merchandise?.title ?? "Unknown variant";
-        priceElement.textContent = (
-          Number(line.cost?.totalAmount?.amount) ?? 0
-        ).toFixed(2);
+        priceDisplay.setAttribute(
+          "amount",
+          String(line.cost?.totalAmount?.amount ?? 0)
+        );
+        priceDisplay.setAttribute(
+          "currency",
+          line.cost?.totalAmount?.currencyCode ?? "USD"
+        );
+
         quantitySelector.setAttribute("initial", String(line.quantity));
         removeButton.dataset.lineId = line.id;
 
@@ -234,7 +242,8 @@ import CartLineItem from "./CartLineItem.astro";
 
       // Update total via attribute
       const total = this.cart.cost?.totalAmount;
-      this.totalPriceElement.textContent = `${total.amount} ${total.currencyCode}`;
+      this.totalPriceDisplay.setAttribute("amount", String(total.amount));
+      this.totalPriceDisplay.setAttribute("currency", total.currencyCode);
 
       // Set checkout-valid if cart has items and checkout URL exists
       if (this.cart.checkoutUrl && this.cart.lines?.edges?.length) {
