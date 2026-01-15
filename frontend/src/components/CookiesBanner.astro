@@ -1,0 +1,143 @@
+---
+interface Props {
+  message?: string;
+  acceptLabel?: string;
+  declineLabel?: string;
+}
+
+const {
+  message = "We use cookies to improve your experience and analyze site usage.",
+  acceptLabel = "Accept",
+  declineLabel = "Decline",
+}: Props = Astro.props;
+---
+
+<cookie-banner>
+  <div data-banner>
+    <p>{message}</p>
+    <div data-actions>
+      <button type="button" data-decline-button>{declineLabel}</button>
+      <button type="button" data-accept-button>{acceptLabel}</button>
+    </div>
+  </div>
+</cookie-banner>
+
+<script>
+  export const COOKIE_CONSENT_STORAGE_KEY = "cookie-consent";
+  export const EXPIRY_DAYS = 30;
+
+  export function hasAnalyticsConsent(): boolean {
+    return localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "accepted";
+  }
+
+  export type ConsentStatus = "accepted" | "declined" | null;
+
+  class CookieBannerElement extends HTMLElement {
+    private banner!: HTMLElement;
+    private acceptButton!: HTMLButtonElement;
+    private declineButton!: HTMLButtonElement;
+
+    connectedCallback() {
+      this.banner = this.querySelector("[data-banner]")!;
+      this.acceptButton = this.querySelector("[data-accept-button]")!;
+      this.declineButton = this.querySelector("[data-decline-button]")!;
+
+      this.acceptButton.addEventListener("click", this.handleAccept);
+      this.declineButton.addEventListener("click", this.handleDecline);
+
+      const consent = this.getConsent();
+
+      if (consent === null) {
+        this.show();
+      } else {
+        this.hide();
+        if (consent === "accepted") {
+          this.initializeAnalytics();
+        }
+      }
+    }
+
+    disconnectedCallback() {
+      this.acceptButton.removeEventListener("click", this.handleAccept);
+      this.declineButton.removeEventListener("click", this.handleDecline);
+    }
+
+    getConsent(): ConsentStatus {
+      const stored = localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
+      if (!stored) return null;
+
+      try {
+        const data = JSON.parse(stored);
+        const expiryDate = new Date(data.timestamp);
+        expiryDate.setDate(expiryDate.getDate() + EXPIRY_DAYS);
+
+        if (new Date() > expiryDate) {
+          localStorage.removeItem(COOKIE_CONSENT_STORAGE_KEY);
+          return null;
+        }
+
+        if (data.status === "accepted" || data.status === "declined") {
+          return data.status;
+        }
+      } catch {
+        localStorage.removeItem(COOKIE_CONSENT_STORAGE_KEY);
+      }
+
+      return null;
+    }
+
+    setConsent(status: "accepted" | "declined") {
+      const data = {
+        status,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(data));
+    }
+
+    show() {
+      this.setAttribute("visible", "");
+      this.banner.setAttribute("aria-hidden", "false");
+    }
+
+    hide() {
+      this.removeAttribute("visible");
+      this.banner.setAttribute("aria-hidden", "true");
+    }
+
+    handleAccept = () => {
+      this.setConsent("accepted");
+      this.hide();
+      this.initializeAnalytics();
+    };
+
+    handleDecline = () => {
+      this.setConsent("declined");
+      this.hide();
+    };
+
+    initializeAnalytics() {
+      // Pseudocode for analytics initialization
+      // Replace with actual analytics implementation
+      // Example: Google Analytics
+      // window.gtag?.('consent', 'update', {
+      //   'analytics_storage': 'granted'
+      // });
+      // Example: Custom analytics
+      // if (typeof window.analytics !== 'undefined') {
+      //   window.analytics.load('YOUR_WRITE_KEY');
+      // }
+    }
+  }
+
+  customElements.define("cookie-banner", CookieBannerElement);
+</script>
+
+<style>
+  cookie-banner {
+    display: none;
+  }
+
+  cookie-banner[visible] {
+    display: block;
+  }
+</style>
