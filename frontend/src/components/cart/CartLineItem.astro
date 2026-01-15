@@ -7,7 +7,10 @@ import QuantitySelector from "../../blocks/QuantitySelector.astro";
   <span data-product-title></span>
   <span data-product-variant-title></span>
   <QuantitySelector />
-  <PriceDisplay />
+  <div>
+    <PriceDisplay variant="compare-at" data-price-compare-at />
+    <PriceDisplay data-price />
+  </div>
   <button type="button" data-cart-line-remove-button aria-label="Remove item from cart"></button>
 </div>
 

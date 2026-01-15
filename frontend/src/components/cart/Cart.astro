@@ -211,7 +211,10 @@ import Overlay from "../Overlay.astro";
         const productVariantTitleElement = lineItem.querySelector(
           "[data-product-variant-title]"
         ) as HTMLSpanElement;
-        const priceDisplay = lineItem.querySelector("price-display") as HTMLElement;
+        const priceDisplay = lineItem.querySelector("[data-price]") as HTMLElement;
+        const compareAtPriceDisplay = lineItem.querySelector(
+          "[data-price-compare-at]"
+        ) as HTMLElement;
         const quantitySelector = lineItem.querySelector("quantity-selector") as HTMLElement;
         const cartLineRemoveButton = lineItem.querySelector(
           "[data-cart-line-remove-button]"
@@ -230,6 +233,19 @@ import Overlay from "../Overlay.astro";
 
         priceDisplay.setAttribute("amount", String(line.cost.totalAmount.amount ?? 0));
         priceDisplay.setAttribute("currency", line.cost.totalAmount.currencyCode ?? getCurrency());
+
+        // Handle compare-at price
+        if (line.merchandise?.compareAtPrice) {
+          const compareAtTotal = Number(line.merchandise.compareAtPrice.amount) * line.quantity;
+          compareAtPriceDisplay.setAttribute("amount", String(compareAtTotal));
+          compareAtPriceDisplay.setAttribute(
+            "currency",
+            line.merchandise.compareAtPrice.currencyCode ?? getCurrency()
+          );
+          compareAtPriceDisplay.style.display = "";
+        } else {
+          compareAtPriceDisplay.style.display = "none";
+        }
 
         quantitySelector.setAttribute("initial", String(line.quantity));
 

@@ -1,8 +1,8 @@
 ---
-import type { ProductThumbnailShopifySanity } from "../lib/fetches/productShopifySanity";
-import SanityMedia from "../fields/SanityMedia.astro";
-import { resolveSanityHref } from "../lib/sanity/links";
-import PriceDisplay from "./PriceDisplay.astro";
+import PriceDisplay from "../../blocks/PriceDisplay.astro";
+import SanityMedia from "../../fields/SanityMedia.astro";
+import type { ProductThumbnailShopifySanity } from "../../lib/fetches/productShopifySanity";
+import { resolveSanityHref } from "../../lib/sanity/links";
 
 interface Props {
   productData: ProductThumbnailShopifySanity;
@@ -29,7 +29,7 @@ const { productData }: Props = Astro.props;
 </a>
 
 <script>
-  import { getStoredLocale, getCurrency } from "../lib/shopify/locale";
+  import { getCurrency, getStoredLocale } from "../../lib/shopify/locale";
 
   function initialiseProductThumbnail(element: HTMLElement) {
     const productRoot = element.closest("[data-product-root]") as HTMLElement;
