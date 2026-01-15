@@ -44,7 +44,7 @@ const isSingleDefaultVariant =
 </div>
 
 <script>
-  import { getStoredLocale } from "../../lib/locale";
+  import { getStoredLocale } from "../../lib/shopify/locale";
 
   function initialiseVariantSelector(rootElement: Element) {
     const productRoot = rootElement.closest(
@@ -56,18 +56,12 @@ const isSingleDefaultVariant =
     const selectElement = rootElement.querySelector(
       "[data-variant-select]"
     ) as HTMLSelectElement;
-    if (!(selectElement instanceof HTMLSelectElement))
-      throw new Error(
-        "ProductVariantSelector: expected <select data-variant-select>"
-      );
 
-    // Parse pricesPerLocale from parent product root
     const pricesJson = productRoot.dataset.prices;
     if (!pricesJson)
       throw new Error(
         "ProductVariantSelector: missing prices data on product root"
       );
-
     const pricesPerLocale = JSON.parse(pricesJson);
 
     function selectedVariantDetail() {
@@ -84,7 +78,6 @@ const isSingleDefaultVariant =
           `ProductVariantSelector: no price data for locale ${locale}`
         );
 
-      // Find the variant in the price data
       const variant = priceData.variants.edges.find(
         (edge: any) => edge.node.id === variantId
       )?.node;
@@ -128,30 +121,13 @@ const isSingleDefaultVariant =
 
     selectElement.addEventListener("change", emitVariantChange);
 
-    // Emit on locale change (when page loads)
-    window.addEventListener("storage", (e) => {
-      if (e.key === "preferred-locale") {
-        emitVariantChange();
-      }
-    });
-
-    // Listen for manual update requests from other components
     productRoot.addEventListener("product:request-variant-update", () => {
       emitVariantChange();
     });
   }
 
-  function init() {
-    const rootElements = document.querySelectorAll("[data-variant-selector]");
-    for (const rootElement of rootElements) {
-      initialiseVariantSelector(rootElement);
-    }
-  }
-
-  // Ensure DOM is ready before initializing
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  const rootElements = document.querySelectorAll("[data-variant-selector]");
+  for (const rootElement of rootElements) {
+    initialiseVariantSelector(rootElement);
   }
 </script>

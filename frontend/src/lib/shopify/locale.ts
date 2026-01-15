@@ -46,7 +46,7 @@ export function getLocaleFromPath(pathname: string): LocaleCode {
   return DEFAULT_LOCALE;
 }
 
-// Client - Get current locale from localStorage
+// Client
 export function getStoredLocale(): LocaleCode {
   if (typeof localStorage === "undefined") return DEFAULT_LOCALE;
 
@@ -56,12 +56,10 @@ export function getStoredLocale(): LocaleCode {
     : DEFAULT_LOCALE;
 }
 
-// Client - Get country code from localStorage
 export function getCountryCode(): CountryCode {
   return LOCALE_CONFIG[getStoredLocale()].country;
 }
 
-// Client - Get currency from localStorage
 export function getCurrency(): CurrencyCode {
   return LOCALE_CONFIG[getStoredLocale()].currency;
 }

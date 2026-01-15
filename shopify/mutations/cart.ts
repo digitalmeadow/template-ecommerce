@@ -1,7 +1,8 @@
 import { graphql } from "../generated";
 
 export const cartCreateMutation = graphql(`
-  mutation CartCreate($cartInput: CartInput) {
+  mutation CartCreate($cartInput: CartInput, $countryCode: CountryCode)
+  @inContext(country: $countryCode) {
     cartCreate(input: $cartInput) {
       cart {
         ...Cart
@@ -16,7 +17,11 @@ export const cartCreateMutation = graphql(`
 `);
 
 export const cartLinesUpdateMutation = graphql(`
-  mutation CartLinesUpdate($lines: [CartLineUpdateInput!]!, $cartId: ID!) {
+  mutation CartLinesUpdate(
+    $lines: [CartLineUpdateInput!]!
+    $cartId: ID!
+    $countryCode: CountryCode
+  ) @inContext(country: $countryCode) {
     cartLinesUpdate(lines: $lines, cartId: $cartId) {
       cart {
         ...Cart
@@ -31,7 +36,11 @@ export const cartLinesUpdateMutation = graphql(`
 `);
 
 export const cartLinesAddMutation = graphql(`
-  mutation CartLinesAdd($lines: [CartLineInput!]!, $cartId: ID!) {
+  mutation CartLinesAdd(
+    $lines: [CartLineInput!]!
+    $cartId: ID!
+    $countryCode: CountryCode
+  ) @inContext(country: $countryCode) {
     cartLinesAdd(lines: $lines, cartId: $cartId) {
       cart {
         ...Cart
@@ -46,7 +55,11 @@ export const cartLinesAddMutation = graphql(`
 `);
 
 export const cartLinesRemoveMutation = graphql(`
-  mutation CartLinesRemove($lineIds: [ID!]!, $cartId: ID!) {
+  mutation CartLinesRemove(
+    $lineIds: [ID!]!
+    $cartId: ID!
+    $countryCode: CountryCode
+  ) @inContext(country: $countryCode) {
     cartLinesRemove(lineIds: $lineIds, cartId: $cartId) {
       cart {
         ...Cart

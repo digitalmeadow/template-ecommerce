@@ -25,6 +25,24 @@ export function resolveLinkHref(linkData: LinkFragment): string {
   return "";
 }
 
+export function resolveSanityHref(documentType: string, slug?: string): string {
+  if (!(documentType in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
+    throw new Error("Invalid document type");
+  }
+
+  const pattern = SANITY_DOCUMENT_ROUTE_PATTERNS[documentType]!;
+
+  if (!pattern.includes("[slug]")) {
+    return pattern;
+  }
+
+  if (slug) {
+    return pattern.replace("[slug]", slug);
+  }
+
+  return pattern.replace("[slug]", "");
+}
+
 function resolveReferenceHref(reference: LinkFragment["reference"]): string {
   if (
     !reference?._type ||
@@ -33,28 +51,19 @@ function resolveReferenceHref(reference: LinkFragment["reference"]): string {
     throw new Error("Invalid reference type");
   }
 
-  const pattern = SANITY_DOCUMENT_ROUTE_PATTERNS[reference._type]!;
-
-  if (
-    !pattern.includes("[slug]") ||
-    !("slug" in reference) ||
-    !reference.slug?.current
-  ) {
-    return pattern;
-  }
-
-  return pattern.replace("[slug]", reference.slug.current);
+  return resolveSanityHref(
+    reference._type,
+    "slug" in reference && reference.slug ? reference.slug.current || "" : ""
+  );
 }
 
 function sanityFileUrlFromRef(source: string | undefined): string {
   if (!source) return "";
 
-  // Remove the leading "image-" prefix if it exists
   if (source.startsWith("file-")) {
     source = source.slice(5);
   }
 
-  // Replace the final - with a dot to get the extension
   const lastDashIndex = source.lastIndexOf("-");
   let sourceUrl =
     source.slice(0, lastDashIndex) + "." + source.slice(lastDashIndex + 1);

@@ -42,7 +42,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
   );
 
-  // GitHub returns a 204 No Content on success
   if (result.status === 204) {
     return new Response(null, { status: 204 });
   }

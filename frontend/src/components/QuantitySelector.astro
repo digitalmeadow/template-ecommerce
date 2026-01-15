@@ -19,6 +19,8 @@
 <script>
   import { z } from "astro/zod";
 
+  export type QuantityChangedEvent = CustomEvent<{ value: number }>;
+
   export class QuantitySelectorElement extends HTMLElement {
     private input!: HTMLInputElement;
     private decreaseButton!: HTMLButtonElement;
@@ -32,7 +34,6 @@
       this.decreaseButton = this.querySelector("[data-decrease-button]")!;
       this.increaseButton = this.querySelector("[data-increase-button]")!;
 
-      // Read configuration from attributes
       this.min = Math.max(Number(this.getAttribute("min")) || 1, 1);
       this.max = Number(this.getAttribute("max")) || Infinity;
       this.value = Math.max(
@@ -78,9 +79,9 @@
       }
     }
 
-    emitChange() {
+    emitChangeEvent() {
       this.dispatchEvent(
-        new CustomEvent("quantity-changed", {
+        new CustomEvent("quantity-selector:quantity-changed", {
           detail: { value: this.value },
           bubbles: true,
         })
@@ -92,7 +93,7 @@
       if (this.value > this.min) {
         this.value--;
         this.render();
-        this.emitChange();
+        this.emitChangeEvent();
       }
     };
 
@@ -101,7 +102,7 @@
       if (this.value < this.max) {
         this.value++;
         this.render();
-        this.emitChange();
+        this.emitChangeEvent();
       }
     };
 
@@ -119,7 +120,7 @@
         if (next !== this.value) {
           this.value = next;
           this.render();
-          this.emitChange();
+          this.emitChangeEvent();
         }
       } else {
         this.render();

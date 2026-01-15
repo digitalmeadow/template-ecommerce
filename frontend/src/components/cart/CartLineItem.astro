@@ -1,28 +1,31 @@
 ---
 import QuantitySelector from "../QuantitySelector.astro";
-import Price from "../Price.astro";
+import PriceDisplay from "../PriceDisplay.astro";
 ---
 
-<div data-line-item>
+<div data-cart-line-item>
   <span data-product-title></span>
   <span data-product-variant-title></span>
   <QuantitySelector />
-  <Price data-bind-price />
-  <button type="button" data-remove-button aria-label="Remove item from cart"
-  ></button>
+  <PriceDisplay />
+  <button
+    type="button"
+    data-cart-line-remove-button
+    aria-label="Remove item from cart"></button>
 </div>
 
 <style>
-  [data-remove-button]::before {
+  [data-cart-line-remove-button]::before {
     content: "Remove";
   }
 
-  [data-line-item][data-state="removing"] {
+  [data-cart-line-item][data-state="removing"] {
     opacity: 0.5;
     pointer-events: none;
   }
 
-  [data-line-item][data-state="removing"] [data-remove-button]::before {
+  [data-cart-line-item][data-state="removing"]
+    [data-cart-line-remove-button]::before {
     content: "Removing...";
   }
 </style>

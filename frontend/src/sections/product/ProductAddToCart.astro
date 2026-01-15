@@ -16,7 +16,12 @@ const { label = "Add to Cart" }: Props = Astro.props;
     cartCreateMutation,
     cartLinesAddMutation,
   } from "shopify/mutations/cart";
-  import { getCurrency, getStoredLocale } from "../../lib/locale";
+  import {
+    CART_DATA_STORAGE_KEY_SUFFIX,
+    CART_ID_STORAGE_KEY_SUFFIX,
+    getStorageKey,
+  } from "../../lib/shopify/cart";
+  import { getCountryCode } from "../../lib/shopify/locale";
 
   async function initialiseProductAddToCart(rootElement: HTMLElement) {
     const productRoot = rootElement.closest("[data-product-root]");
@@ -27,7 +32,6 @@ const { label = "Add to Cart" }: Props = Astro.props;
       "[data-add-to-cart-button]"
     ) as HTMLButtonElement;
 
-    // Read the currently selected variant from the product root
     function getCurrentVariantId() {
       if (!productRoot)
         throw new Error("ProductAddToCart: missing [data-product-root]");
@@ -43,7 +47,6 @@ const { label = "Add to Cart" }: Props = Astro.props;
       return variantSelect.value;
     }
 
-    // Read the currently selected quantity
     function getCurrentQuantity() {
       if (!productRoot)
         throw new Error("ProductAddToCart: missing [data-product-root]");
@@ -69,11 +72,8 @@ const { label = "Add to Cart" }: Props = Astro.props;
       if (!Number.isFinite(quantity) || quantity < 1)
         throw new Error("ProductAddToCart: quantity must be at least 1");
 
-      // Get locale-specific storage keys from localStorage
-      const locale = getStoredLocale();
-      const currency = getCurrency();
-      const cartIdKey = `shopify_${locale}_${currency}_cartId`;
-      const cartDataKey = `shopify_${locale}_${currency}_cartData`;
+      const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
+      const cartDataKey = getStorageKey(CART_DATA_STORAGE_KEY_SUFFIX);
 
       // UI state
       const originalLabel = button.textContent;
@@ -82,23 +82,23 @@ const { label = "Add to Cart" }: Props = Astro.props;
       document.body.style.cursor = "wait";
 
       try {
-        // Retrieve or create a cart ID in localStorage
         let cartId = localStorage.getItem(cartIdKey);
 
         let result;
 
         if (!cartId) {
-          // Create a new cart with the initial line
           const createResponse = await shopifyClient.request(
             cartCreateMutation,
             {
               cartInput: {
                 lines: [{ merchandiseId: variantId, quantity }],
               },
+              countryCode: getCountryCode(),
             }
           );
 
           result = createResponse.cartCreate;
+
           if (!result?.cart)
             throw new Error(
               result?.userErrors?.[0]?.message || "Cart creation failed"
@@ -108,16 +108,17 @@ const { label = "Add to Cart" }: Props = Astro.props;
           localStorage.setItem(cartIdKey, cartId);
           localStorage.setItem(cartDataKey, JSON.stringify(result.cart));
         } else {
-          // Add to existing cart
           const addResponse = await shopifyClient.request(
             cartLinesAddMutation,
             {
               cartId,
               lines: [{ merchandiseId: variantId, quantity }],
+              countryCode: getCountryCode(),
             }
           );
 
           result = addResponse.cartLinesAdd;
+
           if (!result?.cart)
             throw new Error(
               result?.userErrors?.[0]?.message || "Adding to cart failed"
@@ -132,7 +133,6 @@ const { label = "Add to Cart" }: Props = Astro.props;
         );
       } catch (error: any) {
         console.error("[ProductAddToCart] Error:", error);
-        alert(error.message ?? "Failed to add item to cart");
       } finally {
         button.disabled = false;
         button.textContent = originalLabel;

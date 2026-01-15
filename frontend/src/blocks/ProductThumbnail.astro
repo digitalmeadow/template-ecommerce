@@ -1,8 +1,8 @@
 ---
 import type { ProductThumbnailShopifySanity } from "../lib/fetches/productShopifySanity";
 import SanityMedia from "../fields/SanityMedia.astro";
-import Price from "../components/Price.astro";
-import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "../../config";
+import { resolveSanityHref } from "../lib/sanity/links";
+import PriceDisplay from "../components/PriceDisplay.astro";
 
 interface Props {
   productData: ProductThumbnailShopifySanity;
@@ -12,14 +12,15 @@ const { productData }: Props = Astro.props;
 ---
 
 <a
-  href={SANITY_DOCUMENT_ROUTE_PATTERNS.product.replace(
-    "[slug]",
+  href={resolveSanityHref(
+    "product",
     productData.sanity.shopify!.handle!.current!
   )}
 >
   <article
     class="product-thumbnail"
     data-product-thumbnail
+    data-product-root
     data-prices={JSON.stringify(productData.pricesPerLocale)}
   >
     <div class="media">
@@ -30,58 +31,42 @@ const { productData }: Props = Astro.props;
     </div>
     <h3>{productData.shopify?.title}</h3>
     <div class="price">
-      <Price data-bind-price />
+      <PriceDisplay />
     </div>
   </article>
 </a>
 
 <script>
-  import { getStoredLocale, getCurrency } from "../lib/locale";
+  import { getStoredLocale, getCurrency } from "../lib/shopify/locale";
 
   function initialiseProductThumbnail(element: HTMLElement) {
-    const priceElement = element.querySelector(
-      "[data-bind-price]"
-    ) as HTMLElement;
+    const productRoot = element.closest("[data-product-root]") as HTMLElement;
+    const priceElement = element.querySelector("price-display") as HTMLElement;
 
-    const pricesJson = element.dataset.prices;
-    if (!pricesJson) return;
-
-    const prices = JSON.parse(pricesJson);
+    const pricesJson = productRoot.dataset.prices;
+    const prices = JSON.parse(pricesJson!);
 
     function updatePrice() {
       const locale = getStoredLocale();
       const currency = getCurrency();
       const priceData = prices[locale];
 
-      if (!priceData?.variants?.edges?.length) return;
-
-      // Find the minimum and maximum prices from all variants
       const amounts = priceData.variants.edges.map((edge: any) =>
         parseFloat(edge.node.price.amount)
       );
       const minPrice = Math.min(...amounts);
       const maxPrice = Math.max(...amounts);
-      const hasVariantPricing = minPrice !== maxPrice;
+      const hasPriceRange = minPrice !== maxPrice;
 
       priceElement.setAttribute("amount", minPrice.toString());
       priceElement.setAttribute("currency", currency);
 
-      // Add "from" prefix if there are different variant prices
-      if (hasVariantPricing) {
+      if (hasPriceRange) {
         priceElement.setAttribute("prefix", "from");
-      } else {
-        priceElement.removeAttribute("prefix");
       }
     }
 
     updatePrice();
-
-    // Update on locale change
-    window.addEventListener("storage", (e) => {
-      if (e.key === "preferred-locale") {
-        updatePrice();
-      }
-    });
   }
 
   const thumbnails = document.querySelectorAll("[data-product-thumbnail]");

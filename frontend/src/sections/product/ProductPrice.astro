@@ -1,10 +1,10 @@
 ---
-import Price from "../../components/Price.astro";
+import PriceDisplay from "../../components/PriceDisplay.astro";
 ---
 
 <div class="product-price" data-product-price>
-  <Price variant="compare-at" data-bind-compare-at />
-  <Price data-bind-price />
+  <PriceDisplay variant="compare-at" data-price-compare-at />
+  <PriceDisplay data-price />
 </div>
 
 <script>
@@ -16,13 +16,10 @@ import Price from "../../components/Price.astro";
       throw new Error("ProductPrice: missing [data-product-root]");
 
     const priceElement = rootElement.querySelector(
-      "[data-bind-price]"
+      "[data-price]"
     ) as HTMLElement;
-    if (!priceElement)
-      throw new Error("ProductPrice: missing [data-bind-price] element");
-
     const compareAtElement = rootElement.querySelector(
-      "[data-bind-compare-at]"
+      "[data-price-compare-at]"
     ) as HTMLElement;
 
     function handleVariantChange(event: CustomEvent) {
@@ -46,16 +43,9 @@ import Price from "../../components/Price.astro";
       handleVariantChange as EventListener
     );
 
-    // Manually trigger initial price update by reading current variant
-    const variantSelect = productRoot.querySelector(
-      "[data-variant-select]"
-    ) as HTMLSelectElement;
-    if (variantSelect) {
-      // Trigger a change event to get initial prices
-      productRoot.dispatchEvent(
-        new CustomEvent("product:request-variant-update", { bubbles: true })
-      );
-    }
+    productRoot.dispatchEvent(
+      new CustomEvent("product:request-variant-update", { bubbles: true })
+    );
   }
 
   const rootElements = document.querySelectorAll("[data-product-price]");

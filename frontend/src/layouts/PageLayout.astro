@@ -17,7 +17,7 @@ import type { MetaFragment } from "sanity/generated/graphql";
 import { WEBSITE_URL } from "astro:env/client";
 import Cart from "../components/cart/Cart.astro";
 import LocaleSelector from "../components/LocaleSelector.astro";
-import { getLocaleFromPath, LOCALE_CONFIG } from "../lib/locale";
+import { getLocaleFromPath, LOCALE_CONFIG } from "../lib/shopify/locale";
 
 interface Props {
   metaData: MetaFragment | null | undefined;

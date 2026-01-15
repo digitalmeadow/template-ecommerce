@@ -4,7 +4,7 @@
 </price-display>
 
 <script>
-  import { getCurrency, getStoredLocale } from "../lib/locale";
+  import { getCurrency, getStoredLocale } from "../lib/shopify/locale";
 
   export class PriceDisplayElement extends HTMLElement {
     private prefixElement!: HTMLSpanElement;
@@ -16,11 +16,9 @@
       this.prefixElement = this.querySelector("[data-price-prefix]")!;
       this.priceElement = this.querySelector("[data-price-value]")!;
 
-      // Get locale and currency from localStorage
       this.locale = this.getAttribute("locale") || getStoredLocale();
       this.currency = this.getAttribute("currency") || getCurrency();
 
-      // Initialize with attributes
       this.updatePrice();
     }
 
@@ -32,15 +30,9 @@
 
       const numericAmount = Number(amount || 0);
 
-      // Apply variant styling
       this.setAttribute("data-variant", variant || "standard");
 
-      // Set prefix text
-      if (prefix) {
-        this.prefixElement.textContent = prefix + " ";
-      } else {
-        this.prefixElement.textContent = "";
-      }
+      if (prefix) this.prefixElement.textContent = prefix;
 
       this.priceElement.textContent = new Intl.NumberFormat(this.locale, {
         style: "currency",
@@ -49,7 +41,6 @@
       }).format(numericAmount);
     }
 
-    // Called when attributes change
     static get observedAttributes() {
       return ["amount", "currency", "locale", "variant", "prefix"];
     }

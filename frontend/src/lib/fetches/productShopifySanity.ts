@@ -17,7 +17,7 @@ import {
   productThumbnailByHandleQuery as sanityProductThumbnailByHandleQuery,
 } from "sanity/queries/product";
 import { selectDocument } from "../sanity/drafts";
-import { LOCALE_CONFIG, type LocaleCode } from "../locale";
+import { LOCALE_CONFIG, type LocaleCode } from "../shopify/locale";
 
 export type ProductThumbnailShopifySanity = {
   shopify: ShopifyProductFragment;
@@ -76,11 +76,10 @@ export async function fetchProductShopifySanity(
   );
   const sanityProduct = selectDocument(sanityProductQuery.allProduct);
 
-  if (!shopifyProduct || !sanityProduct) {
+  if (!shopifyProduct || !sanityProduct)
     throw new Error(
       `Product with handle "${handle}" not found in Shopify or Sanity`
     );
-  }
 
   const pricesPerLocale = await fetchPricesPerLocale(handle);
 

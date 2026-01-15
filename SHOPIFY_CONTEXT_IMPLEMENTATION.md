@@ -144,7 +144,7 @@ After implementing these changes:
 
 3. **Add more locales:**
    ```typescript
-   // frontend/src/lib/locale.ts
+   // frontend/src/lib/shopify/locale.ts
    export const LOCALE_CONFIG = {
      "fr-CA": {
        language: "FR",

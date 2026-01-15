@@ -1,15 +1,13 @@
 ---
 import { shopifyClient } from "shopify/client";
 import { localizationsQuery } from "shopify/queries/localization";
-import { LOCALE_CONFIG, getLocaleFromPath } from "../lib/locale";
+import { LOCALE_CONFIG, getLocaleFromPath } from "../lib/shopify/locale";
 
 const currentLocale = getLocaleFromPath(Astro.url.pathname);
 
-// Fetch available locales from Shopify
 const { localization } = await shopifyClient.request(localizationsQuery);
 const availableCountries = localization.availableCountries;
 
-// Map Shopify countries to our locale config
 const localeOptions = Object.entries(LOCALE_CONFIG)
   .filter(([_, config]) =>
     availableCountries.some(
@@ -42,16 +40,14 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
 </locale-selector>
 
 <script>
-  import { isValidLocale, type LocaleCode } from "../lib/locale";
+  import { isValidLocale } from "../lib/shopify/locale";
 
   const LOCALE_STORAGE_KEY = "preferred-locale";
-  const DEFAULT_LOCALE: LocaleCode = "en-AU";
 
   class LocaleSelector extends HTMLElement {
     connectedCallback() {
       const select = this.querySelector("select") as HTMLSelectElement;
 
-      // Set initial value from localStorage
       const storedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
       if (storedLocale && isValidLocale(storedLocale)) {
         select.value = storedLocale;
@@ -61,10 +57,7 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
         const target = e.target as HTMLSelectElement;
         const newLocale = target.value;
 
-        // Save preference to localStorage
         localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
-
-        // Reload page to reinitialize with new locale
         window.location.reload();
       });
     }
