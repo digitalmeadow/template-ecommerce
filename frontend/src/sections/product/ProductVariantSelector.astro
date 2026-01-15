@@ -33,7 +33,7 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
         const selectId = `${selectIdSafe}-${option.name.toLowerCase()}`;
         return (
           <div>
-            <label for={selectId}>{option.name}</label>
+            <label for={selectId}>{option.name}:</label>
             <select id={selectId} data-option-select data-option-name={option.name}>
               {option.values.map((value) => (
                 <option value={value}>{value}</option>

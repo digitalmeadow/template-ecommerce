@@ -4,6 +4,7 @@ import { sanityClient } from "sanity/client";
 import type { HeaderQueryQuery } from "sanity/generated/graphql";
 import { headerQuery } from "sanity/queries/header";
 import { selectDocument } from "../lib/sanity/drafts";
+import LocaleSelector from "../blocks/LocaleSelector.astro";
 
 const componentQuery: HeaderQueryQuery = await sanityClient.request(headerQuery);
 const headerData = selectDocument(componentQuery.allHeader);
@@ -13,14 +14,43 @@ const headerData = selectDocument(componentQuery.allHeader);
   <a href="/"> Template Ecommerce </a>
 
   <nav>
+    <LocaleSelector />
+
     {
       headerData?.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
         return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
       })
     }
+
+    <button data-cart-toggle aria-label="Toggle cart">
+      Cart<span data-cart-count></span>
+    </button>
   </nav>
 </header>
+
+<script>
+  import type { EventCartUpdated } from "./cart/Cart.astro.0.mts";
+  import type { OverlayElement } from "./Overlay.astro.0.mts";
+
+  const cartCountElement = document.querySelector("[data-cart-count]") as HTMLElement;
+  const cartOverlay = document.querySelector("[data-cart-overlay]") as OverlayElement | null;
+
+  document.querySelector("[data-cart-toggle]")?.addEventListener("click", () => {
+    if (!cartOverlay) throw new Error("Cart overlay element not found");
+    cartOverlay.toggle();
+  });
+
+  document.addEventListener("product:add-to-cart", () => {
+    if (!cartOverlay) throw new Error("Cart overlay element not found");
+    cartOverlay.open();
+  });
+
+  document.addEventListener("cart:updated", (e: Event) => {
+    const eventCartUpdated = e as EventCartUpdated;
+    cartCountElement.textContent = `(${eventCartUpdated.detail.count})`;
+  });
+</script>
 
 <style>
   header {

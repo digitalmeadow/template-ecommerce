@@ -1,28 +1,33 @@
 ---
-import PriceDisplay from "../PriceDisplay.astro";
-import QuantitySelector from "../QuantitySelector.astro";
+import PriceDisplay from "../../blocks/PriceDisplay.astro";
+import QuantitySelector from "../../blocks/QuantitySelector.astro";
 import CartLineItem from "./CartLineItem.astro";
+import Overlay from "../Overlay.astro";
 ---
 
-<cart-root>
-  <!-- BUG: Astro dedup fails to mount native web components when within <template> tags -->
-  <div style="display: none">
-    <QuantitySelector />
-    <PriceDisplay />
-  </div>
+<Overlay data-cart-overlay>
+  <cart-root>
+    <!-- BUG: Astro dedup fails to mount native web components when within <template> tags -->
+    <div style="display: none">
+      <QuantitySelector />
+      <PriceDisplay />
+    </div>
 
-  <template data-cart-line-template>
-    <li>
-      <CartLineItem />
-    </li>
-  </template>
+    <template data-cart-line-template>
+      <li>
+        <CartLineItem />
+      </li>
+    </template>
 
-  <ul data-cart-line-items></ul>
-  <div data-cart-total>
-    <span>Total: <PriceDisplay /></span>
+    <ul data-cart-line-items></ul>
+
+    <div data-cart-total>
+      <span>Total: <PriceDisplay /></span>
+    </div>
+
     <button data-cart-checkout>Checkout</button>
-  </div>
-</cart-root>
+  </cart-root>
+</Overlay>
 
 <script>
   import { shopifyClient } from "shopify/client";
@@ -36,6 +41,11 @@ import CartLineItem from "./CartLineItem.astro";
   } from "../../lib/shopify/cart";
   import { getCurrency, getCountryCode } from "../../lib/shopify/locale";
   import type { QuantitySelectorElement, QuantityChangedEvent } from "../QuantitySelector.astro";
+
+  export type EventCartUpdatedDetail = {
+    count: number;
+  };
+  export type EventCartUpdated = CustomEvent<EventCartUpdatedDetail>;
 
   class CartRootElement extends HTMLElement {
     private template!: HTMLTemplateElement;
@@ -173,6 +183,9 @@ import CartLineItem from "./CartLineItem.astro";
       this.totalPriceDisplay.removeAttribute("amount");
       this.checkoutButton.setAttribute("disabled", "true");
       this.removeAttribute("checkout-valid");
+
+      const eventCartUpdatedDetail: EventCartUpdatedDetail = { count: 0 };
+      document.dispatchEvent(new CustomEvent("cart:updated", { detail: eventCartUpdatedDetail }));
     }
 
     renderCart() {
@@ -236,6 +249,11 @@ import CartLineItem from "./CartLineItem.astro";
       } else {
         this.removeAttribute("checkout-valid");
       }
+
+      const count = this.cart.lines.edges.reduce((sum, edge) => {
+        return sum + (edge.node.__typename === "CartLine" ? edge.node.quantity : 0);
+      }, 0);
+      document.dispatchEvent(new CustomEvent("cart:updated", { detail: { count } }));
     }
   }
 
@@ -243,6 +261,18 @@ import CartLineItem from "./CartLineItem.astro";
 </script>
 
 <style>
+  cart-root {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 400px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+  }
+
   cart-root[state="empty"] [data-cart-line-items]::before {
     content: "Your cart is empty.";
     display: block;

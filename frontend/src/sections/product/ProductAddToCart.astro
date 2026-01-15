@@ -107,9 +107,8 @@
     }
 
     function handleVariantChange(event: Event) {
-      const eventTyped = event as EventProductVariantChange;
-      const { availableForSale } = eventTyped.detail;
-      currentVariantAvailable = availableForSale;
+      const eventProductVariantChange = event as EventProductVariantChange;
+      const availableForSale = eventProductVariantChange.detail.availableForSale;
 
       button.setAttribute("data-available-for-sale", String(availableForSale));
       button.disabled = !availableForSale;
