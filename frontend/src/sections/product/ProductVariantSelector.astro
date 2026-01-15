@@ -1,5 +1,6 @@
 ---
 import type { ProductShopifySanity } from "../../lib/fetches/productShopifySanity";
+import { shopifyIdFromGid } from "shopify/utils/ids";
 
 interface Props {
   productData: ProductShopifySanity;
@@ -7,103 +8,112 @@ interface Props {
 
 const { productData }: Props = Astro.props;
 
-const selectIdSafe = productData.shopify.id.replace(/[^a-zA-Z0-9_-]/g, "_");
-const variantSelectId = `variant-select-${selectIdSafe}`;
-
+const options = productData.shopify.options || [];
 const variants = productData.shopify.variants.edges;
 const isSingleDefaultVariant = variants.length === 1 && variants[0].node.title === "Default Title";
+
+// Prepare minimal variant matching data for client-side
+const variantsForMatching = variants.map((edge) => ({
+  id: edge.node.id,
+  selectedOptions: edge.node.selectedOptions,
+  availableForSale: edge.node.availableForSale,
+}));
+
+const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
 ---
 
-<div class="variant-selector" data-variant-selector>
-  {!isSingleDefaultVariant && <label for={variantSelectId}>Choose a variant</label>}
-
-  <select
-    id={variantSelectId}
-    name="variantId"
-    data-variant-select
-    data-product-id={productData.shopify.id}
-    style={isSingleDefaultVariant ? "display: none;" : undefined}
-  >
-    {
-      variants.map(({ node }) => (
-        <option
-          value={node.id}
-          data-title={node.title}
-          data-available={node.availableForSale ? "true" : "false"}
-        >
-          {node.title}
-        </option>
-      ))
-    }
-  </select>
+<div
+  class="variant-selector"
+  data-variant-selector
+  data-variants={JSON.stringify(variantsForMatching)}
+>
+  {
+    !isSingleDefaultVariant &&
+      options.map((option) => {
+        const selectId = `${selectIdSafe}-${option.name.toLowerCase()}`;
+        return (
+          <div>
+            <label for={selectId}>{option.name}</label>
+            <select id={selectId} data-option-select data-option-name={option.name}>
+              {option.values.map((value) => (
+                <option value={value}>{value}</option>
+              ))}
+            </select>
+          </div>
+        );
+      })
+  }
+  <input type="hidden" data-variant-id data-product-id={productData.shopify.id} />
 </div>
 
 <script>
-  import { getStoredLocale } from "../../lib/shopify/locale";
+  export type EventDetailProductVariantChange = {
+    variantId: string;
+    availableForSale: boolean;
+  };
+  export type EventProductVariantChange = CustomEvent<EventDetailProductVariantChange>;
 
   function initialiseVariantSelector(rootElement: Element) {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
     if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
 
-    const selectElement = rootElement.querySelector("[data-variant-select]") as HTMLSelectElement;
+    const optionSelects = Array.from(
+      rootElement.querySelectorAll("[data-option-select]")
+    ) as HTMLSelectElement[];
+    const variantIdInput = rootElement.querySelector("[data-variant-id]") as HTMLInputElement;
 
-    const pricesJson = productRoot.dataset.prices;
-    if (!pricesJson) throw new Error("ProductVariantSelector: missing prices data on product root");
-    const pricesPerLocale = JSON.parse(pricesJson);
+    const variantsJson = (rootElement as HTMLElement).dataset.variants;
+    if (!variantsJson) throw new Error("ProductVariantSelector: missing variants data");
+    const variants = JSON.parse(variantsJson);
 
-    function selectedVariantDetail() {
-      const option = selectElement.selectedOptions[0];
-      if (!option) throw new Error("ProductVariantSelector: no selected option");
-
-      const variantId = option.value;
-      const locale = getStoredLocale();
-      const priceData = pricesPerLocale[locale];
-
-      if (!priceData) throw new Error(`ProductVariantSelector: no price data for locale ${locale}`);
-
-      const variant = priceData.variants.edges.find(
-        (edge: any) => edge.node.id === variantId
-      )?.node;
-
-      if (!variant)
-        throw new Error(`ProductVariantSelector: variant ${variantId} not found in price data`);
-
-      return {
-        productId: selectElement.dataset.productId,
-        variantId: option.value,
-        title: option.dataset.title ?? option.textContent ?? "",
-        available: option.dataset.available === "true",
-        price: variant.price
-          ? {
-              amount: variant.price.amount,
-              currencyCode: variant.price.currencyCode,
-            }
-          : null,
-        compareAtPrice: variant.compareAtPrice
-          ? {
-              amount: variant.compareAtPrice.amount,
-              currencyCode: variant.compareAtPrice.currencyCode,
-            }
-          : null,
-      };
+    function getSelectedOptions() {
+      return optionSelects.map((select) => ({
+        name: select.dataset.optionName!,
+        value: select.value,
+      }));
     }
 
-    function emitVariantChange() {
-      if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
+    function findMatchingVariant() {
+      const selectedOptions = getSelectedOptions();
 
+      const variant = variants.find((v: any) => {
+        return selectedOptions.every((selected) =>
+          v.selectedOptions.some(
+            (vo: any) => vo.name === selected.name && vo.value === selected.value
+          )
+        );
+      });
+
+      return variant || null;
+    }
+
+    function updateVariantId() {
+      const variant = findMatchingVariant();
+      if (!variant) return;
+
+      variantIdInput.value = variant.id;
+
+      const detail: EventDetailProductVariantChange = {
+        variantId: variant.id,
+        availableForSale: variant.availableForSale,
+      };
       productRoot.dispatchEvent(
         new CustomEvent("product:variant-change", {
           bubbles: true,
-          detail: selectedVariantDetail(),
+          detail,
         })
       );
     }
 
-    selectElement.addEventListener("change", emitVariantChange);
+    optionSelects.forEach((select) => {
+      select.addEventListener("change", updateVariantId);
+    });
 
     productRoot.addEventListener("product:request-variant-update", () => {
-      emitVariantChange();
+      updateVariantId();
     });
+
+    updateVariantId();
   }
 
   const rootElements = document.querySelectorAll("[data-variant-selector]");

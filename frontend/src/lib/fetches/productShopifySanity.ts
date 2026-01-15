@@ -19,10 +19,12 @@ import {
 import { selectDocument } from "../sanity/drafts";
 import { LOCALE_CONFIG, type LocaleCode } from "../shopify/locale";
 
+export type PricesPerLocale = Record<LocaleCode, ShopifyProductPriceFragment>;
+
 export type ProductThumbnailShopifySanity = {
   shopify: ShopifyProductFragment;
   sanity: SanityProductThumbnailFragment;
-  pricesPerLocale: Record<LocaleCode, ShopifyProductPriceFragment>;
+  pricesPerLocale: PricesPerLocale;
 };
 
 export async function fetchProductThumbnailShopifySanity(
@@ -52,7 +54,7 @@ export async function fetchProductThumbnailShopifySanity(
 export type ProductShopifySanity = {
   shopify: ShopifyProductFragment;
   sanity: SanityProductFragment;
-  pricesPerLocale: Record<LocaleCode, ShopifyProductPriceFragment>;
+  pricesPerLocale: PricesPerLocale;
 };
 
 export async function fetchProductShopifySanity(handle: string): Promise<ProductShopifySanity> {
@@ -74,7 +76,7 @@ export async function fetchProductShopifySanity(handle: string): Promise<Product
   };
 }
 
-async function fetchPricesPerLocale(handle: string) {
+async function fetchPricesPerLocale(handle: string): Promise<PricesPerLocale> {
   const prices: Record<LocaleCode, ShopifyProductPriceFragment> = {} as Record<
     LocaleCode,
     ShopifyProductPriceFragment

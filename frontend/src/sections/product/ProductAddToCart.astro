@@ -1,13 +1,5 @@
----
-interface Props {
-  label?: string;
-}
-
-const { label = "Add to Cart" }: Props = Astro.props;
----
-
 <div class="product-add-to-cart" data-product-add-to-cart>
-  <button type="button" data-add-to-cart-button>{label}</button>
+  <button type="button" data-add-to-cart-button data-available-for-sale="true"></button>
 </div>
 
 <script>
@@ -19,21 +11,23 @@ const { label = "Add to Cart" }: Props = Astro.props;
     getStorageKey,
   } from "../../lib/shopify/cart";
   import { getCountryCode } from "../../lib/shopify/locale";
+  import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
 
   async function initialiseProductAddToCart(rootElement: HTMLElement) {
     const productRoot = rootElement.closest("[data-product-root]");
     if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
     const button = rootElement.querySelector("[data-add-to-cart-button]") as HTMLButtonElement;
+    let currentVariantAvailable = true;
 
     function getCurrentVariantId() {
       if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
-      const variantSelect = productRoot.querySelector("[data-variant-select]") as HTMLSelectElement;
-      if (!variantSelect)
-        throw new Error("ProductAddToCart: missing [data-variant-select] inside product root");
+      const variantIdInput = productRoot.querySelector("[data-variant-id]") as HTMLInputElement;
+      if (!variantIdInput)
+        throw new Error("ProductAddToCart: missing [data-variant-id] inside product root");
 
-      return variantSelect.value;
+      return variantIdInput.value;
     }
 
     function getCurrentQuantity() {
@@ -59,10 +53,8 @@ const { label = "Add to Cart" }: Props = Astro.props;
       const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
       const cartDataKey = getStorageKey(CART_DATA_STORAGE_KEY_SUFFIX);
 
-      // UI state
-      const originalLabel = button.textContent;
       button.disabled = true;
-      button.textContent = "Adding to cart...";
+      button.setAttribute("data-loading", "true");
       document.body.style.cursor = "wait";
 
       try {
@@ -108,13 +100,25 @@ const { label = "Add to Cart" }: Props = Astro.props;
       } catch (error: any) {
         console.error("[ProductAddToCart] Error:", error);
       } finally {
-        button.disabled = false;
-        button.textContent = originalLabel;
+        button.removeAttribute("data-loading");
+        button.disabled = !currentVariantAvailable;
         document.body.style.cursor = "";
       }
     }
 
+    function handleVariantChange(event: Event) {
+      const eventTyped = event as EventProductVariantChange;
+      const { availableForSale } = eventTyped.detail;
+      currentVariantAvailable = availableForSale;
+
+      button.setAttribute("data-available-for-sale", String(availableForSale));
+      button.disabled = !availableForSale;
+    }
+
+    productRoot.addEventListener("product:variant-change", handleVariantChange);
+
     button.addEventListener("click", async () => {
+      if (!currentVariantAvailable) return;
       const variantId = getCurrentVariantId();
       const quantity = getCurrentQuantity();
       await addToCart(variantId, quantity);
@@ -126,3 +130,22 @@ const { label = "Add to Cart" }: Props = Astro.props;
     initialiseProductAddToCart(rootElement as HTMLElement);
   }
 </script>
+
+<style>
+  [data-product-add-to-cart] [data-add-to-cart-button]::before {
+    content: "Add to Cart";
+  }
+
+  [data-product-add-to-cart] [data-add-to-cart-button][data-available-for-sale="false"]::before {
+    content: "Sold Out";
+  }
+
+  [data-product-add-to-cart] [data-add-to-cart-button][data-available-for-sale="false"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  [data-product-add-to-cart] [data-add-to-cart-button][data-loading="true"]::before {
+    content: "Adding to cart...";
+  }
+</style>

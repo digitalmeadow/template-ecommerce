@@ -8,6 +8,10 @@ import PriceDisplay from "../../components/PriceDisplay.astro";
 </div>
 
 <script>
+  import type { PricesPerLocale } from "../../lib/fetches/productShopifySanity";
+  import { getStoredLocale } from "../../lib/shopify/locale";
+  import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
+
   function initialiseProductPrice(rootElement: HTMLElement) {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
     if (!productRoot) throw new Error("ProductPrice: missing [data-product-root]");
@@ -15,10 +19,21 @@ import PriceDisplay from "../../components/PriceDisplay.astro";
     const priceElement = rootElement.querySelector("[data-price]") as HTMLElement;
     const compareAtElement = rootElement.querySelector("[data-price-compare-at]") as HTMLElement;
 
-    function handleVariantChange(event: CustomEvent) {
-      const { price, compareAtPrice } = event.detail;
+    const pricesPerLocale = JSON.parse(
+      (productRoot as HTMLElement).dataset.prices!
+    ) as PricesPerLocale;
 
-      if (!price) throw new Error("ProductPrice: missing price in variant-change event");
+    function handleVariantChange(event: EventProductVariantChange) {
+      const { variantId } = event.detail;
+
+      if (!variantId) throw new Error("ProductPrice: missing variantId in variant-change event");
+      const locale = getStoredLocale();
+      const priceData = pricesPerLocale[locale];
+      const variant = priceData.variants.edges.find((edge) => edge.node.id === variantId)?.node;
+      if (!variant)
+        throw new Error(`ProductPrice: variant with ID ${variantId} not found in price data`);
+
+      const { price, compareAtPrice } = variant;
 
       priceElement.setAttribute("amount", String(price.amount));
 
@@ -31,7 +46,6 @@ import PriceDisplay from "../../components/PriceDisplay.astro";
     }
 
     productRoot.addEventListener("product:variant-change", handleVariantChange as EventListener);
-
     productRoot.dispatchEvent(new CustomEvent("product:request-variant-update", { bubbles: true }));
   }
 
