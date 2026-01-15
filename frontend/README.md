@@ -1,4 +1,4 @@
 # Astro Frontend
 
-Next task:
-  - Cookies and analytics handling
+Next tasks:
+ - Basic blog and portable text components

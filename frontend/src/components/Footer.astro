@@ -1,6 +1,7 @@
 ---
 import PortableText from "../fields/PortableText.astro";
 import SanityLink from "../fields/SanityLink.astro";
+import NewsletterSignup from "./NewsletterSignup.astro";
 import { sanityClient } from "sanity/client";
 import type { FooterQueryQuery } from "sanity/generated/graphql";
 import { footerQuery } from "sanity/queries/footer";
@@ -11,16 +12,20 @@ const footerData = selectDocument(componentQuery.allFooter);
 ---
 
 <footer class:list={[{ hidden: Astro.url.pathname === "/" }]}>
-  <PortableText value={footerData?.textRaw} />
+  <div class="footer-content">
+    <PortableText value={footerData?.textRaw} />
 
-  <div class="nav">
-    {
-      footerData?.navigationItems?.map((navigationItem) => {
-        if (!navigationItem?.link) return null;
-        return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
-      })
-    }
+    <div class="nav">
+      {
+        footerData?.navigationItems?.map((navigationItem) => {
+          if (!navigationItem?.link) return null;
+          return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
+        })
+      }
+    </div>
   </div>
+
+  <NewsletterSignup />
 </footer>
 
 <style>
@@ -28,7 +33,14 @@ const footerData = selectDocument(componentQuery.allFooter);
     margin-top: var(--s200);
     padding: 0 var(--margin) var(--margin);
     display: flex;
+    flex-direction: column;
+    gap: var(--s24);
+  }
+
+  .footer-content {
+    display: flex;
     justify-content: space-between;
+    gap: var(--s24);
   }
 
   .nav {

@@ -1,0 +1,116 @@
+<newsletter-signup>
+  <form data-newsletter-form>
+    <input
+      type="text"
+      name="email"
+      placeholder="Enter your email"
+      required
+      aria-label="Email address"
+    />
+    <button type="submit" data-label="Subscribe"></button>
+  </form>
+  <p data-newsletter-message></p>
+</newsletter-signup>
+
+<script>
+  import { z } from "astro/zod";
+
+  const MESSAGE_TIMEOUT = 4000;
+
+  const form = document.querySelector("[data-newsletter-form]") as HTMLFormElement;
+  const message = document.querySelector("[data-newsletter-message]") as HTMLParagraphElement;
+  const container = form.closest("newsletter-signup") as HTMLElement;
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const schema = z.object({
+      email: z.string().email("Please enter a valid email address"),
+    });
+
+    const formData = new FormData(form);
+    const parseResult = schema.safeParse({
+      email: formData.get("email"),
+    });
+
+    if (!parseResult.success) {
+      container.setAttribute("data-state", "error");
+      message.textContent = parseResult.error.errors[0].message;
+      setTimeout(() => {
+        container.removeAttribute("data-state");
+        message.textContent = "";
+      }, MESSAGE_TIMEOUT);
+      return;
+    }
+
+    const { email } = parseResult.data;
+
+    container.setAttribute("data-state", "loading");
+    message.textContent = "";
+
+    try {
+      /*
+      // Example: Mailchimp via server endpoint
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to subscribe');
+      */
+
+      // Simulate demo
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      container.setAttribute("data-state", "success");
+      message.textContent = "Thanks for subscribing!";
+      form.reset();
+
+      setTimeout(() => {
+        container.removeAttribute("data-state");
+        message.textContent = "";
+      }, MESSAGE_TIMEOUT);
+    } catch (error) {
+      container.setAttribute("data-state", "error");
+      message.textContent = "Something went wrong. Please try again.";
+      console.error("Newsletter signup error:", error);
+
+      setTimeout(() => {
+        container.removeAttribute("data-state");
+        message.textContent = "";
+      }, MESSAGE_TIMEOUT);
+    }
+  });
+</script>
+
+<style>
+  button::before {
+    content: attr(data-label);
+  }
+
+  newsletter-signup[data-state="loading"] button {
+    opacity: 0.5;
+    cursor: wait;
+  }
+
+  newsletter-signup[data-state="loading"] button::before {
+    content: "Subscribing...";
+  }
+
+  newsletter-signup[data-state="success"] button::before {
+    content: "Subscribed";
+  }
+
+  newsletter-signup[data-state="error"] button {
+    opacity: 0.5;
+  }
+
+  newsletter-signup[data-state="success"] [data-newsletter-message] {
+    color: green;
+  }
+
+  newsletter-signup[data-state="error"] [data-newsletter-message] {
+    color: red;
+  }
+</style>
