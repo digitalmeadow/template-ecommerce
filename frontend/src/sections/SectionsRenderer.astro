@@ -5,10 +5,7 @@ import SectionCollection from "./SectionCollection.astro";
 import { type SectionCollectionOrSectionHeroOrSectionText } from "sanity/generated/graphql";
 
 interface Props {
-  sections:
-    | (SectionCollectionOrSectionHeroOrSectionText | null)[]
-    | null
-    | undefined;
+  sections: (SectionCollectionOrSectionHeroOrSectionText | null)[] | null | undefined;
 }
 
 const { sections }: Props = Astro.props;

@@ -11,12 +11,7 @@ interface Props {
 const { productData }: Props = Astro.props;
 ---
 
-<a
-  href={resolveSanityHref(
-    "product",
-    productData.sanity.shopify!.handle!.current!
-  )}
->
+<a href={resolveSanityHref("product", productData.sanity.shopify!.handle!.current!)}>
   <article
     class="product-thumbnail"
     data-product-thumbnail
@@ -24,10 +19,7 @@ const { productData }: Props = Astro.props;
     data-prices={JSON.stringify(productData.pricesPerLocale)}
   >
     <div class="media">
-      <SanityMedia
-        mediaData={productData.sanity.mediaThumbnail}
-        layout="cover"
-      />
+      <SanityMedia mediaData={productData.sanity.mediaThumbnail} layout="cover" />
     </div>
     <h3>{productData.shopify?.title}</h3>
     <div class="price">

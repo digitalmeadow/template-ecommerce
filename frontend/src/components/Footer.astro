@@ -6,8 +6,7 @@ import type { FooterQueryQuery } from "sanity/generated/graphql";
 import { footerQuery } from "sanity/queries/footer";
 import { selectDocument } from "../lib/sanity/drafts";
 
-const componentQuery: FooterQueryQuery =
-  await sanityClient.request(footerQuery);
+const componentQuery: FooterQueryQuery = await sanityClient.request(footerQuery);
 const footerData = selectDocument(componentQuery.allFooter);
 ---
 
@@ -18,11 +17,7 @@ const footerData = selectDocument(componentQuery.allFooter);
     {
       footerData?.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
-        return (
-          <SanityLink linkData={navigationItem.link}>
-            {navigationItem.label}
-          </SanityLink>
-        );
+        return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
       })
     }
   </div>

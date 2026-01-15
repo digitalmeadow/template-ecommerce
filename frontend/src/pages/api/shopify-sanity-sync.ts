@@ -117,9 +117,7 @@ async function createOrUpdateProducts(
       const document = await buildProductDocument(product);
       const draftId = `drafts.${document._id}`;
 
-      transaction
-        .createIfNotExists(document)
-        .patch(document._id, (patch) => patch.set(document));
+      transaction.createIfNotExists(document).patch(document._id, (patch) => patch.set(document));
 
       if (existingDrafts.has(draftId)) {
         transaction.patch(draftId, (patch) =>
@@ -166,9 +164,7 @@ async function createOrUpdateCollections(
       const document = buildCollectionDocument(collection);
       const draftId = `drafts.${document._id}`;
 
-      transaction
-        .createIfNotExists(document)
-        .patch(document._id, (patch) => patch.set(document));
+      transaction.createIfNotExists(document).patch(document._id, (patch) => patch.set(document));
 
       if (existingDrafts.has(draftId)) {
         transaction.patch(draftId, (patch) =>
@@ -220,9 +216,7 @@ async function createOrUpdateProductVariants(
       const document = buildProductVariantDocument(product, variant);
       const draftId = `drafts.${document._id}`;
 
-      transaction
-        .createIfNotExists(document)
-        .patch(document._id, (patch) => patch.set(document));
+      transaction.createIfNotExists(document).patch(document._id, (patch) => patch.set(document));
 
       if (existingDrafts.has(draftId)) {
         transaction.patch(draftId, (patch) =>
@@ -261,10 +255,7 @@ async function buildProductDocument(product: Product) {
   return productDocument;
 }
 
-function buildProductVariantDocument(
-  product: Product,
-  variant: ProductVariant
-) {
+function buildProductVariantDocument(product: Product, variant: ProductVariant) {
   const variantShopifyId = extractIdFromGid(variant.id);
   const variantSanityId = `${SHOPIFY_PRODUCT_VARIANT_DOCUMENT_ID_PREFIX}${variantShopifyId}`;
   const productShopifyId = extractIdFromGid(product.id);

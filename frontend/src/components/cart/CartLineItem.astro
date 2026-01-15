@@ -8,10 +8,7 @@ import PriceDisplay from "../PriceDisplay.astro";
   <span data-product-variant-title></span>
   <QuantitySelector />
   <PriceDisplay />
-  <button
-    type="button"
-    data-cart-line-remove-button
-    aria-label="Remove item from cart"></button>
+  <button type="button" data-cart-line-remove-button aria-label="Remove item from cart"></button>
 </div>
 
 <style>
@@ -24,8 +21,7 @@ import PriceDisplay from "../PriceDisplay.astro";
     pointer-events: none;
   }
 
-  [data-cart-line-item][data-state="removing"]
-    [data-cart-line-remove-button]::before {
+  [data-cart-line-item][data-state="removing"] [data-cart-line-remove-button]::before {
     content: "Removing...";
   }
 </style>

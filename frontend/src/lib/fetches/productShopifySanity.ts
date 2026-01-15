@@ -28,22 +28,16 @@ export type ProductThumbnailShopifySanity = {
 export async function fetchProductThumbnailShopifySanity(
   handle: string
 ): Promise<ProductThumbnailShopifySanity> {
-  const shopifyProductQuery = await shopifyClient.request(
-    shopifyProductByHandleQuery,
-    { handle }
-  );
+  const shopifyProductQuery = await shopifyClient.request(shopifyProductByHandleQuery, { handle });
   const shopifyProduct = shopifyProductQuery.productByHandle;
 
-  const sanityProductQuery = await sanityClient.request(
-    sanityProductThumbnailByHandleQuery,
-    { handle }
-  );
+  const sanityProductQuery = await sanityClient.request(sanityProductThumbnailByHandleQuery, {
+    handle,
+  });
   const sanityProduct = selectDocument(sanityProductQuery.allProduct);
 
   if (!shopifyProduct || !sanityProduct) {
-    throw new Error(
-      `Product with handle "${handle}" not found in Shopify or Sanity`
-    );
+    throw new Error(`Product with handle "${handle}" not found in Shopify or Sanity`);
   }
 
   const pricesPerLocale = await fetchPricesPerLocale(handle);
@@ -61,25 +55,15 @@ export type ProductShopifySanity = {
   pricesPerLocale: Record<LocaleCode, ShopifyProductPriceFragment>;
 };
 
-export async function fetchProductShopifySanity(
-  handle: string
-): Promise<ProductShopifySanity> {
-  const shopifyProductQuery = await shopifyClient.request(
-    shopifyProductByHandleQuery,
-    { handle }
-  );
+export async function fetchProductShopifySanity(handle: string): Promise<ProductShopifySanity> {
+  const shopifyProductQuery = await shopifyClient.request(shopifyProductByHandleQuery, { handle });
   const shopifyProduct = shopifyProductQuery.productByHandle;
 
-  const sanityProductQuery = await sanityClient.request(
-    sanityProductByHandleQuery,
-    { handle }
-  );
+  const sanityProductQuery = await sanityClient.request(sanityProductByHandleQuery, { handle });
   const sanityProduct = selectDocument(sanityProductQuery.allProduct);
 
   if (!shopifyProduct || !sanityProduct)
-    throw new Error(
-      `Product with handle "${handle}" not found in Shopify or Sanity`
-    );
+    throw new Error(`Product with handle "${handle}" not found in Shopify or Sanity`);
 
   const pricesPerLocale = await fetchPricesPerLocale(handle);
 
@@ -108,9 +92,9 @@ async function fetchPricesPerLocale(handle: string) {
       );
       const shopifyProduct = shopifyProductPriceQuery.productByHandle;
 
-      if (shopifyProduct) {
-        prices[locale] = shopifyProduct;
-      }
+      if (!shopifyProduct)
+        throw new Error(`Error: Price data for handle: "${handle}", locale: "${locale}"`);
+      prices[locale] = shopifyProduct;
     })
   );
 

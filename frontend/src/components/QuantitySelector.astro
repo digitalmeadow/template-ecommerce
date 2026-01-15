@@ -1,7 +1,5 @@
 <quantity-selector>
-  <button type="button" data-decrease-button aria-label="Decrease quantity"
-    >−</button
-  >
+  <button type="button" data-decrease-button aria-label="Decrease quantity">−</button>
   <input
     type="number"
     inputmode="numeric"
@@ -11,9 +9,7 @@
     data-input
     aria-label="Quantity"
   />
-  <button type="button" data-increase-button aria-label="Increase quantity"
-    >+</button
-  >
+  <button type="button" data-increase-button aria-label="Increase quantity">+</button>
 </quantity-selector>
 
 <script>
@@ -107,12 +103,7 @@
     };
 
     onInputChange = (_e: Event) => {
-      const quantitySchema = z.coerce
-        .number()
-        .int()
-        .positive()
-        .min(this.min)
-        .max(this.max);
+      const quantitySchema = z.coerce.number().int().positive().min(this.min).max(this.max);
       const result = quantitySchema.safeParse(this.input.value);
 
       if (result.success) {

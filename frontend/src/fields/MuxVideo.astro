@@ -9,12 +9,7 @@ interface Props {
   mediaId?: string | null;
 }
 
-const {
-  videoData,
-  layout = "width",
-  loading = "lazy",
-  mediaId,
-}: Props = Astro.props;
+const { videoData, layout = "width", loading = "lazy", mediaId }: Props = Astro.props;
 
 const aspectRatio = videoData?.asset?.data?.aspect_ratio!.replace(":", "/");
 const playbackId = videoData?.asset?.playbackId!;

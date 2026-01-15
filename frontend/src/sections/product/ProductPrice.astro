@@ -9,24 +9,16 @@ import PriceDisplay from "../../components/PriceDisplay.astro";
 
 <script>
   function initialiseProductPrice(rootElement: HTMLElement) {
-    const productRoot = rootElement.closest(
-      "[data-product-root]"
-    ) as HTMLElement;
-    if (!productRoot)
-      throw new Error("ProductPrice: missing [data-product-root]");
+    const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
+    if (!productRoot) throw new Error("ProductPrice: missing [data-product-root]");
 
-    const priceElement = rootElement.querySelector(
-      "[data-price]"
-    ) as HTMLElement;
-    const compareAtElement = rootElement.querySelector(
-      "[data-price-compare-at]"
-    ) as HTMLElement;
+    const priceElement = rootElement.querySelector("[data-price]") as HTMLElement;
+    const compareAtElement = rootElement.querySelector("[data-price-compare-at]") as HTMLElement;
 
     function handleVariantChange(event: CustomEvent) {
       const { price, compareAtPrice } = event.detail;
 
-      if (!price)
-        throw new Error("ProductPrice: missing price in variant-change event");
+      if (!price) throw new Error("ProductPrice: missing price in variant-change event");
 
       priceElement.setAttribute("amount", String(price.amount));
 
@@ -38,14 +30,9 @@ import PriceDisplay from "../../components/PriceDisplay.astro";
       }
     }
 
-    productRoot.addEventListener(
-      "product:variant-change",
-      handleVariantChange as EventListener
-    );
+    productRoot.addEventListener("product:variant-change", handleVariantChange as EventListener);
 
-    productRoot.dispatchEvent(
-      new CustomEvent("product:request-variant-update", { bubbles: true })
-    );
+    productRoot.dispatchEvent(new CustomEvent("product:request-variant-update", { bubbles: true }));
   }
 
   const rootElements = document.querySelectorAll("[data-product-price]");

@@ -42,8 +42,7 @@ const columns = Array.from({ length: 24 });
     if (event.ctrlKey && event.code === "KeyG") {
       visible = !visible;
       const gridVisualizerElement = document.getElementById("grid-visualizer");
-      if (gridVisualizerElement)
-        gridVisualizerElement.style.display = visible ? "block" : "none";
+      if (gridVisualizerElement) gridVisualizerElement.style.display = visible ? "block" : "none";
       document.body.classList.toggle("outlined", visible);
     }
   }

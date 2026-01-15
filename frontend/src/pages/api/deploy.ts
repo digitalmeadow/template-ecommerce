@@ -18,11 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const body = await request.text();
-  const validSignature = await isValidSignature(
-    body,
-    signature,
-    SANITY_WEBHOOK_SECRET!
-  );
+  const validSignature = await isValidSignature(body, signature, SANITY_WEBHOOK_SECRET!);
 
   if (!validSignature) {
     return new Response("Invalid secret", { status: 401 });

@@ -5,9 +5,7 @@ export function isDraftId(id?: string | null): boolean {
   return id.startsWith("drafts.");
 }
 
-export function selectDocument<T extends { _id?: string | null }>(
-  documents: T[]
-): T | undefined {
+export function selectDocument<T extends { _id?: string | null }>(documents: T[]): T | undefined {
   if (documents.length === 0) return undefined;
   if (documents.length === 1) return documents[0];
 

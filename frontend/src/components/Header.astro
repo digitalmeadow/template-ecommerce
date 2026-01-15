@@ -5,8 +5,7 @@ import type { HeaderQueryQuery } from "sanity/generated/graphql";
 import { headerQuery } from "sanity/queries/header";
 import { selectDocument } from "../lib/sanity/drafts";
 
-const componentQuery: HeaderQueryQuery =
-  await sanityClient.request(headerQuery);
+const componentQuery: HeaderQueryQuery = await sanityClient.request(headerQuery);
 const headerData = selectDocument(componentQuery.allHeader);
 ---
 
@@ -17,11 +16,7 @@ const headerData = selectDocument(componentQuery.allHeader);
     {
       headerData?.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
-        return (
-          <SanityLink linkData={navigationItem.link}>
-            {navigationItem.label}
-          </SanityLink>
-        );
+        return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
       })
     }
   </nav>

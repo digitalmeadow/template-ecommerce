@@ -23,9 +23,7 @@ const shopifyCollection = await shopifyClient.request(collectionByHandleQuery, {
 });
 
 const productHandles =
-  shopifyCollection.collectionByHandle?.products.edges.map(
-    (edge) => edge?.node?.handle
-  ) || [];
+  shopifyCollection.collectionByHandle?.products.edges.map((edge) => edge?.node?.handle) || [];
 
 let productsData: ProductThumbnailShopifySanity[] = [];
 for (const handle of productHandles || []) {
@@ -38,11 +36,7 @@ for (const handle of productHandles || []) {
   <h2>{section.collection?.shopify?.title}</h2>
 
   <div class="grid">
-    {
-      productsData.map((productData) => (
-        <ProductThumbnail productData={productData} />
-      ))
-    }
+    {productsData.map((productData) => <ProductThumbnail productData={productData} />)}
   </div>
 </section>
 

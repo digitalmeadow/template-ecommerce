@@ -11,16 +11,11 @@ const selectIdSafe = productData.shopify.id.replace(/[^a-zA-Z0-9_-]/g, "_");
 const variantSelectId = `variant-select-${selectIdSafe}`;
 
 const variants = productData.shopify.variants.edges;
-const isSingleDefaultVariant =
-  variants.length === 1 && variants[0].node.title === "Default Title";
+const isSingleDefaultVariant = variants.length === 1 && variants[0].node.title === "Default Title";
 ---
 
 <div class="variant-selector" data-variant-selector>
-  {
-    !isSingleDefaultVariant && (
-      <label for={variantSelectId}>Choose a variant</label>
-    )
-  }
+  {!isSingleDefaultVariant && <label for={variantSelectId}>Choose a variant</label>}
 
   <select
     id={variantSelectId}
@@ -47,45 +42,31 @@ const isSingleDefaultVariant =
   import { getStoredLocale } from "../../lib/shopify/locale";
 
   function initialiseVariantSelector(rootElement: Element) {
-    const productRoot = rootElement.closest(
-      "[data-product-root]"
-    ) as HTMLElement;
-    if (!productRoot)
-      throw new Error("ProductVariantSelector: missing [data-product-root]");
+    const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
+    if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
 
-    const selectElement = rootElement.querySelector(
-      "[data-variant-select]"
-    ) as HTMLSelectElement;
+    const selectElement = rootElement.querySelector("[data-variant-select]") as HTMLSelectElement;
 
     const pricesJson = productRoot.dataset.prices;
-    if (!pricesJson)
-      throw new Error(
-        "ProductVariantSelector: missing prices data on product root"
-      );
+    if (!pricesJson) throw new Error("ProductVariantSelector: missing prices data on product root");
     const pricesPerLocale = JSON.parse(pricesJson);
 
     function selectedVariantDetail() {
       const option = selectElement.selectedOptions[0];
-      if (!option)
-        throw new Error("ProductVariantSelector: no selected option");
+      if (!option) throw new Error("ProductVariantSelector: no selected option");
 
       const variantId = option.value;
       const locale = getStoredLocale();
       const priceData = pricesPerLocale[locale];
 
-      if (!priceData)
-        throw new Error(
-          `ProductVariantSelector: no price data for locale ${locale}`
-        );
+      if (!priceData) throw new Error(`ProductVariantSelector: no price data for locale ${locale}`);
 
       const variant = priceData.variants.edges.find(
         (edge: any) => edge.node.id === variantId
       )?.node;
 
       if (!variant)
-        throw new Error(
-          `ProductVariantSelector: variant ${variantId} not found in price data`
-        );
+        throw new Error(`ProductVariantSelector: variant ${variantId} not found in price data`);
 
       return {
         productId: selectElement.dataset.productId,
@@ -108,8 +89,7 @@ const isSingleDefaultVariant =
     }
 
     function emitVariantChange() {
-      if (!productRoot)
-        throw new Error("ProductVariantSelector: missing [data-product-root]");
+      if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
 
       productRoot.dispatchEvent(
         new CustomEvent("product:variant-change", {

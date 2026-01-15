@@ -27,10 +27,7 @@ import CartLineItem from "./CartLineItem.astro";
 <script>
   import { shopifyClient } from "shopify/client";
   import { cartByIdQuery } from "shopify/queries/cart";
-  import {
-    cartLinesUpdateMutation,
-    cartLinesRemoveMutation,
-  } from "shopify/mutations/cart";
+  import { cartLinesUpdateMutation, cartLinesRemoveMutation } from "shopify/mutations/cart";
   import type { CartFragment } from "shopify/generated/graphql";
   import {
     CART_ID_STORAGE_KEY_SUFFIX,
@@ -38,10 +35,7 @@ import CartLineItem from "./CartLineItem.astro";
     getStorageKey,
   } from "../../lib/shopify/cart";
   import { getCurrency, getCountryCode } from "../../lib/shopify/locale";
-  import type {
-    QuantitySelectorElement,
-    QuantityChangedEvent,
-  } from "../QuantitySelector.astro";
+  import type { QuantitySelectorElement, QuantityChangedEvent } from "../QuantitySelector.astro";
 
   class CartRootElement extends HTMLElement {
     private template!: HTMLTemplateElement;
@@ -55,16 +49,11 @@ import CartLineItem from "./CartLineItem.astro";
     connectedCallback() {
       this.template = this.querySelector("[data-cart-line-template]")!;
       this.lineItemsContainer = this.querySelector("[data-cart-line-items]")!;
-      this.totalPriceDisplay = this.querySelector(
-        "[data-cart-total] price-display"
-      )!;
+      this.totalPriceDisplay = this.querySelector("[data-cart-total] price-display")!;
       this.checkoutButton = this.querySelector("[data-cart-checkout]")!;
 
       this.checkoutButton.addEventListener("click", this.onCheckoutClick);
-      this.addEventListener(
-        "quantity-selector:quantity-changed",
-        this.onQuantityChange
-      );
+      this.addEventListener("quantity-selector:quantity-changed", this.onQuantityChange);
       document.addEventListener("product:add-to-cart", this.onProductAdded);
 
       this.loadCart();
@@ -72,10 +61,7 @@ import CartLineItem from "./CartLineItem.astro";
 
     disconnectedCallback() {
       this.checkoutButton.removeEventListener("click", this.onCheckoutClick);
-      this.removeEventListener(
-        "quantity-selector:quantity-changed",
-        this.onQuantityChange
-      );
+      this.removeEventListener("quantity-selector:quantity-changed", this.onQuantityChange);
       document.removeEventListener("product:add-to-cart", this.onProductAdded);
     }
 
@@ -115,26 +101,25 @@ import CartLineItem from "./CartLineItem.astro";
       await this.mutationQueue;
     };
 
-    removeCartLineItem =
-      (lineId: string, lineItem: HTMLDivElement) => async () => {
-        const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
-        const cartId = localStorage.getItem(cartIdKey)!;
+    removeCartLineItem = (lineId: string, lineItem: HTMLDivElement) => async () => {
+      const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
+      const cartId = localStorage.getItem(cartIdKey)!;
 
-        lineItem.setAttribute("data-state", "removing");
+      lineItem.setAttribute("data-state", "removing");
 
-        document.body.style.cursor = "wait";
+      document.body.style.cursor = "wait";
 
-        this.mutationQueue = this.mutationQueue.then(async () => {
-          await shopifyClient.request(cartLinesRemoveMutation, {
-            cartId,
-            countryCode: getCountryCode(),
-            lineIds: [lineId],
-          });
-          await this.loadCart(true);
-          document.body.style.cursor = "";
+      this.mutationQueue = this.mutationQueue.then(async () => {
+        await shopifyClient.request(cartLinesRemoveMutation, {
+          cartId,
+          countryCode: getCountryCode(),
+          lineIds: [lineId],
         });
-        await this.mutationQueue;
-      };
+        await this.loadCart(true);
+        document.body.style.cursor = "";
+      });
+      await this.mutationQueue;
+    };
 
     async loadCart(skipCache = false) {
       const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
@@ -206,21 +191,15 @@ import CartLineItem from "./CartLineItem.astro";
 
         const li = (this.template.content.cloneNode(true) as DocumentFragment)
           .firstElementChild as HTMLLIElement;
-        const lineItem = li.querySelector(
-          "[data-cart-line-item]"
-        ) as HTMLDivElement;
+        const lineItem = li.querySelector("[data-cart-line-item]") as HTMLDivElement;
         const productTitleElement = lineItem.querySelector(
           "[data-product-title]"
         ) as HTMLSpanElement;
         const productVariantTitleElement = lineItem.querySelector(
           "[data-product-variant-title]"
         ) as HTMLSpanElement;
-        const priceDisplay = lineItem.querySelector(
-          "price-display"
-        ) as HTMLElement;
-        const quantitySelector = lineItem.querySelector(
-          "quantity-selector"
-        ) as HTMLElement;
+        const priceDisplay = lineItem.querySelector("price-display") as HTMLElement;
+        const quantitySelector = lineItem.querySelector("quantity-selector") as HTMLElement;
         const cartLineRemoveButton = lineItem.querySelector(
           "[data-cart-line-remove-button]"
         ) as HTMLButtonElement;
@@ -234,24 +213,14 @@ import CartLineItem from "./CartLineItem.astro";
           line.merchandise?.product?.variants?.edges.length === 1;
 
         productTitleElement.textContent = productTitle;
-        if (!isSingleDefaultVariant)
-          productVariantTitleElement.textContent = variantTitle;
+        if (!isSingleDefaultVariant) productVariantTitleElement.textContent = variantTitle;
 
-        priceDisplay.setAttribute(
-          "amount",
-          String(line.cost.totalAmount.amount ?? 0)
-        );
-        priceDisplay.setAttribute(
-          "currency",
-          line.cost.totalAmount.currencyCode ?? getCurrency()
-        );
+        priceDisplay.setAttribute("amount", String(line.cost.totalAmount.amount ?? 0));
+        priceDisplay.setAttribute("currency", line.cost.totalAmount.currencyCode ?? getCurrency());
 
         quantitySelector.setAttribute("initial", String(line.quantity));
 
-        cartLineRemoveButton.addEventListener(
-          "click",
-          this.removeCartLineItem(line.id, lineItem)
-        );
+        cartLineRemoveButton.addEventListener("click", this.removeCartLineItem(line.id, lineItem));
 
         li.dataset.lineId = line.id;
 

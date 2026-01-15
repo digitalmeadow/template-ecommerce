@@ -1,8 +1,4 @@
-import {
-  CountryCode,
-  CurrencyCode,
-  LanguageCode,
-} from "shopify/generated/graphql";
+import { CountryCode, CurrencyCode, LanguageCode } from "shopify/generated/graphql";
 
 export const LOCALE_CONFIG = {
   "en-NZ": {
@@ -51,9 +47,7 @@ export function getStoredLocale(): LocaleCode {
   if (typeof localStorage === "undefined") return DEFAULT_LOCALE;
 
   const storedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
-  return storedLocale && isValidLocale(storedLocale)
-    ? storedLocale
-    : DEFAULT_LOCALE;
+  return storedLocale && isValidLocale(storedLocale) ? storedLocale : DEFAULT_LOCALE;
 }
 
 export function getCountryCode(): CountryCode {

@@ -22,17 +22,11 @@
   --gutter: 20px;
 
   --container-max-width: 1400px;
-  --container-width: min(
-    calc((100 * var(--vw)) - (2 * var(--margin))),
-    var(--container-max-width)
-  );
+  --container-width: min(calc((100 * var(--vw)) - (2 * var(--margin))), var(--container-max-width));
 
   --column: calc(
     (1 / var(--number-of-columns)) *
-      (
-        var(--container-width) -
-          ((var(--number-of-columns) - 1) * (var(--gutter)))
-      )
+      (var(--container-width) - ((var(--number-of-columns) - 1) * (var(--gutter))))
   );
   --margin-dynamic: calc((100 * var(--vw) - var(--container-width)) / 2);
 }

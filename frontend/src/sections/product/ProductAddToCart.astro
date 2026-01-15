@@ -12,10 +12,7 @@ const { label = "Add to Cart" }: Props = Astro.props;
 
 <script>
   import { shopifyClient } from "shopify/client";
-  import {
-    cartCreateMutation,
-    cartLinesAddMutation,
-  } from "shopify/mutations/cart";
+  import { cartCreateMutation, cartLinesAddMutation } from "shopify/mutations/cart";
   import {
     CART_DATA_STORAGE_KEY_SUFFIX,
     CART_ID_STORAGE_KEY_SUFFIX,
@@ -25,49 +22,36 @@ const { label = "Add to Cart" }: Props = Astro.props;
 
   async function initialiseProductAddToCart(rootElement: HTMLElement) {
     const productRoot = rootElement.closest("[data-product-root]");
-    if (!productRoot)
-      throw new Error("ProductAddToCart: missing [data-product-root]");
+    if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
-    const button = rootElement.querySelector(
-      "[data-add-to-cart-button]"
-    ) as HTMLButtonElement;
+    const button = rootElement.querySelector("[data-add-to-cart-button]") as HTMLButtonElement;
 
     function getCurrentVariantId() {
-      if (!productRoot)
-        throw new Error("ProductAddToCart: missing [data-product-root]");
+      if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
-      const variantSelect = productRoot.querySelector(
-        "[data-variant-select]"
-      ) as HTMLSelectElement;
+      const variantSelect = productRoot.querySelector("[data-variant-select]") as HTMLSelectElement;
       if (!variantSelect)
-        throw new Error(
-          "ProductAddToCart: missing [data-variant-select] inside product root"
-        );
+        throw new Error("ProductAddToCart: missing [data-variant-select] inside product root");
 
       return variantSelect.value;
     }
 
     function getCurrentQuantity() {
-      if (!productRoot)
-        throw new Error("ProductAddToCart: missing [data-product-root]");
+      if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
       const quantityInput = productRoot.querySelector(
         "quantity-selector [data-input]"
       ) as HTMLInputElement;
       if (!quantityInput)
-        throw new Error(
-          "ProductAddToCart: missing quantity-selector inside product root"
-        );
+        throw new Error("ProductAddToCart: missing quantity-selector inside product root");
 
       return Number(quantityInput.value);
     }
 
     async function addToCart(variantId: string, quantity: number) {
-      if (!productRoot)
-        throw new Error("ProductAddToCart: missing [data-product-root]");
+      if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
-      if (!variantId)
-        throw new Error("ProductAddToCart: variantId is required");
+      if (!variantId) throw new Error("ProductAddToCart: variantId is required");
 
       if (!Number.isFinite(quantity) || quantity < 1)
         throw new Error("ProductAddToCart: quantity must be at least 1");
@@ -87,42 +71,32 @@ const { label = "Add to Cart" }: Props = Astro.props;
         let result;
 
         if (!cartId) {
-          const createResponse = await shopifyClient.request(
-            cartCreateMutation,
-            {
-              cartInput: {
-                lines: [{ merchandiseId: variantId, quantity }],
-              },
-              countryCode: getCountryCode(),
-            }
-          );
+          const createResponse = await shopifyClient.request(cartCreateMutation, {
+            cartInput: {
+              lines: [{ merchandiseId: variantId, quantity }],
+            },
+            countryCode: getCountryCode(),
+          });
 
           result = createResponse.cartCreate;
 
           if (!result?.cart)
-            throw new Error(
-              result?.userErrors?.[0]?.message || "Cart creation failed"
-            );
+            throw new Error(result?.userErrors?.[0]?.message || "Cart creation failed");
 
           cartId = result.cart.id;
           localStorage.setItem(cartIdKey, cartId);
           localStorage.setItem(cartDataKey, JSON.stringify(result.cart));
         } else {
-          const addResponse = await shopifyClient.request(
-            cartLinesAddMutation,
-            {
-              cartId,
-              lines: [{ merchandiseId: variantId, quantity }],
-              countryCode: getCountryCode(),
-            }
-          );
+          const addResponse = await shopifyClient.request(cartLinesAddMutation, {
+            cartId,
+            lines: [{ merchandiseId: variantId, quantity }],
+            countryCode: getCountryCode(),
+          });
 
           result = addResponse.cartLinesAdd;
 
           if (!result?.cart)
-            throw new Error(
-              result?.userErrors?.[0]?.message || "Adding to cart failed"
-            );
+            throw new Error(result?.userErrors?.[0]?.message || "Adding to cart failed");
         }
 
         productRoot.dispatchEvent(

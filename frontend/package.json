@@ -23,5 +23,11 @@
   "devDependencies": {
     "tsx": "4.21.0",
     "wrangler": "4.54.0"
+  },
+  "prettier": {
+    "semi": true,
+    "printWidth": 100,
+    "bracketSpacing": true,
+    "singleQuote": false
   }
 }

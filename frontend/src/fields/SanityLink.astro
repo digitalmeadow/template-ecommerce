@@ -26,17 +26,9 @@ function resolveAnchorRel(linkData: LinkFragment): string {
     <a
       class={className}
       href={resolveLinkHref(linkData)}
-      target={
-        linkData.type === "external" || linkData.type === "file"
-          ? "_blank"
-          : undefined
-      }
+      target={linkData.type === "external" || linkData.type === "file" ? "_blank" : undefined}
       rel={resolveAnchorRel(linkData)}
-      download={
-        linkData.type === "file"
-          ? linkData.file?.asset?.originalFilename
-          : undefined
-      }
+      download={linkData.type === "file" ? linkData.file?.asset?.originalFilename : undefined}
       {...rest}
     >
       <slot />

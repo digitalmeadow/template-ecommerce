@@ -6,16 +6,11 @@ export function resolveLinkHref(linkData: LinkFragment): string {
   if (!linkData) return "";
   if (linkData.type === "anchor") return linkData.anchor ?? "";
   if (linkData.type === "external") return linkData.href ?? "";
-  if (linkData.type === "internal")
-    return resolveReferenceHref(linkData.reference) ?? "";
+  if (linkData.type === "internal") return resolveReferenceHref(linkData.reference) ?? "";
   if (linkData.type === "email") return `mailto:${linkData.email}`;
   if (linkData.type === "phone") return `tel:${linkData.phone}`;
   if (linkData.type === "file") {
-    if (
-      linkData.file?.asset &&
-      "_ref" in linkData.file?.asset &&
-      linkData.file?.asset?._ref
-    ) {
+    if (linkData.file?.asset && "_ref" in linkData.file?.asset && linkData.file?.asset?._ref) {
       return sanityFileUrlFromRef(linkData.file?.asset?._ref as string);
     }
     if (linkData.file?.asset?.url) {
@@ -44,10 +39,7 @@ export function resolveSanityHref(documentType: string, slug?: string): string {
 }
 
 function resolveReferenceHref(reference: LinkFragment["reference"]): string {
-  if (
-    !reference?._type ||
-    !(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)
-  ) {
+  if (!reference?._type || !(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
     throw new Error("Invalid reference type");
   }
 
@@ -65,8 +57,7 @@ function sanityFileUrlFromRef(source: string | undefined): string {
   }
 
   const lastDashIndex = source.lastIndexOf("-");
-  let sourceUrl =
-    source.slice(0, lastDashIndex) + "." + source.slice(lastDashIndex + 1);
+  let sourceUrl = source.slice(0, lastDashIndex) + "." + source.slice(lastDashIndex + 1);
 
   return `https://cdn.sanity.io/files/${SANITY_PROJECT_ID}/production/${sourceUrl}`;
 }

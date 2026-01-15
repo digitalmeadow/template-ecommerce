@@ -12,11 +12,7 @@ const { section }: Props = Astro.props;
 
 <section>
   <div class="media">
-    <SanityMedia
-      mediaData={section.backgroundMedia}
-      layout="cover"
-      sizes={[100, 100, 100]}
-    />
+    <SanityMedia mediaData={section.backgroundMedia} layout="cover" sizes={[100, 100, 100]} />
   </div>
 
   <h1>{section.heading}</h1>
