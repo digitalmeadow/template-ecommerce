@@ -1,28 +1,28 @@
-import {defineField, defineType} from 'sanity'
-import {BlockElementIcon} from '@sanity/icons'
-import {previewTextRich} from '../../utils/preview'
+import { defineField, defineType } from "sanity";
+import { BlockElementIcon } from "@sanity/icons";
+import { previewTextRich } from "../../utils/preview";
 
 export const sectionText = defineType({
-  type: 'object',
-  name: 'sectionText',
-  title: 'Section: Text',
+  type: "object",
+  name: "sectionText",
+  title: "Section: Text",
   icon: BlockElementIcon,
   fields: [
     defineField({
-      type: 'textRich',
-      name: 'text',
+      type: "textRich",
+      name: "text",
       validation: (Rule) => Rule.required(),
     }),
   ],
   preview: {
     select: {
-      text: 'text',
+      text: "text",
     },
-    prepare({text}) {
+    prepare({ text }) {
       return {
-        title: 'Section: Text',
+        title: "Section: Text",
         subtitle: previewTextRich(text),
-      }
+      };
     },
   },
-})
+});

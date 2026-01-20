@@ -35,7 +35,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: {
         "X-GitHub-Api-Version": "2022-11-28",
       },
-    }
+    },
   );
 
   if (result.status === 204) {

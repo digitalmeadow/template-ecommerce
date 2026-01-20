@@ -58,7 +58,7 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
     if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
 
     const optionSelects = Array.from(
-      rootElement.querySelectorAll("[data-option-select]")
+      rootElement.querySelectorAll("[data-option-select]"),
     ) as HTMLSelectElement[];
     const variantIdInput = rootElement.querySelector("[data-variant-id]") as HTMLInputElement;
 
@@ -79,8 +79,8 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
       const variant = variants.find((v: any) => {
         return selectedOptions.every((selected) =>
           v.selectedOptions.some(
-            (vo: any) => vo.name === selected.name && vo.value === selected.value
-          )
+            (vo: any) => vo.name === selected.name && vo.value === selected.value,
+          ),
         );
       });
 
@@ -101,7 +101,7 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
         new CustomEvent("product:variant-change", {
           bubbles: true,
           detail,
-        })
+        }),
       );
     }
 

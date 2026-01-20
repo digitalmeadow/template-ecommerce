@@ -1,19 +1,19 @@
-import {BlockElementIcon} from '@sanity/icons'
-import {defineArrayMember, defineField, defineType} from 'sanity'
+import { BlockElementIcon } from "@sanity/icons";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const footer = defineType({
-  type: 'document',
-  name: 'footer',
+  type: "document",
+  name: "footer",
   icon: BlockElementIcon,
   fields: [
     defineField({
-      type: 'textRich',
-      name: 'text',
+      type: "textRich",
+      name: "text",
     }),
     defineField({
-      type: 'array',
-      name: 'navigationItems',
-      of: [defineArrayMember({type: 'button'})],
+      type: "array",
+      name: "navigationItems",
+      of: [defineArrayMember({ type: "button" })],
     }),
   ],
-})
+});

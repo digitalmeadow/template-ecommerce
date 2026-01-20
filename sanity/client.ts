@@ -8,5 +8,5 @@ export const sanityClient = new GraphQLClient(
     headers: {
       Authorization: `Bearer ${SANITY_VIEWER_API_TOKEN}`,
     },
-  }
+  },
 );

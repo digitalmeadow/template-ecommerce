@@ -206,18 +206,18 @@ import Overlay from "../Overlay.astro";
           .firstElementChild as HTMLLIElement;
         const lineItem = li.querySelector("[data-cart-line-item]") as HTMLDivElement;
         const productTitleElement = lineItem.querySelector(
-          "[data-product-title]"
+          "[data-product-title]",
         ) as HTMLSpanElement;
         const productVariantTitleElement = lineItem.querySelector(
-          "[data-product-variant-title]"
+          "[data-product-variant-title]",
         ) as HTMLSpanElement;
         const priceDisplay = lineItem.querySelector("[data-price]") as HTMLElement;
         const compareAtPriceDisplay = lineItem.querySelector(
-          "[data-price-compare-at]"
+          "[data-price-compare-at]",
         ) as HTMLElement;
         const quantitySelector = lineItem.querySelector("quantity-selector") as HTMLElement;
         const cartLineRemoveButton = lineItem.querySelector(
-          "[data-cart-line-remove-button]"
+          "[data-cart-line-remove-button]",
         ) as HTMLButtonElement;
 
         const variantTitle = line.merchandise?.title;
@@ -240,7 +240,7 @@ import Overlay from "../Overlay.astro";
           compareAtPriceDisplay.setAttribute("amount", String(compareAtTotal));
           compareAtPriceDisplay.setAttribute(
             "currency",
-            line.merchandise.compareAtPrice.currencyCode ?? getCurrency()
+            line.merchandise.compareAtPrice.currencyCode ?? getCurrency(),
           );
           compareAtPriceDisplay.style.display = "";
         } else {

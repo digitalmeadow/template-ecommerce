@@ -1,9 +1,9 @@
-import { ReactNode } from 'react'
+import { ReactNode } from "react";
 
 interface Props {
-	children: ReactNode
+  children: ReactNode;
 }
 
 export default function Italics({ children }: Props) {
-	return <span style={{ fontStyle: 'italic' }}>{children}</span>
+  return <span style={{ fontStyle: "italic" }}>{children}</span>;
 }

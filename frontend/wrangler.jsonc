@@ -8,12 +8,12 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
   },
   "observability": {
     "logs": {
-      "enabled": true
-    }
+      "enabled": true,
+    },
   },
   "env": {
     "api": {
@@ -22,32 +22,32 @@
         "WEBSITE_URL": "https://template-ecommerce-api.digital-meadow.workers.dev",
         "SANITY_DATASET": "production",
         "GIT_BRANCH": "main",
-        "GIT_WORKFLOW_ID_DEPLOY": "222218634"
-      }
+        "GIT_WORKFLOW_ID_DEPLOY": "222218634",
+      },
     },
     "production": {
       "vars": {
         "PREVIEW": "false",
         "WEBSITE_URL": "https://template-ecommerce-production.digital-meadow.workers.dev",
         "SANITY_DATASET": "production",
-        "GIT_BRANCH": "main"
-      }
+        "GIT_BRANCH": "main",
+      },
     },
     "production-preview": {
       "vars": {
         "PREVIEW": "true",
         "WEBSITE_URL": "https://template-ecommerce-production-preview.digital-meadow.workers.dev",
         "SANITY_DATASET": "production",
-        "GIT_BRANCH": "main"
-      }
+        "GIT_BRANCH": "main",
+      },
     },
     "staging": {
       "vars": {
         "PREVIEW": "false",
         "WEBSITE_URL": "https://template-ecommerce-staging.digital-meadow.workers.dev",
         "SANITY_DATASET": "production",
-        "GIT_BRANCH": "staging"
-      }
-    }
-  }
+        "GIT_BRANCH": "staging",
+      },
+    },
+  },
 }

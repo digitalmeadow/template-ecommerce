@@ -1,9 +1,9 @@
-import {StructureResolver} from 'sanity/structure'
-import {home} from './home'
-import {components} from './components'
-import {pages} from './pages'
-import {collections} from './collections'
-import {products} from './products'
+import { StructureResolver } from "sanity/structure";
+import { home } from "./home";
+import { components } from "./components";
+import { pages } from "./pages";
+import { collections } from "./collections";
+import { products } from "./products";
 
 export const structure: StructureResolver = (S) => {
   // prettier-ignore
@@ -18,4 +18,4 @@ export const structure: StructureResolver = (S) => {
 			collections(S),
 			products(S),
 		])
-}
+};

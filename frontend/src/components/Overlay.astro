@@ -24,7 +24,7 @@
 
       if (!this.panel) {
         this.panel = Array.from(this.children).find(
-          (el) => !el.classList.contains("overlay-backdrop")
+          (el) => !el.classList.contains("overlay-backdrop"),
         ) as HTMLElement;
       }
 

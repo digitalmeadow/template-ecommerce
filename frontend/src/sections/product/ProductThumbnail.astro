@@ -44,7 +44,7 @@ const { productData }: Props = Astro.props;
       const priceData = prices[locale];
 
       const amounts = priceData.variants.edges.map((edge: any) =>
-        parseFloat(edge.node.price.amount)
+        parseFloat(edge.node.price.amount),
       );
       const minPrice = Math.min(...amounts);
       const maxPrice = Math.max(...amounts);

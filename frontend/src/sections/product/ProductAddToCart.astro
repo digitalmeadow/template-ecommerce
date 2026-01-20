@@ -34,7 +34,7 @@
       if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
       const quantityInput = productRoot.querySelector(
-        "quantity-selector [data-input]"
+        "quantity-selector [data-input]",
       ) as HTMLInputElement;
       if (!quantityInput)
         throw new Error("ProductAddToCart: missing quantity-selector inside product root");
@@ -95,7 +95,7 @@
           new CustomEvent("product:add-to-cart", {
             bubbles: true,
             detail: { variantId, quantity, cart: result.cart },
-          })
+          }),
         );
       } catch (error: any) {
         console.error("[ProductAddToCart] Error:", error);

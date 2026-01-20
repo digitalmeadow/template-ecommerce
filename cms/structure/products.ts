@@ -1,6 +1,6 @@
-import {DocumentsIcon} from '@sanity/icons'
-import {StructureBuilder} from 'sanity/structure'
-import {documentEditor} from './documentEditor'
+import { DocumentsIcon } from "@sanity/icons";
+import { StructureBuilder } from "sanity/structure";
+import { documentEditor } from "./documentEditor";
 
 export const products = (S: StructureBuilder) => {
   // prettier-ignore
@@ -35,4 +35,4 @@ export const products = (S: StructureBuilder) => {
 						])
 			)
 		)
-}
+};

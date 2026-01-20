@@ -1,20 +1,20 @@
-import {MenuIcon} from '@sanity/icons'
-import {defineArrayMember, defineField, defineType} from 'sanity'
+import { MenuIcon } from "@sanity/icons";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const header = defineType({
-  type: 'document',
-  name: 'header',
+  type: "document",
+  name: "header",
   icon: MenuIcon,
   fields: [
     defineField({
-      type: 'array',
-      name: 'navigationItems',
+      type: "array",
+      name: "navigationItems",
       of: [
         defineArrayMember({
-          type: 'button',
+          type: "button",
         }),
       ],
       validation: (Rule) => Rule.required(),
     }),
   ],
-})
+});

@@ -34,7 +34,7 @@
       this.max = Number(this.getAttribute("max")) || Infinity;
       this.value = Math.max(
         this.min,
-        Math.min(this.max, Number(this.getAttribute("initial")) || 1)
+        Math.min(this.max, Number(this.getAttribute("initial")) || 1),
       );
 
       this.render();
@@ -80,7 +80,7 @@
         new CustomEvent("quantity-selector:quantity-changed", {
           detail: { value: this.value },
           bubbles: true,
-        })
+        }),
       );
     }
 

@@ -53,7 +53,7 @@ export const POST: APIRoute = async ({ request }) => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   }
 };
@@ -103,7 +103,7 @@ async function getExistingDocumentIds(ids: string[]): Promise<Set<string>> {
 
 async function createOrUpdateProducts(
   transaction: ReturnType<typeof sanityClient.transaction>,
-  products: Product[]
+  products: Product[],
 ) {
   const draftDocumentIds = products.map((product) => {
     const productShopifyId = extractIdFromGid(product.id);
@@ -124,7 +124,7 @@ async function createOrUpdateProducts(
           patch.set({
             ...document,
             _id: draftId,
-          })
+          }),
         );
       }
     } catch (error: any) {
@@ -139,7 +139,7 @@ async function createOrUpdateProducts(
 
 async function deleteProducts(
   transaction: ReturnType<typeof sanityClient.transaction>,
-  productIds: number[]
+  productIds: number[],
 ) {
   for (const productId of productIds) {
     const docId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productId}`;
@@ -149,7 +149,7 @@ async function deleteProducts(
 
 async function createOrUpdateCollections(
   transaction: ReturnType<typeof sanityClient.transaction>,
-  collections: Collection[]
+  collections: Collection[],
 ) {
   const draftDocumentIds = collections.map((collection) => {
     const collectionShopifyId = extractIdFromGid(collection.id);
@@ -171,7 +171,7 @@ async function createOrUpdateCollections(
           patch.set({
             ...document,
             _id: draftId,
-          })
+          }),
         );
       }
     } catch (error: any) {
@@ -187,7 +187,7 @@ async function createOrUpdateCollections(
 
 async function deleteCollections(
   transaction: ReturnType<typeof sanityClient.transaction>,
-  collectionIds: number[]
+  collectionIds: number[],
 ) {
   for (const collectionId of collectionIds) {
     const docId = `${SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX}${collectionId}`;
@@ -197,10 +197,10 @@ async function deleteCollections(
 
 async function createOrUpdateProductVariants(
   transaction: ReturnType<typeof sanityClient.transaction>,
-  products: Product[]
+  products: Product[],
 ) {
   const variants = products.flatMap((product) =>
-    product.variants.map((variant) => ({ product, variant }))
+    product.variants.map((variant) => ({ product, variant })),
   );
   if (!variants.length) return;
 
@@ -223,7 +223,7 @@ async function createOrUpdateProductVariants(
           patch.set({
             ...document,
             _id: draftId,
-          })
+          }),
         );
       }
     } catch (error: any) {

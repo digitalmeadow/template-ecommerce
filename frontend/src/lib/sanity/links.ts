@@ -45,7 +45,7 @@ function resolveReferenceHref(reference: LinkFragment["reference"]): string {
 
   return resolveSanityHref(
     reference._type,
-    "slug" in reference && reference.slug ? reference.slug.current || "" : ""
+    "slug" in reference && reference.slug ? reference.slug.current || "" : "",
   );
 }
 

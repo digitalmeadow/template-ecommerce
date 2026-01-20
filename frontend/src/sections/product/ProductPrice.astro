@@ -20,7 +20,7 @@ import PriceDisplay from "../../blocks/PriceDisplay.astro";
     const compareAtElement = rootElement.querySelector("[data-price-compare-at]") as HTMLElement;
 
     const pricesPerLocale = JSON.parse(
-      (productRoot as HTMLElement).dataset.prices!
+      (productRoot as HTMLElement).dataset.prices!,
     ) as PricesPerLocale;
 
     function handleVariantChange(event: EventProductVariantChange) {

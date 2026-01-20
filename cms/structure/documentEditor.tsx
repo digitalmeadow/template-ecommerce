@@ -1,6 +1,6 @@
-import {StructureBuilder} from 'sanity/structure'
-import {PreviewPane} from '../components/editor/PreviewPane'
-import {PREVIEWABLE_DOCUMENT_TYPES} from '../config'
+import { StructureBuilder } from "sanity/structure";
+import { PreviewPane } from "../components/editor/PreviewPane";
+import { PREVIEWABLE_DOCUMENT_TYPES } from "../config";
 
 // Creates a tab for preview pane if document type is marked as previewable
 export const documentEditor = (S: StructureBuilder, schemaType: string, documentId: string) => {
@@ -11,7 +11,7 @@ export const documentEditor = (S: StructureBuilder, schemaType: string, document
     .views([
       S.view.form(),
       ...(PREVIEWABLE_DOCUMENT_TYPES.includes(schemaType)
-        ? [S.view.component((props) => <PreviewPane {...props} />).title('Preview')]
+        ? [S.view.component((props) => <PreviewPane {...props} />).title("Preview")]
         : []),
-    ])
-}
+    ]);
+};

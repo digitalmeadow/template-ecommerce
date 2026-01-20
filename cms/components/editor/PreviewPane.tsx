@@ -1,25 +1,25 @@
-import {Card} from '@sanity/ui'
-import {ComponentProps} from 'react'
-import {UserViewComponent} from 'sanity/structure'
-import {PREVIEW_WEBSITE_URL} from '../../config'
-import {SANITY_DOCUMENT_ROUTE_PATTERNS} from 'frontend/config'
+import { Card } from "@sanity/ui";
+import { ComponentProps } from "react";
+import { UserViewComponent } from "sanity/structure";
+import { PREVIEW_WEBSITE_URL } from "../../config";
+import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "frontend/config";
 
-export function PreviewPane({document}: ComponentProps<UserViewComponent>) {
-  const {displayed} = document as any
-  const documentType = displayed?._type
-  const slug = displayed?.slug?.current
+export function PreviewPane({ document }: ComponentProps<UserViewComponent>) {
+  const { displayed } = document as any;
+  const documentType = displayed?._type;
+  const slug = displayed?.slug?.current;
 
-  let route = SANITY_DOCUMENT_ROUTE_PATTERNS[documentType] || '/'
-  route = route.includes('[slug]') ? route.replace('[slug]', slug) : route
-  const url = new URL(route, PREVIEW_WEBSITE_URL)
+  let route = SANITY_DOCUMENT_ROUTE_PATTERNS[documentType] || "/";
+  route = route.includes("[slug]") ? route.replace("[slug]", slug) : route;
+  const url = new URL(route, PREVIEW_WEBSITE_URL);
 
   return (
-    <Card scheme="light" style={{width: '100%', height: '100%', position: 'relative'}}>
+    <Card scheme="light" style={{ width: "100%", height: "100%", position: "relative" }}>
       <iframe
         title="Preview"
-        style={{width: '100%', height: '100%', position: 'relative', zIndex: 1}}
+        style={{ width: "100%", height: "100%", position: "relative", zIndex: 1 }}
         src={url.toString()}
       />
     </Card>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import {HomeIcon} from '@sanity/icons'
-import {StructureBuilder} from 'sanity/structure'
-import {documentEditor} from './documentEditor'
+import { HomeIcon } from "@sanity/icons";
+import { StructureBuilder } from "sanity/structure";
+import { documentEditor } from "./documentEditor";
 
 export const home = (S: StructureBuilder) => {
   // prettier-ignore
@@ -10,4 +10,4 @@ export const home = (S: StructureBuilder) => {
 		.child(
 			() => documentEditor(S, 'home', 'home')
 		)
-}
+};

@@ -28,7 +28,7 @@ export type ProductThumbnailShopifySanity = {
 };
 
 export async function fetchProductThumbnailShopifySanity(
-  handle: string
+  handle: string,
 ): Promise<ProductThumbnailShopifySanity> {
   const shopifyProductQuery = await shopifyClient.request(shopifyProductByHandleQuery, { handle });
   const shopifyProduct = shopifyProductQuery.productByHandle;
@@ -90,14 +90,14 @@ async function fetchPricesPerLocale(handle: string): Promise<PricesPerLocale> {
 
       const shopifyProductPriceQuery = await shopifyClient.request(
         shopifyProductPriceByHandleQuery,
-        { handle, countryCode }
+        { handle, countryCode },
       );
       const shopifyProduct = shopifyProductPriceQuery.productByHandle;
 
       if (!shopifyProduct)
         throw new Error(`Error: Price data for handle: "${handle}", locale: "${locale}"`);
       prices[locale] = shopifyProduct;
-    })
+    }),
   );
 
   return prices;

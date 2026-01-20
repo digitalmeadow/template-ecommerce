@@ -8,5 +8,11 @@
     "lint": "pnpm run --parallel -r lint",
     "deploy": "pnpm run --parallel -r deploy",
     "gen": "pnpm --filter cms gen && pnpm --filter sanity gen && pnpm --filter shopify gen"
+  },
+  "prettier": {
+    "semi": true,
+    "printWidth": 100,
+    "bracketSpacing": true,
+    "singleQuote": false
   }
 }

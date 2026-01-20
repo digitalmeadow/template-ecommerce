@@ -12,8 +12,8 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
   .filter(([_, config]) =>
     availableCountries.some(
       (country) =>
-        country.isoCode === config.country && country.currency.isoCode === config.currency
-    )
+        country.isoCode === config.country && country.currency.isoCode === config.currency,
+    ),
   )
   .map(([locale, config]) => ({
     locale,
