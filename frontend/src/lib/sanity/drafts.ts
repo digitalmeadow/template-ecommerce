@@ -5,13 +5,19 @@ export function isDraftId(id?: string | null): boolean {
   return id.startsWith("drafts.");
 }
 
-export function selectDocument<T extends { _id?: string | null }>(documents: T[]): T | undefined {
-  if (documents.length === 0) return undefined;
+export function selectDocument<T extends { __typename: string; _id?: string | null }>(
+  documents: T[],
+): T {
+  if (documents.length === 0) throw new Error("No documents found to select from.");
   if (documents.length === 1) return documents[0];
 
   if (PREVIEW === "true") {
-    return documents.find((doc) => isDraftId(doc._id));
+    const document = documents.find((doc) => isDraftId(doc._id));
+    if (!document) throw new Error("Draft document not found: " + documents[0].__typename);
+    return document;
   } else {
-    return documents.find((doc) => !isDraftId(doc._id)) || documents[0];
+    const document = documents.find((doc) => !isDraftId(doc._id));
+    if (!document) throw new Error("Published document not found: " + documents[0].__typename);
+    return document;
   }
 }

@@ -16,8 +16,8 @@ import {
   productByHandleQuery as sanityProductByHandleQuery,
   productThumbnailByHandleQuery as sanityProductThumbnailByHandleQuery,
 } from "sanity/queries/product";
-import { selectDocument } from "../sanity/drafts";
-import { LOCALE_CONFIG, type LocaleCode } from "../shopify/locale";
+import { selectDocument } from "@lib/sanity/drafts";
+import { LOCALE_CONFIG, type LocaleCode } from "@lib/shopify/locale";
 
 export type PricesPerLocale = Record<LocaleCode, ShopifyProductPriceFragment>;
 

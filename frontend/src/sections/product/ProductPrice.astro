@@ -1,5 +1,5 @@
 ---
-import PriceDisplay from "../../blocks/PriceDisplay.astro";
+import PriceDisplay from "@blocks/PriceDisplay.astro";
 ---
 
 <div class="product-price" data-product-price>
@@ -8,9 +8,9 @@ import PriceDisplay from "../../blocks/PriceDisplay.astro";
 </div>
 
 <script>
-  import type { PricesPerLocale } from "../../lib/fetches/productShopifySanity";
-  import { getStoredLocale } from "../../lib/shopify/locale";
-  import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
+  import type { PricesPerLocale } from "@lib/fetches/productShopifySanity";
+  import { getStoredLocale } from "@lib/shopify/locale";
+  import type { EventProductVariantChange } from "./ProductVariantSelector.astro";
 
   function initialiseProductPrice(rootElement: HTMLElement) {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;

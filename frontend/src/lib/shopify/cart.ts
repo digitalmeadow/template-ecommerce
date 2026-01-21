@@ -1,4 +1,4 @@
-import { getCurrency, getStoredLocale } from "./locale";
+import { getCurrency, getStoredLocale } from "@lib/shopify/locale";
 
 export const CART_ID_STORAGE_KEY_SUFFIX = "cart-id";
 export const CART_DATA_STORAGE_KEY_SUFFIX = "cart-data";

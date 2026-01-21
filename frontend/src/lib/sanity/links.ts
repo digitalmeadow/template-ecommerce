@@ -1,6 +1,6 @@
 import { SANITY_PROJECT_ID } from "sanity/config";
 import type { LinkFragment } from "sanity/generated/graphql";
-import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "../../../config";
+import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
 
 export function resolveLinkHref(linkData: LinkFragment): string {
   if (!linkData) return "";

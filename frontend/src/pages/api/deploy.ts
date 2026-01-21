@@ -9,7 +9,7 @@ import {
   GIT_WORKFLOW_ID_DEPLOY,
   SANITY_WEBHOOK_SECRET,
 } from "astro:env/server";
-import { GIT_OWNER, GIT_REPO } from "../../../config";
+import { GIT_OWNER, GIT_REPO } from "@config";
 
 export const POST: APIRoute = async ({ request }) => {
   const signature = request.headers.get(SIGNATURE_HEADER_NAME);

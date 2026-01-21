@@ -5,8 +5,8 @@ import { collectionByHandleQuery } from "shopify/queries/collection";
 import {
   type ProductThumbnailShopifySanity,
   fetchProductThumbnailShopifySanity,
-} from "../lib/fetches/productShopifySanity";
-import ProductThumbnail from "./product/ProductThumbnail.astro";
+} from "@lib/fetches/productShopifySanity";
+import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
 
 interface Props {
   section: SectionCollectionFragment;

@@ -1,7 +1,7 @@
 ---
 import { shopifyClient } from "shopify/client";
 import { localizationsQuery } from "shopify/queries/localization";
-import { LOCALE_CONFIG, getLocaleFromPath } from "../lib/shopify/locale";
+import { LOCALE_CONFIG, getLocaleFromPath } from "@lib/shopify/locale";
 
 const currentLocale = getLocaleFromPath(Astro.url.pathname);
 
@@ -39,7 +39,7 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
 </locale-selector>
 
 <script>
-  import { isValidLocale } from "../lib/shopify/locale";
+  import { isValidLocale } from "@lib/shopify/locale";
 
   const LOCALE_STORAGE_KEY = "preferred-locale";
 

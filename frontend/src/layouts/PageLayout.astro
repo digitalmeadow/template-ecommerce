@@ -1,23 +1,23 @@
 ---
-import "../styles/reset.css";
-import "../styles/base.css";
-import "../styles/colors.css";
-import "../styles/spacing.css";
-import "../styles/typography.css";
-import "../styles/elements.css";
-import "../styles/animations.css";
-import "../styles/aspects.css";
-import "../styles/fonts.css";
+import "@styles/reset.css";
+import "@styles/base.css";
+import "@styles/colors.css";
+import "@styles/spacing.css";
+import "@styles/typography.css";
+import "@styles/elements.css";
+import "@styles/animations.css";
+import "@styles/aspects.css";
+import "@styles/fonts.css";
 
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-import Grid from "../dev/Grid.astro";
-import Meta from "../meta/Meta.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import Grid from "@dev/Grid.astro";
+import Meta from "@meta/Meta.astro";
 import type { MetaFragment } from "sanity/generated/graphql";
 import { WEBSITE_URL } from "astro:env/client";
-import Cart from "../components/cart/Cart.astro";
-import { getLocaleFromPath, LOCALE_CONFIG } from "../lib/shopify/locale";
-import CookiesBanner from "../components/CookiesBanner.astro";
+import Cart from "@components/cart/Cart.astro";
+import { getLocaleFromPath, LOCALE_CONFIG } from "@lib/shopify/locale";
+import CookiesBanner from "@components/CookiesBanner.astro";
 
 interface Props {
   metaData: MetaFragment | null | undefined;

@@ -1,9 +1,9 @@
 ---
 import { sanityClient } from "sanity/client";
-import PageLayout from "../../layouts/PageLayout.astro";
-import { fetchProductShopifySanity } from "../../lib/fetches/productShopifySanity";
+import PageLayout from "@layouts/PageLayout.astro";
+import { fetchProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import { productsQuery } from "sanity/queries/product";
-import ProductSection from "../../sections/product/ProductSection.astro";
+import ProductSection from "@sections/product/ProductSection.astro";
 
 export async function getStaticPaths() {
   const productsQueryQuery = await sanityClient.request(productsQuery);

@@ -1,8 +1,8 @@
 ---
-import PriceDisplay from "../../blocks/PriceDisplay.astro";
-import QuantitySelector from "../../blocks/QuantitySelector.astro";
-import CartLineItem from "./CartLineItem.astro";
-import Overlay from "../Overlay.astro";
+import PriceDisplay from "@blocks/PriceDisplay.astro";
+import QuantitySelector from "@blocks/QuantitySelector.astro";
+import CartLineItem from "@components/cart/CartLineItem.astro";
+import Overlay from "@components/Overlay.astro";
 ---
 
 <Overlay data-cart-overlay>
@@ -38,9 +38,12 @@ import Overlay from "../Overlay.astro";
     CART_ID_STORAGE_KEY_SUFFIX,
     CART_DATA_STORAGE_KEY_SUFFIX,
     getStorageKey,
-  } from "../../lib/shopify/cart";
-  import { getCurrency, getCountryCode } from "../../lib/shopify/locale";
-  import type { QuantitySelectorElement, QuantityChangedEvent } from "../QuantitySelector.astro";
+  } from "@lib/shopify/cart";
+  import { getCurrency, getCountryCode } from "@lib/shopify/locale";
+  import type {
+    QuantitySelectorElement,
+    QuantityChangedEvent,
+  } from "@blocks/QuantitySelector.astro";
 
   export type EventCartUpdatedDetail = {
     count: number;

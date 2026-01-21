@@ -1,8 +1,8 @@
 ---
 import { sanityClient } from "sanity/client";
-import PageLayout from "../layouts/PageLayout.astro";
-import SectionsRenderer from "../sections/SectionsRenderer.astro";
-import { selectDocument } from "../lib/sanity/drafts";
+import PageLayout from "@layouts/PageLayout.astro";
+import SectionsRenderer from "@sections/SectionsRenderer.astro";
+import { selectDocument } from "@lib/sanity/drafts";
 import { pageQuery, pagesQuery } from "sanity/queries/page";
 
 export async function getStaticPaths() {

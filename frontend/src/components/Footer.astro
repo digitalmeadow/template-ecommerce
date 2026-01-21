@@ -1,11 +1,11 @@
 ---
-import PortableText from "../fields/PortableText.astro";
-import SanityLink from "../fields/SanityLink.astro";
-import NewsletterSignup from "./NewsletterSignup.astro";
+import PortableText from "@fields/PortableText.astro";
+import SanityLink from "@fields/SanityLink.astro";
+import NewsletterSignup from "@components/NewsletterSignup.astro";
 import { sanityClient } from "sanity/client";
 import type { FooterQueryQuery } from "sanity/generated/graphql";
 import { footerQuery } from "sanity/queries/footer";
-import { selectDocument } from "../lib/sanity/drafts";
+import { selectDocument } from "@lib/sanity/drafts";
 
 const componentQuery: FooterQueryQuery = await sanityClient.request(footerQuery);
 const footerData = selectDocument(componentQuery.allFooter);
@@ -13,11 +13,11 @@ const footerData = selectDocument(componentQuery.allFooter);
 
 <footer class:list={[{ hidden: Astro.url.pathname === "/" }]}>
   <div class="footer-content">
-    <PortableText value={footerData?.textRaw} />
+    <PortableText value={footerData.textRaw} />
 
     <div class="nav">
       {
-        footerData?.navigationItems?.map((navigationItem) => {
+        footerData.navigationItems?.map((navigationItem) => {
           if (!navigationItem?.link) return null;
           return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
         })

@@ -1,3 +1,3 @@
-# Sanity Clean Content Studio
+# Sanity CMS
 
-[GraphQL Documentation](https://sanity-project-id.api.sanity.io/v1/graphql/production/default)
+[GraphQL Documentation](https://iqfm6q7t.api.sanity.io/v1/graphql/production/default)

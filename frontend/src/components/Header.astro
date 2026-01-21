@@ -1,10 +1,10 @@
 ---
-import SanityLink from "../fields/SanityLink.astro";
+import SanityLink from "@fields/SanityLink.astro";
 import { sanityClient } from "sanity/client";
 import type { HeaderQueryQuery } from "sanity/generated/graphql";
 import { headerQuery } from "sanity/queries/header";
-import { selectDocument } from "../lib/sanity/drafts";
-import LocaleSelector from "../blocks/LocaleSelector.astro";
+import { selectDocument } from "@lib/sanity/drafts";
+import LocaleSelector from "@blocks/LocaleSelector.astro";
 
 const componentQuery: HeaderQueryQuery = await sanityClient.request(headerQuery);
 const headerData = selectDocument(componentQuery.allHeader);
@@ -17,7 +17,7 @@ const headerData = selectDocument(componentQuery.allHeader);
     <LocaleSelector />
 
     {
-      headerData?.navigationItems?.map((navigationItem) => {
+      headerData.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
         return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
       })

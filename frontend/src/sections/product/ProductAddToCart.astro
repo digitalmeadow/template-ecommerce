@@ -9,9 +9,9 @@
     CART_DATA_STORAGE_KEY_SUFFIX,
     CART_ID_STORAGE_KEY_SUFFIX,
     getStorageKey,
-  } from "../../lib/shopify/cart";
-  import { getCountryCode } from "../../lib/shopify/locale";
-  import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
+  } from "@lib/shopify/cart";
+  import { getCountryCode } from "@lib/shopify/locale";
+  import type { EventProductVariantChange } from "@sections/product/ProductVariantSelector.astro";
 
   async function initialiseProductAddToCart(rootElement: HTMLElement) {
     const productRoot = rootElement.closest("[data-product-root]");
