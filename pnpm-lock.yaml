@@ -90,9 +90,6 @@ importers:
         specifier: workspace:*
         version: link:../shopify
     devDependencies:
-      tsx:
-        specifier: 4.21.0
-        version: 4.21.0
       wrangler:
         specifier: 4.54.0
         version: 4.54.0(@cloudflare/workers-types@4.20260109.0)
