@@ -21,6 +21,14 @@
     "octokit": "5.0.5"
   },
   "devDependencies": {
-    "wrangler": "4.54.0"
+    "wrangler": "4.54.0",
+    "prettier": "3.7.4",
+    "prettier-plugin-astro": "0.14.1"
+  },
+  "prettier": {
+    "semi": true,
+    "printWidth": 100,
+    "bracketSpacing": true,
+    "singleQuote": false
   }
 }
