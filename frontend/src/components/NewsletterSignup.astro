@@ -21,7 +21,7 @@
   const message = document.querySelector("[data-newsletter-message]") as HTMLParagraphElement;
   const container = form.closest("newsletter-signup") as HTMLElement;
 
-  form?.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const schema = z.object({
