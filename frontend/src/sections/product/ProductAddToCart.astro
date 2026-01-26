@@ -11,16 +11,16 @@
     getStorageKey,
   } from "@lib/shopify/cart";
   import { getCountryCode } from "@lib/shopify/locale";
-  import type { EventProductVariantChange } from "@sections/product/ProductVariantSelector.astro";
+  import type { Variant } from "@sections/product/ProductVariantSelector.astro";
+  import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
 
   async function initialiseProductAddToCart(rootElement: HTMLElement) {
-    const productRoot = rootElement.closest("[data-product-root]");
+    const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
     if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
     const button = rootElement.querySelector("[data-add-to-cart-button]") as HTMLButtonElement;
-    let currentVariantAvailable = true;
 
-    function getCurrentVariantId() {
+    function getSelectedVariantId() {
       if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
       const variantIdInput = productRoot.querySelector("[data-variant-id]") as HTMLInputElement;
@@ -30,7 +30,16 @@
       return variantIdInput.value;
     }
 
-    function getCurrentQuantity() {
+    const variantSelector = productRoot.querySelector("[data-variant-selector]") as HTMLElement;
+    if (!variantSelector)
+      throw new Error("ProductAddToCart: missing [data-variant-selector] inside product root");
+
+    const variants = JSON.parse(variantSelector.dataset.variants!);
+    const selectedVariantAvailableForSale = variants.find(
+      (variant: Variant) => variant.id === getSelectedVariantId(),
+    )?.availableForSale;
+
+    function getSelectedQuantity() {
       if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
       const quantityInput = productRoot.querySelector(
@@ -101,7 +110,7 @@
         console.error("[ProductAddToCart] Error:", error);
       } finally {
         button.removeAttribute("data-loading");
-        button.disabled = !currentVariantAvailable;
+        button.disabled = !selectedVariantAvailableForSale;
         document.body.style.cursor = "";
       }
     }
@@ -109,17 +118,22 @@
     function handleVariantChange(event: Event) {
       const eventProductVariantChange = event as EventProductVariantChange;
       const availableForSale = eventProductVariantChange.detail.availableForSale;
-
-      button.setAttribute("data-available-for-sale", String(availableForSale));
-      button.disabled = !availableForSale;
+      handleVariantAvailability(availableForSale);
     }
+
+    function handleVariantAvailability(available: boolean) {
+      button.setAttribute("data-available-for-sale", String(available));
+      button.disabled = !available;
+    }
+
+    handleVariantAvailability(selectedVariantAvailableForSale);
 
     productRoot.addEventListener("product:variant-change", handleVariantChange);
 
     button.addEventListener("click", async () => {
-      if (!currentVariantAvailable) return;
-      const variantId = getCurrentVariantId();
-      const quantity = getCurrentQuantity();
+      if (!selectedVariantAvailableForSale) return;
+      const variantId = getSelectedVariantId();
+      const quantity = getSelectedQuantity();
       await addToCart(variantId, quantity);
     });
   }

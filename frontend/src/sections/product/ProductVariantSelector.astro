@@ -13,7 +13,16 @@ const variants = productData.shopify.variants.edges;
 const isSingleDefaultVariant = variants.length === 1 && variants[0].node.title === "Default Title";
 
 // Prepare minimal variant matching data for client-side
-const variantsForMatching = variants.map((edge) => ({
+export interface Variant {
+  id: string;
+  selectedOptions: Array<{
+    name: string;
+    value: string;
+  }>;
+  availableForSale: boolean;
+}
+
+const variantsForMatching: Variant[] = variants.map((edge) => ({
   id: edge.node.id,
   selectedOptions: edge.node.selectedOptions,
   availableForSale: edge.node.availableForSale,
