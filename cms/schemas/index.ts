@@ -3,7 +3,7 @@ import { meta } from "./fields/meta";
 import { header } from "./components/header";
 import { footer } from "./components/footer";
 import { home } from "./pages/home";
-import { button } from "./blocks/button";
+import { button } from "./fields/button";
 import { page } from "./pages/page";
 import { media } from "./fields/media";
 import { sectionHero } from "./sections/sectionHero";

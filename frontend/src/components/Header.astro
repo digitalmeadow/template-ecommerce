@@ -1,13 +1,12 @@
 ---
 import SanityLink from "@fields/SanityLink.astro";
 import { sanityClient } from "sanity/client";
-import type { HeaderQueryQuery } from "sanity/generated/graphql";
 import { headerQuery } from "sanity/queries/header";
 import { selectDocument } from "@lib/sanity/drafts";
 import LocaleSelector from "@blocks/LocaleSelector.astro";
 
-const componentQuery: HeaderQueryQuery = await sanityClient.request(headerQuery);
-const headerData = selectDocument(componentQuery.allHeader);
+const headerQueryQuery = await sanityClient.request(headerQuery);
+const headerData = selectDocument(headerQueryQuery.allHeader);
 ---
 
 <header>

@@ -5,8 +5,8 @@ import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
 export function resolveLinkHref(linkData: LinkFragment): string {
   if (!linkData) return "";
   if (linkData.type === "anchor") return linkData.anchor ?? "";
-  if (linkData.type === "external") return linkData.href ?? "";
-  if (linkData.type === "internal") return resolveReferenceHref(linkData.reference) ?? "";
+  if (linkData.type === "url") return linkData.href ?? "";
+  if (linkData.type === "page") return resolveReferenceHref(linkData.reference) ?? "";
   if (linkData.type === "email") return `mailto:${linkData.email}`;
   if (linkData.type === "phone") return `tel:${linkData.phone}`;
   if (linkData.type === "file") {
@@ -20,7 +20,7 @@ export function resolveLinkHref(linkData: LinkFragment): string {
   return "";
 }
 
-export function resolveSanityHref(documentType: string, slug?: string): string {
+export function resolveSanityHref(documentType: string, slug?: string | null): string {
   if (!(documentType in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
     throw new Error("Invalid document type");
   }

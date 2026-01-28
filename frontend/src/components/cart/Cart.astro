@@ -42,7 +42,7 @@ import Overlay from "@components/Overlay.astro";
   import { getCurrency, getCountryCode } from "@lib/shopify/locale";
   import type {
     QuantitySelectorElement,
-    QuantityChangedEvent,
+    EventQuantityChanged,
   } from "@blocks/QuantitySelector.astro";
 
   export type EventCartUpdatedDetail = {
@@ -90,7 +90,7 @@ import Overlay from "@components/Overlay.astro";
     };
 
     onQuantityChange = async (e: Event) => {
-      const event = e as QuantityChangedEvent;
+      const event = e as EventQuantityChanged;
       const quantitySelector = event.target as QuantitySelectorElement;
       const li = quantitySelector.closest("li") as HTMLLIElement;
       const lineId = li.dataset.lineId!;

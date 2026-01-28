@@ -3,15 +3,14 @@ import PortableText from "@fields/PortableText.astro";
 import SanityLink from "@fields/SanityLink.astro";
 import NewsletterSignup from "@components/NewsletterSignup.astro";
 import { sanityClient } from "sanity/client";
-import type { FooterQueryQuery } from "sanity/generated/graphql";
 import { footerQuery } from "sanity/queries/footer";
 import { selectDocument } from "@lib/sanity/drafts";
 
-const componentQuery: FooterQueryQuery = await sanityClient.request(footerQuery);
-const footerData = selectDocument(componentQuery.allFooter);
+const footerQueryQuery = await sanityClient.request(footerQuery);
+const footerData = selectDocument(footerQueryQuery.allFooter);
 ---
 
-<footer class:list={[{ hidden: Astro.url.pathname === "/" }]}>
+<footer>
   <div class="footer-content">
     <PortableText value={footerData.textRaw} />
 

@@ -15,7 +15,8 @@
 <script>
   import { z } from "astro/zod";
 
-  export type QuantityChangedEvent = CustomEvent<{ value: number }>;
+  export type EventQuantityChangedDetail = { value: number };
+  export type EventQuantityChanged = CustomEvent<{ value: number }>;
 
   export class QuantitySelectorElement extends HTMLElement {
     private input!: HTMLInputElement;
