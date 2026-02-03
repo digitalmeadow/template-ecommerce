@@ -15,7 +15,7 @@ export const structure: StructureResolver = (S) => {
 			home(S),
 			pages(S),
 			S.divider(),
-			collections(S),
 			products(S),
+			collections(S),
 		])
 };

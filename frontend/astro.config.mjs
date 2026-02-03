@@ -45,12 +45,12 @@ export default defineConfig({
         access: "secret",
       }),
       GIT_WORKFLOW_ID_DEPLOY: envField.string({
-        context: "server",
-        access: "secret",
+        context: "client",
+        access: "public",
       }),
       GIT_BRANCH: envField.string({
-        context: "server",
-        access: "secret",
+        context: "client",
+        access: "public",
       }),
 
       SHOPIFY_PRIVATE_API_TOKEN: envField.string({

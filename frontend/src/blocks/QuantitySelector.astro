@@ -76,7 +76,7 @@
       }
     }
 
-    emitChangeEvent() {
+    emitChangedEvent() {
       this.dispatchEvent(
         new CustomEvent("quantity-selector:quantity-changed", {
           detail: { value: this.value },
@@ -90,7 +90,7 @@
       if (this.value > this.min) {
         this.value--;
         this.render();
-        this.emitChangeEvent();
+        this.emitChangedEvent();
       }
     };
 
@@ -99,7 +99,7 @@
       if (this.value < this.max) {
         this.value++;
         this.render();
-        this.emitChangeEvent();
+        this.emitChangedEvent();
       }
     };
 
@@ -112,7 +112,7 @@
         if (next !== this.value) {
           this.value = next;
           this.render();
-          this.emitChangeEvent();
+          this.emitChangedEvent();
         }
       } else {
         this.render();

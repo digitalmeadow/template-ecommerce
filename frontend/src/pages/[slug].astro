@@ -2,7 +2,7 @@
 import { sanityClient } from "sanity/client";
 import PageLayout from "@layouts/PageLayout.astro";
 import SectionsRenderer from "@sections/SectionsRenderer.astro";
-import { selectDocument } from "@lib/sanity/drafts";
+
 import { pageQuery, pagesQuery } from "sanity/queries/page";
 
 export async function getStaticPaths() {
@@ -15,7 +15,7 @@ let { slug } = Astro.params;
 const pageDataQuery = await sanityClient.request(pageQuery, {
   slug,
 });
-const pageData = selectDocument(pageDataQuery.allPage);
+const pageData = pageDataQuery.allPage[0];
 ---
 
 <PageLayout metaData={pageData?.meta}>

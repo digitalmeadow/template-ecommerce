@@ -3,7 +3,7 @@ import { EarthGlobeIcon } from "@sanity/icons";
 import { DocumentActionComponent } from "sanity";
 import { SHOPIFY_STORE_DOMAIN } from "shopify/config";
 
-export const ShopifyLink: DocumentActionComponent = ({ published, type }) => {
+export const ActionShopifyLink: DocumentActionComponent = ({ published, type }) => {
   const document = published as any;
 
   if (!["collection", "product", "productVariant"].includes(type)) {

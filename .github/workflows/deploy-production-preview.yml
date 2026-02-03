@@ -40,6 +40,7 @@ jobs:
           SANITY_WEBHOOK_SECRET: ${{ secrets.SANITY_WEBHOOK_SECRET }}
 
           GIT_API_TOKEN: ${{ secrets.GIT_API_TOKEN }}
+          GIT_WORKFLOW_ID_DEPLOY: 222218634
           GIT_BRANCH: main
 
           SHOPIFY_PRIVATE_API_TOKEN: ${{ secrets.SHOPIFY_PRIVATE_API_TOKEN }}

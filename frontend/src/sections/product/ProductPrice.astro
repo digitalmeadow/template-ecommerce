@@ -10,7 +10,7 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
 <script>
   import type { PricesPerLocale } from "@lib/fetches/productShopifySanity";
   import { getStoredLocale } from "@lib/shopify/locale";
-  import type { EventProductVariantChange } from "./ProductVariantSelector.astro";
+  import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
 
   function initialiseProductPrice(rootElement: HTMLElement) {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;

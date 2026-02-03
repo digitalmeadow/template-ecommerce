@@ -1,4 +1,4 @@
-.type-body,
+.text-body,
 p,
 span,
 li {
@@ -8,7 +8,7 @@ li {
   font-weight: 400;
 }
 @media (max-width: 1000px) {
-  .type-body,
+  .text-body,
   p,
   span,
   li {
@@ -17,7 +17,7 @@ li {
   }
 }
 
-.type-heading-large,
+.text-heading-large,
 h1 {
   font-family: var(--font-heading);
   font-size: 80px;
@@ -26,14 +26,14 @@ h1 {
   letter-spacing: 0em;
 }
 @media (max-width: 1000px) {
-  .type-heading-large,
+  .text-heading-large,
   h1 {
     font-size: 40px;
     line-height: 44px;
   }
 }
 
-.type-heading,
+.text-heading,
 h2,
 h3 {
   font-family: var(--font-heading);
@@ -43,7 +43,7 @@ h3 {
   letter-spacing: 0.02em;
 }
 @media (max-width: 1000px) {
-  .type-heading,
+  .text-heading,
   h2,
   h3 {
     font-size: 32px;
@@ -51,7 +51,7 @@ h3 {
   }
 }
 
-.type-heading-small,
+.text-heading-small,
 h4,
 h5,
 h6 {
@@ -61,7 +61,7 @@ h6 {
   font-weight: 700;
 }
 @media (max-width: 1000px) {
-  .type-heading-small,
+  .text-heading-small,
   h4,
   h5,
   h6 {
@@ -70,8 +70,8 @@ h6 {
   }
 }
 
-.type-button,
-.type-caption {
+.text-button,
+.text-caption {
   font-family: var(--font-button);
   font-style: italic;
   font-size: 18px;
@@ -80,8 +80,8 @@ h6 {
   letter-spacing: 0.025em;
 }
 @media (max-width: 1000px) {
-  .type-button,
-  .type-caption {
+  .text-button,
+  .text-caption {
     font-size: 16px;
     line-height: 16px;
   }

@@ -1,0 +1,285 @@
+---
+interface Props {
+  id: string;
+  layout?: "fullscreen" | "right";
+}
+
+const { id, layout = "fullscreen" }: Props = Astro.props;
+---
+
+<overlay-root id={id} layout={layout}>
+  <div class="backdrop"></div>
+
+  <div class:list={["panel", layout]}>
+    <slot name="header" />
+    <slot name="content" />
+    <slot name="footer" />
+  </div>
+</overlay-root>
+
+<script>
+  export type EventOverlayOpenDetail = { id: string };
+  export type EventOverlayOpen = CustomEvent<EventOverlayOpenDetail>;
+  export type EventOverlayClose = CustomEvent<null>;
+
+  export class OverlayElement extends HTMLElement {
+    private backdrop!: HTMLElement;
+    private panel!: HTMLElement;
+    private previouslyFocused: HTMLElement | null = null;
+    private previousScrollY: number = 0;
+    isOpen: boolean = false;
+
+    connectedCallback() {
+      this.backdrop = this.querySelector(".backdrop")!;
+      this.panel = this.querySelector(".panel")!;
+
+      this.panel.setAttribute("role", "dialog");
+      this.panel.setAttribute("aria-modal", "true");
+      this.panel.setAttribute("tabindex", "-1");
+
+      this.backdrop.addEventListener("click", this.handleCloseClick);
+    }
+
+    disconnectedCallback() {
+      this.backdrop.removeEventListener("click", this.handleCloseClick);
+    }
+
+    lockScroll() {
+      this.previousScrollY = window.pageYOffset;
+      const scrollingElement = document.scrollingElement as HTMLElement | null;
+      if (scrollingElement) {
+        scrollingElement.style.overflow = "hidden";
+        scrollingElement.style.top = -this.previousScrollY + "px";
+        scrollingElement.style.position = "fixed";
+        scrollingElement.style.width = "100%";
+        scrollingElement.style.paddingRight = "var(--scrollbar)";
+      }
+    }
+
+    unlockScroll() {
+      const scrollingElement = document.scrollingElement as HTMLElement | null;
+      if (scrollingElement) {
+        scrollingElement.style.overflow = "";
+        scrollingElement.style.top = "";
+        scrollingElement.style.position = "";
+        scrollingElement.style.width = "";
+        scrollingElement.style.paddingRight = "";
+        const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = "auto";
+        window.scrollTo(0, this.previousScrollY);
+        document.documentElement.style.scrollBehavior = previousScrollBehavior;
+      }
+    }
+
+    open() {
+      this.isOpen = true;
+      this.previouslyFocused = document.activeElement as HTMLElement;
+
+      document.addEventListener("keydown", this.handleCloseKeydown);
+
+      requestAnimationFrame(() => {
+        this.panel?.focus();
+      });
+
+      this.dispatchEvent(new CustomEvent("overlay:opened"));
+      this.render();
+      this.lockScroll();
+    }
+
+    handleCloseClick = () => {
+      this.close();
+    };
+
+    handleCloseKeydown = (event: KeyboardEvent) => {
+      if (!this.isOpen) return;
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        this.close();
+      }
+    };
+
+    close() {
+      this.isOpen = false;
+
+      document.removeEventListener("keydown", this.handleCloseKeydown);
+
+      if (this.previouslyFocused) {
+        this.previouslyFocused.focus();
+      }
+
+      this.dispatchEvent(new CustomEvent("overlay:closed"));
+      this.render();
+      this.unlockScroll();
+    }
+
+    toggle() {
+      if (this.isOpen) {
+        this.close();
+      } else {
+        this.open();
+      }
+    }
+
+    render() {
+      if (this.isOpen) {
+        this.classList.add("open");
+      } else {
+        this.classList.remove("open");
+      }
+    }
+  }
+
+  customElements.define("overlay-root", OverlayElement);
+</script>
+
+<style>
+  overlay-root {
+    position: fixed;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  overlay-root.open {
+    z-index: 21;
+    pointer-events: auto;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity var(--transition-default);
+  }
+
+  overlay-root.open .backdrop {
+    opacity: 1;
+  }
+
+  .panel {
+    position: fixed;
+
+    display: grid;
+    grid-template-rows: auto 1fr;
+
+    background-color: var(--color-background);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    outline: none;
+  }
+
+  .panel.fullscreen {
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    padding: var(--s24);
+
+    transition: opacity var(--transition-default);
+  }
+  overlay-root:not(.open) .panel.fullscreen {
+    opacity: 0;
+  }
+  overlay-root.open .panel.fullscreen {
+    opacity: 1;
+  }
+  @media (max-width: 744px) {
+    .panel.fullscreen {
+      padding: var(--margin);
+    }
+  }
+
+  .panel.right {
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 532px;
+    padding: var(--s10) var(--s20) var(--s40) var(--s20);
+
+    transition: transform var(--transition-default);
+  }
+  overlay-root:not(.open) .panel.right {
+    transform: translateX(100%);
+  }
+  overlay-root.open .panel.right {
+    transform: translateX(0);
+  }
+  @media (max-width: 744px) {
+    .panel.right {
+      top: auto;
+      bottom: 0;
+
+      width: 100%;
+      height: calc(100svh - var(--s40));
+      padding: var(--s20) var(--margin) var(--s40) var(--margin);
+
+      border-top-left-radius: var(--border-radius--large);
+      border-top-right-radius: var(--border-radius--large);
+    }
+    overlay-root:not(.open) .panel.right {
+      transform: translateY(100%);
+    }
+    overlay-root.open .panel.right {
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
+
+  const overlayOpeners = document.querySelectorAll(
+    `[data-trigger-overlay-open]`,
+  ) as NodeListOf<HTMLElement>;
+
+  for (const trigger of overlayOpeners) {
+    trigger.addEventListener("click", () => {
+      const overlayId = trigger.getAttribute("data-trigger-overlay-open");
+      if (!overlayId) return;
+
+      const overlayRootElement = document.querySelector(
+        `overlay-root[id="${overlayId}"]`,
+      ) as OverlayElement | null;
+      if (!overlayRootElement) return;
+
+      overlayRootElement.open();
+    });
+  }
+
+  const overlayClosers = document.querySelectorAll(
+    `[data-trigger-overlay-close]`,
+  ) as NodeListOf<HTMLElement>;
+
+  for (const trigger of overlayClosers) {
+    trigger.addEventListener("click", () => {
+      const overlayId = trigger.getAttribute("data-trigger-overlay-close");
+      if (!overlayId) return;
+
+      const overlayRootElement = document.querySelector(
+        `overlay-root[id="${overlayId}"]`,
+      ) as OverlayElement | null;
+      if (!overlayRootElement) return;
+
+      overlayRootElement.close();
+    });
+  }
+
+  const overlayTogglers = document.querySelectorAll(
+    `[data-trigger-overlay-toggle]`,
+  ) as NodeListOf<HTMLElement>;
+
+  for (const trigger of overlayTogglers) {
+    trigger.addEventListener("click", () => {
+      const overlayId = trigger.getAttribute("data-trigger-overlay-toggle");
+      if (!overlayId) return;
+
+      const overlayRootElement = document.querySelector(
+        `overlay-root[id="${overlayId}"]`,
+      ) as OverlayElement | null;
+      if (!overlayRootElement) return;
+
+      overlayRootElement.toggle();
+    });
+  }
+</script>

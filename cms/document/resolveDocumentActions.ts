@@ -1,6 +1,7 @@
 import { DocumentActionComponent, DocumentActionsContext } from "sanity";
-import { ShopifyLink } from "./actions/ShopifyLink";
+import { ActionShopifyLink } from "./actions/ActionShopify";
 import { SINGLETON_DOCUMENT_TYPES } from "../config";
+import { ActionPreview } from "./actions/ActionPreview";
 
 export default function resolveDocumentActions(
   previous: DocumentActionComponent[],
@@ -50,7 +51,7 @@ export default function resolveDocumentActions(
   });
 
   // Add custom actions
-  actions = [...actions, ShopifyLink];
+  actions = [...actions, ActionShopifyLink, ActionPreview];
 
   return actions;
 }

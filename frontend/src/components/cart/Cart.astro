@@ -2,11 +2,11 @@
 import PriceDisplay from "@blocks/PriceDisplay.astro";
 import QuantitySelector from "@blocks/QuantitySelector.astro";
 import CartLineItem from "@components/cart/CartLineItem.astro";
-import Overlay from "@components/Overlay.astro";
+import Overlay from "@layouts/Overlay.astro";
 ---
 
-<Overlay data-cart-overlay>
-  <cart-root>
+<Overlay id="cart" layout="right">
+  <cart-root slot="content">
     <!-- BUG: Astro dedup fails to mount native web components when within <template> tags -->
     <div style="display: none">
       <QuantitySelector />
@@ -43,7 +43,7 @@ import Overlay from "@components/Overlay.astro";
   import type {
     QuantitySelectorElement,
     EventQuantityChanged,
-  } from "@blocks/QuantitySelector.astro";
+  } from "@blocks/QuantitySelector.astro.0.mts";
 
   export type EventCartUpdatedDetail = {
     count: number;

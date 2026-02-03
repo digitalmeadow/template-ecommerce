@@ -1,12 +1,11 @@
-import { DocumentsIcon } from "@sanity/icons";
+import { TagIcon, TagsIcon } from "@sanity/icons";
 import { StructureBuilder } from "sanity/structure";
-import { documentEditor } from "./documentEditor";
 
 export const products = (S: StructureBuilder) => {
   // prettier-ignore
   return S.listItem()
 		.title('Products')
-		.icon(DocumentsIcon)
+		.icon(TagsIcon)
 		.schemaType('product')
 		.child(
 			S.documentTypeList('product').child(
@@ -14,23 +13,29 @@ export const products = (S: StructureBuilder) => {
 					S.list()
 						.title('Product')
 						.items([
-							// Product
 							S.listItem()
-								.title('Product Details')
-								.icon(DocumentsIcon)
-								.child(documentEditor(S, 'product', productId)),
+								.title('Product')
+								.icon(TagIcon)
+								.child(
+									S.document()
+										.schemaType('product')
+										.documentId(productId)
+								),
 							S.divider(),
-							// Product variants
 							S.listItem()
 								.title('Variants')
-								.icon(DocumentsIcon)
+								.icon(TagsIcon)
 								.child(
 									S.documentList()
 										.title('Variants')
 										.schemaType('productVariant')
 										.filter('_type == "productVariant" && product._ref == $productId')
 										.params({productId})
-										.child((variantId) => documentEditor(S, 'productVariant', variantId))
+										.child((variantId) =>
+											S.document()
+												.schemaType('productVariant')
+												.documentId(variantId)
+										)
 								),
 						])
 			)

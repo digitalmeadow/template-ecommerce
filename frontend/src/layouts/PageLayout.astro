@@ -18,6 +18,7 @@ import { WEBSITE_URL } from "astro:env/client";
 import Cart from "@components/cart/Cart.astro";
 import { getLocaleFromPath, LOCALE_CONFIG } from "@lib/shopify/locale";
 import CookiesBanner from "@components/CookiesBanner.astro";
+import ScriptSpacing from "../scripts/ScriptSpacing.astro";
 
 interface Props {
   metaData: MetaFragment | null | undefined;
@@ -47,6 +48,7 @@ const localeConfig = LOCALE_CONFIG[currentLocale];
     <title>{metaData?.title}</title>
     <Meta metaData={metaData} />
     <link rel="canonical" href={canonicalUrl} />
+    <ScriptSpacing />
   </head>
   <body>
     <Header />

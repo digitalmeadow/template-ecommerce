@@ -1,16 +1,17 @@
-import { DocumentsIcon } from "@sanity/icons";
+import { PackageIcon } from "@sanity/icons";
 import { StructureBuilder } from "sanity/structure";
-import { documentEditor } from "./documentEditor";
 
 export const collections = (S: StructureBuilder) => {
   // prettier-ignore
   return S.listItem()
 		.title('Collections')
-		.icon(DocumentsIcon)
+		.icon(PackageIcon)
 		.schemaType('collection')
 		.child(
 			S.documentTypeList('collection').child(
-				(id) => documentEditor(S, 'collection', id)
+				(id) => S.document()
+					.schemaType('collection')
+					.documentId(id)
 			)
 		)
 };

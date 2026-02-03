@@ -1,6 +1,5 @@
 import { HomeIcon } from "@sanity/icons";
 import { StructureBuilder } from "sanity/structure";
-import { documentEditor } from "./documentEditor";
 
 export const home = (S: StructureBuilder) => {
   // prettier-ignore
@@ -8,6 +7,8 @@ export const home = (S: StructureBuilder) => {
 		.title('Home')
 		.icon(HomeIcon)
 		.child(
-			() => documentEditor(S, 'home', 'home')
+			() => S.document()
+				.schemaType('home')
+				.documentId('home')
 		)
 };

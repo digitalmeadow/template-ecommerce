@@ -3,12 +3,8 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { Octokit } from "octokit";
 import { isValidSignature, SIGNATURE_HEADER_NAME } from "sanity";
-import {
-  GIT_BRANCH,
-  GIT_API_TOKEN,
-  GIT_WORKFLOW_ID_DEPLOY,
-  SANITY_WEBHOOK_SECRET,
-} from "astro:env/server";
+import { GIT_API_TOKEN, SANITY_WEBHOOK_SECRET } from "astro:env/server";
+import { GIT_WORKFLOW_ID_DEPLOY, GIT_BRANCH } from "astro:env/client";
 import { GIT_OWNER, GIT_REPO } from "@config";
 
 export const POST: APIRoute = async ({ request }) => {

@@ -1,5 +1,5 @@
 import { ComponentIcon } from "@sanity/icons";
-import { documentEditor } from "./documentEditor";
+
 import { StructureBuilder } from "sanity/structure";
 
 export const components = (S: StructureBuilder) => {
@@ -16,13 +16,13 @@ export const components = (S: StructureBuilder) => {
 					.title('Header')
 					.schemaType('header')
 					.child(
-						(id: string) => documentEditor(S, 'header', id)
+						S.document().schemaType('header').documentId('header')
 					),
 				S.listItem()
 					.title('Footer')
 					.schemaType('footer')
 					.child(
-						(id: string) => documentEditor(S, 'footer', id)
+						S.document().schemaType('footer').documentId('footer')
 					),
 			]
 		)

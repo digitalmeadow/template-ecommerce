@@ -2,11 +2,10 @@
 import SanityLink from "@fields/SanityLink.astro";
 import { sanityClient } from "sanity/client";
 import { headerQuery } from "sanity/queries/header";
-import { selectDocument } from "@lib/sanity/drafts";
 import LocaleSelector from "@blocks/LocaleSelector.astro";
 
 const headerQueryQuery = await sanityClient.request(headerQuery);
-const headerData = selectDocument(headerQueryQuery.allHeader);
+const headerData = headerQueryQuery.allHeader[0];
 ---
 
 <header>
@@ -22,23 +21,18 @@ const headerData = selectDocument(headerQueryQuery.allHeader);
       })
     }
 
-    <button data-cart-toggle aria-label="Toggle cart">
+    <button data-trigger-overlay-toggle="cart" aria-label="Toggle cart">
       Cart<span data-cart-count></span>
     </button>
   </nav>
 </header>
 
 <script>
-  import type { EventCartUpdated } from "./cart/Cart.astro.0.mts";
-  import type { OverlayElement } from "./Overlay.astro.0.mts";
+  import type { EventCartUpdated } from "@components/cart/Cart.astro.0.mts";
+  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
 
   const cartCountElement = document.querySelector("[data-cart-count]") as HTMLElement;
-  const cartOverlay = document.querySelector("[data-cart-overlay]") as OverlayElement | null;
-
-  document.querySelector("[data-cart-toggle]")?.addEventListener("click", () => {
-    if (!cartOverlay) throw new Error("Cart overlay element not found");
-    cartOverlay.toggle();
-  });
+  const cartOverlay = document.querySelector(`overlay-root[id="cart"]`) as OverlayElement | null;
 
   document.addEventListener("product:add-to-cart", () => {
     if (!cartOverlay) throw new Error("Cart overlay element not found");

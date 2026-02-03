@@ -10,13 +10,19 @@ interface Props {
 
 const { linkData, class: className, ...rest } = Astro.props;
 
+function resolveAnchorTarget(linkData: LinkFragment): string | undefined {
+  if (!linkData) return undefined;
+  if (linkData.type === "url" && linkData.newTab) return "_blank";
+  if (linkData.type === "file" && linkData.newTab) return "_blank";
+  return undefined;
+}
+
 function resolveAnchorRel(linkData: LinkFragment): string {
   if (!linkData) return "";
-  if (linkData.type === "url") return "noopener noreferrer";
+  if (linkData.type === "url" && linkData.newTab) return "noopener noreferrer";
   if (linkData.type === "file") return "noopener noreferrer";
   if (linkData.type === "email") return "noopener noreferrer";
   if (linkData.type === "phone") return "noopener noreferrer";
-
   return "";
 }
 ---
@@ -26,7 +32,7 @@ function resolveAnchorRel(linkData: LinkFragment): string {
     <a
       class={className}
       href={resolveLinkHref(linkData)}
-      target={linkData.type === "url" || linkData.type === "file" ? "_blank" : undefined}
+      target={resolveAnchorTarget(linkData)}
       rel={resolveAnchorRel(linkData)}
       download={linkData.type === "file" ? linkData.file?.asset?.originalFilename : undefined}
       {...rest}

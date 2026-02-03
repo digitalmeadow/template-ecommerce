@@ -4,10 +4,9 @@ import SanityLink from "@fields/SanityLink.astro";
 import NewsletterSignup from "@components/NewsletterSignup.astro";
 import { sanityClient } from "sanity/client";
 import { footerQuery } from "sanity/queries/footer";
-import { selectDocument } from "@lib/sanity/drafts";
 
 const footerQueryQuery = await sanityClient.request(footerQuery);
-const footerData = selectDocument(footerQueryQuery.allFooter);
+const footerData = footerQueryQuery.allFooter[0];
 ---
 
 <footer>

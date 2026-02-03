@@ -1,6 +1,5 @@
 import { DocumentsIcon } from "@sanity/icons";
 import { StructureBuilder } from "sanity/structure";
-import { documentEditor } from "./documentEditor";
 
 export const pages = (S: StructureBuilder) => {
   // prettier-ignore
@@ -10,7 +9,9 @@ export const pages = (S: StructureBuilder) => {
 		.schemaType('page')
 		.child(
 			S.documentTypeList('page').child(
-				(id) => documentEditor(S, 'page', id)
+				(id) => S.document()
+					.schemaType('page')
+					.documentId(id)
 			)
 		)
 };

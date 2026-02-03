@@ -1,0 +1,3 @@
+- Client-side stale-while-revalidate for product availability and prices
+  - Find all product variant selectors, construct a single query to Shopify to fetch price and availability
+  - Trigger revalidate events and update elements accordingly

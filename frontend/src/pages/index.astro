@@ -3,10 +3,9 @@ import PageLayout from "@layouts/PageLayout.astro";
 import { sanityClient } from "sanity/client";
 import { homeQuery } from "sanity/queries/home";
 import SectionsRenderer from "@sections/SectionsRenderer.astro";
-import { selectDocument } from "@lib/sanity/drafts";
 
 const pageQuery = await sanityClient.request(homeQuery);
-const pageData = selectDocument(pageQuery.allHome);
+const pageData = pageQuery.allHome[0];
 ---
 
 <PageLayout metaData={pageData.meta}>
