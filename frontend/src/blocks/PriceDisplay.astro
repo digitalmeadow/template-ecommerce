@@ -32,7 +32,13 @@
 
       this.setAttribute("data-variant", variant || "standard");
 
-      if (prefix) this.prefixElement.textContent = prefix;
+      if (prefix) {
+        this.prefixElement.textContent = prefix;
+        this.prefixElement.style.display = "";
+      } else {
+        this.prefixElement.textContent = "";
+        this.prefixElement.style.display = "none";
+      }
 
       this.priceElement.textContent = new Intl.NumberFormat(this.locale, {
         style: "currency",
@@ -56,6 +62,11 @@
 </script>
 
 <style>
+  price-display {
+    display: inline-flex;
+    column-gap: 1ch;
+  }
+
   price-display[data-variant="compare-at"] span {
     text-decoration: line-through;
     opacity: 0.7;

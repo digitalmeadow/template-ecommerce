@@ -1,0 +1,40 @@
+---
+import { sanityClient } from "sanity/client";
+import PageLayout from "@layouts/PageLayout.astro";
+import { collectionsQuery } from "sanity/queries/collection";
+import { fetchCollectionShopifySanity } from "@lib/fetches/collectionShopifySanity";
+import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
+
+export async function getStaticPaths() {
+  const collectionsQueryQuery = await sanityClient.request(collectionsQuery);
+  const slugs = collectionsQueryQuery.allCollection.map(
+    (collection) => collection.shopify?.handle?.current,
+  );
+  return slugs.map((slug) => (slug ? { params: { slug } } : null));
+}
+
+let { slug } = Astro.params;
+const collectionData = await fetchCollectionShopifySanity(slug);
+---
+
+<PageLayout metaData={collectionData?.sanity.meta}>
+  <div class="grid">
+    {
+      collectionData.productThumbnails.map((productData) => (
+        <ProductThumbnail productData={productData} />
+      ))
+    }
+  </div>
+</PageLayout>
+
+<style>
+  .grid {
+    width: var(--container-width);
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s40);
+    margin-top: var(--s40);
+  }
+</style>

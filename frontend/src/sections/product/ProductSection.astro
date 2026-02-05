@@ -12,13 +12,23 @@ const { productData }: Props = Astro.props;
 
 <section data-product-root data-prices={JSON.stringify(productData.pricesPerLocale)}>
   <ProductGallery productData={productData} />
-  <ProductPurchase productData={productData} />
+  <div class="product-purchase">
+    <ProductPurchase productData={productData} />
+  </div>
 </section>
 
 <style>
   section {
+    width: var(--container-width);
+    margin: 0 auto;
+    margin-top: var(--s300);
+
     display: grid;
-    gap: var(--s40);
+    gap: var(--gutter);
     grid-template-columns: 1fr 1fr;
+  }
+
+  .product-purchase {
+    padding-left: calc(var(--column) + var(--gutter));
   }
 </style>

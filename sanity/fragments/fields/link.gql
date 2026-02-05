@@ -12,9 +12,19 @@ fragment Link on Link {
         }
       }
 
-      ... on Blog {
-        slug {
-          ...Slug
+      ... on Product {
+        shopify {
+          handle {
+            ...Slug
+          }
+        }
+      }
+
+      ... on Collection {
+        shopify {
+          handle {
+            ...Slug
+          }
         }
       }
     }

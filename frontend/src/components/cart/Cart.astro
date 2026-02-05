@@ -6,6 +6,10 @@ import Overlay from "@layouts/Overlay.astro";
 ---
 
 <Overlay id="cart" layout="right">
+  <div class="header" slot="header">
+    <h2>Your Cart <span data-cart-count></span></h2>
+  </div>
+
   <cart-root slot="content">
     <!-- BUG: Astro dedup fails to mount native web components when within <template> tags -->
     <div style="display: none">
@@ -19,18 +23,61 @@ import Overlay from "@layouts/Overlay.astro";
       </li>
     </template>
 
-    <ul data-cart-line-items></ul>
+    <div class="cart-content">
+      <ul class="cart-line-items" data-cart-line-items></ul>
 
-    <div data-cart-total>
-      <span>Total: <PriceDisplay /></span>
+      <div data-cart-total>
+        <span>Total:&nbsp;<PriceDisplay /></span>
+      </div>
+
+      <button class="text-link checkout-button" data-cart-checkout>Checkout</button>
     </div>
-
-    <button data-cart-checkout>Checkout</button>
   </cart-root>
 </Overlay>
 
+<style>
+  cart-root {
+    height: 100%;
+  }
+
+  .header {
+    margin-bottom: var(--s40);
+  }
+
+  .cart-content {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--s40);
+  }
+
+  .cart-line-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s24);
+  }
+
+  .checkout-button {
+    align-self: flex-start;
+  }
+
+  cart-root[state="empty"] [data-cart-line-items]::before {
+    content: "Your cart is empty.";
+    display: block;
+  }
+
+  cart-root:not([checkout-valid]) [data-cart-checkout] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
 <script>
   import { shopifyClient } from "shopify/client";
+  import { sanityClient } from "sanity/client";
+  import { productThumbnailByHandleQuery } from "sanity/queries/product";
   import { cartByIdQuery } from "shopify/queries/cart";
   import { cartLinesUpdateMutation, cartLinesRemoveMutation } from "shopify/mutations/cart";
   import type { CartFragment } from "shopify/generated/graphql";
@@ -44,6 +91,7 @@ import Overlay from "@layouts/Overlay.astro";
     QuantitySelectorElement,
     EventQuantityChanged,
   } from "@blocks/QuantitySelector.astro.0.mts";
+  import { resolveSanityHref } from "@lib/sanity/links";
 
   export type EventCartUpdatedDetail = {
     count: number;
@@ -58,6 +106,31 @@ import Overlay from "@layouts/Overlay.astro";
 
     private cart: CartFragment | null = null;
     private mutationQueue: Promise<void> = Promise.resolve();
+
+    async loadSanityImage(handle: string, img: HTMLImageElement) {
+      const cacheKey = `sanity-image-${handle}`;
+      const cached = localStorage.getItem(cacheKey);
+
+      if (cached) {
+        img.src = cached;
+        img.style.display = "";
+        return;
+      }
+
+      try {
+        const data = await sanityClient.request(productThumbnailByHandleQuery, { handle });
+        const asset = data.allProduct[0]?.mediaThumbnail?.image?.asset;
+
+        if (asset?.url) {
+          const src = `${asset.url}?w=120&h=120&fit=crop&auto=format`;
+          localStorage.setItem(cacheKey, src);
+          img.src = src;
+          img.style.display = "";
+        }
+      } catch (e) {
+        console.error("Failed to load Sanity image", e);
+      }
+    }
 
     connectedCallback() {
       this.template = this.querySelector("[data-cart-line-template]")!;
@@ -208,6 +281,13 @@ import Overlay from "@layouts/Overlay.astro";
         const li = (this.template.content.cloneNode(true) as DocumentFragment)
           .firstElementChild as HTMLLIElement;
         const lineItem = li.querySelector("[data-cart-line-item]") as HTMLDivElement;
+
+        const productLinks = lineItem.querySelectorAll(
+          "[data-cart-line-item-link]",
+        ) as NodeListOf<HTMLAnchorElement>;
+
+        const productImage = lineItem.querySelector("[data-product-image]") as HTMLImageElement;
+
         const productTitleElement = lineItem.querySelector(
           "[data-product-title]",
         ) as HTMLSpanElement;
@@ -230,6 +310,13 @@ import Overlay from "@layouts/Overlay.astro";
           variantTitle === "Default Title" &&
           productTitle &&
           line.merchandise?.product?.variants?.edges.length === 1;
+
+        for (const productLink of productLinks) {
+          const href = resolveSanityHref("product", line.merchandise.product.handle);
+          productLink.href = href;
+        }
+
+        this.loadSanityImage(line.merchandise.product.handle, productImage);
 
         productTitleElement.textContent = productTitle;
         if (!isSingleDefaultVariant) productVariantTitleElement.textContent = variantTitle;
@@ -279,26 +366,24 @@ import Overlay from "@layouts/Overlay.astro";
   customElements.define("cart-root", CartRootElement);
 </script>
 
-<style>
-  cart-root {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 400px;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
-  }
+<script>
+  import type { EventCartUpdated } from "@components/cart/Cart.astro.0.mts";
+  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
 
-  cart-root[state="empty"] [data-cart-line-items]::before {
-    content: "Your cart is empty.";
-    display: block;
-  }
+  const cartCountElements = document.querySelectorAll(
+    "[data-cart-count]",
+  ) as NodeListOf<HTMLElement>;
+  const cartOverlay = document.querySelector(`overlay-root[id="cart"]`) as OverlayElement | null;
 
-  cart-root:not([checkout-valid]) [data-cart-checkout] {
-    opacity: 0.5;
-    cursor: not-allowed;
+  document.addEventListener("product:add-to-cart", () => {
+    if (!cartOverlay) throw new Error("Cart overlay element not found");
+    cartOverlay.open();
+  });
+
+  for (const cartCountElement of cartCountElements) {
+    document.addEventListener("cart:updated", (e: Event) => {
+      const eventCartUpdated = e as EventCartUpdated;
+      cartCountElement.textContent = `(${eventCartUpdated.detail.count})`;
+    });
   }
-</style>
+</script>

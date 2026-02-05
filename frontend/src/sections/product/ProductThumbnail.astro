@@ -3,6 +3,7 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
 import SanityMedia from "@fields/SanityMedia.astro";
 import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
 import { resolveSanityHref } from "@lib/sanity/links";
+import ProductPrice from "./ProductPrice.astro";
 
 interface Props {
   productData: ProductThumbnailShopifySanity;
@@ -19,61 +20,37 @@ const { productData }: Props = Astro.props;
     data-prices={JSON.stringify(productData.pricesPerLocale)}
   >
     <div class="media">
-      <SanityMedia mediaData={productData.sanity.mediaThumbnail} layout="cover" />
+      <SanityMedia
+        mediaData={productData.sanity.mediaThumbnail}
+        layout="cover"
+        sizes={[50, 50, 50]}
+      />
     </div>
-    <h3>{productData.shopify?.title}</h3>
+    <h3 class="title">{productData.shopify?.title}</h3>
     <div class="price">
-      <PriceDisplay />
+      <ProductPrice />
     </div>
   </article>
 </a>
 
-<script>
-  import { getCurrency, getStoredLocale } from "../../lib/shopify/locale";
-
-  function initialiseProductThumbnail(element: HTMLElement) {
-    const productRoot = element.closest("[data-product-root]") as HTMLElement;
-    const priceElement = element.querySelector("price-display") as HTMLElement;
-
-    const pricesJson = productRoot.dataset.prices;
-    const prices = JSON.parse(pricesJson!);
-
-    function updatePrice() {
-      const locale = getStoredLocale();
-      const currency = getCurrency();
-      const priceData = prices[locale];
-
-      const amounts = priceData.variants.edges.map((edge: any) =>
-        parseFloat(edge.node.price.amount),
-      );
-      const minPrice = Math.min(...amounts);
-      const maxPrice = Math.max(...amounts);
-      const hasPriceRange = minPrice !== maxPrice;
-
-      priceElement.setAttribute("amount", minPrice.toString());
-      priceElement.setAttribute("currency", currency);
-
-      if (hasPriceRange) {
-        priceElement.setAttribute("prefix", "from");
-      }
-    }
-
-    updatePrice();
-  }
-
-  const thumbnails = document.querySelectorAll("[data-product-thumbnail]");
-  for (const thumbnail of thumbnails) {
-    initialiseProductThumbnail(thumbnail as HTMLElement);
-  }
-</script>
-
 <style>
+  a {
+    display: contents;
+  }
+
+  .product-thumbnail {
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    grid-template-rows: 1fr auto auto;
+  }
+
   .media {
     width: 100%;
-    aspect-ratio: 1 / 1;
   }
 
-  .price {
-    margin-top: var(--s8);
+  .title {
+    margin-top: var(--s4);
   }
 </style>

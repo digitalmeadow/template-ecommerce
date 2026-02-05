@@ -5,4 +5,4 @@ export const SHOPIFY_DOCUMENT_TYPES = ["product", "collection", "productVariant"
 
 export const SINGLETON_DOCUMENT_TYPES: string[] = ["home", "footer", "header"];
 
-export const LINKABLE_DOCUMENT_TYPES: string[] = ["home", "page"];
+export const LINKABLE_DOCUMENT_TYPES: string[] = ["home", "page", "product", "collection"];

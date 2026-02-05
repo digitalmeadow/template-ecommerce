@@ -11,7 +11,7 @@ const props = Astro.props;
   () => {
     if (props.node.markType === "link" && props.node.markDef) {
       return (
-        <SanityLink linkData={props.node.markDef}>
+        <SanityLink class:list={"text-link"} linkData={props.node.markDef}>
           <slot />
         </SanityLink>
       );

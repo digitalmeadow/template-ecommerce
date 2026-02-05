@@ -23,6 +23,36 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
       (productRoot as HTMLElement).dataset.prices!,
     ) as PricesPerLocale;
 
+    // Render default state (lowest price / range)
+    const locale = getStoredLocale();
+    const priceData = pricesPerLocale[locale];
+
+    if (priceData && priceData.variants.edges.length) {
+      const variants = priceData.variants.edges.map((e) => e.node);
+      variants.sort((a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount));
+
+      const cheapest = variants[0];
+      const mostExpensive = variants[variants.length - 1];
+
+      priceElement.setAttribute("amount", String(cheapest.price.amount));
+
+      if (parseFloat(mostExpensive.price.amount) > parseFloat(cheapest.price.amount)) {
+        priceElement.setAttribute("prefix", "from");
+      } else {
+        priceElement.removeAttribute("prefix");
+      }
+
+      if (
+        cheapest.compareAtPrice &&
+        parseFloat(cheapest.compareAtPrice.amount) > parseFloat(cheapest.price.amount)
+      ) {
+        compareAtElement.setAttribute("amount", String(cheapest.compareAtPrice.amount));
+        compareAtElement.style.display = "";
+      } else {
+        compareAtElement.style.display = "none";
+      }
+    }
+
     function handleVariantChange(event: EventProductVariantChange) {
       const { variantId } = event.detail;
 
@@ -36,6 +66,7 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
       const { price, compareAtPrice } = variant;
 
       priceElement.setAttribute("amount", String(price.amount));
+      priceElement.removeAttribute("prefix");
 
       if (compareAtPrice) {
         compareAtElement.setAttribute("amount", String(compareAtPrice.amount));

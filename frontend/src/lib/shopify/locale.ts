@@ -15,9 +15,16 @@ export const LOCALE_CONFIG = {
     label: "Australia",
     pathPrefix: "/",
   },
+  "en-US": {
+    language: LanguageCode.En,
+    country: CountryCode.Us,
+    currency: CurrencyCode.Usd,
+    label: "United States",
+    pathPrefix: "/",
+  },
 } as const;
 
-const DEFAULT_LOCALE: LocaleCode = "en-AU";
+const DEFAULT_LOCALE: LocaleCode = "en-US";
 const LOCALE_STORAGE_KEY = "preferred-locale";
 
 export type LocaleCode = keyof typeof LOCALE_CONFIG;

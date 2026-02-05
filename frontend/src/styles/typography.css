@@ -1,88 +1,47 @@
 .text-body,
 p,
 span,
-li {
-  font-family: var(--font-body);
-  font-size: 20px;
-  line-height: 32px;
-  font-weight: 400;
-}
-@media (max-width: 1000px) {
-  .text-body,
-  p,
-  span,
-  li {
-    font-size: 16px;
-    line-height: 28px;
-  }
-}
-
-.text-heading-large,
-h1 {
-  font-family: var(--font-heading);
-  font-size: 80px;
-  line-height: 84px;
-  font-weight: 400;
-  letter-spacing: 0em;
-}
-@media (max-width: 1000px) {
-  .text-heading-large,
-  h1 {
-    font-size: 40px;
-    line-height: 44px;
-  }
-}
-
-.text-heading,
+h1,
 h2,
-h3 {
-  font-family: var(--font-heading);
-  font-size: 32px;
-  line-height: 40px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-}
-@media (max-width: 1000px) {
-  .text-heading,
-  h2,
-  h3 {
-    font-size: 32px;
-    line-height: 40px;
-  }
-}
-
-.text-heading-small,
+h3,
 h4,
 h5,
-h6 {
-  font-family: var(--font-body);
-  font-size: 28px;
-  line-height: 36px;
-  font-weight: 700;
-}
-@media (max-width: 1000px) {
-  .text-heading-small,
-  h4,
-  h5,
-  h6 {
-    font-size: 20px;
-    line-height: 26px;
-  }
+h6,
+a,
+li,
+label,
+button,
+input,
+textarea,
+select,
+summary {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 400;
 }
 
-.text-button,
-.text-caption {
-  font-family: var(--font-button);
-  font-style: italic;
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 600;
-  letter-spacing: 0.025em;
+.text-link {
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: 1px;
+  text-underline-offset: -1px;
+  text-decoration: underline;
+  text-decoration-color: var(--color-yellow);
 }
-@media (max-width: 1000px) {
-  .text-button,
-  .text-caption {
-    font-size: 16px;
-    line-height: 16px;
-  }
+
+.text-link:hover {
+  text-decoration-thickness: 12px;
+  text-underline-offset: -12px;
+}
+
+.text-link.underline-color-orange {
+  text-decoration-color: var(--color-orange);
+}
+.text-link.underline-color-green {
+  text-decoration-color: var(--color-green);
+}
+.text-link.underline-color-blue {
+  text-decoration-color: var(--color-blue);
+}
+.text-link.underline-color-purple {
+  text-decoration-color: var(--color-purple);
 }

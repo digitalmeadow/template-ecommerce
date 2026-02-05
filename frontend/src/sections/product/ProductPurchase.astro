@@ -13,9 +13,18 @@ const { productData }: Props = Astro.props;
 ---
 
 <div class="product-purchase">
-  <h1>{productData.shopify?.title}</h1>
+  <h1 data-text-fill-width>{productData.shopify?.title}</h1>
   <ProductVariantSelector productData={productData} />
   <ProductPrice />
   <QuantitySelector />
   <ProductAddToCart />
 </div>
+
+<style>
+  .product-purchase {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s16);
+  }
+</style>

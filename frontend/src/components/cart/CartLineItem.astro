@@ -3,18 +3,46 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
 import QuantitySelector from "@blocks/QuantitySelector.astro";
 ---
 
-<div data-cart-line-item>
-  <span data-product-title></span>
-  <span data-product-variant-title></span>
-  <QuantitySelector />
-  <div>
-    <PriceDisplay variant="compare-at" data-price-compare-at />
-    <PriceDisplay data-price />
+<div class="cart-line-item" data-cart-line-item>
+  <a data-cart-line-item-link>
+    <img data-product-image alt="" />
+  </a>
+
+  <div class="info">
+    <a data-cart-line-item-link>
+      <div>
+        <span data-product-title></span>
+        <span data-product-variant-title></span>
+      </div>
+    </a>
+
+    <QuantitySelector />
+    <div>
+      <PriceDisplay variant="compare-at" data-price-compare-at />
+      <PriceDisplay data-price />
+    </div>
+    <button
+      class="text-link"
+      type="button"
+      data-cart-line-remove-button
+      aria-label="Remove item from cart"></button>
   </div>
-  <button type="button" data-cart-line-remove-button aria-label="Remove item from cart"></button>
 </div>
 
 <style>
+  .cart-line-item {
+    display: flex;
+    gap: var(--s16);
+    align-items: flex-start;
+  }
+
+  [data-product-image] {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    background-color: #f0f0f0;
+  }
+
   [data-cart-line-remove-button]::before {
     content: "Remove";
   }

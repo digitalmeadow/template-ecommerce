@@ -17,7 +17,7 @@ type Documents = {
     "fragment Button on Button {\n  label\n  link {\n    ...Link\n  }\n}": typeof types.ButtonFragmentDoc,
     "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}": typeof types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": typeof types.HeaderFragmentDoc,
-    "fragment Link on Link {\n  type\n  reference {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n    }\n  }\n  href\n  anchor\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n}": typeof types.LinkFragmentDoc,
+    "fragment Link on Link {\n  type\n  page {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n      ... on Product {\n        shopify {\n          handle {\n            ...Slug\n          }\n        }\n      }\n      ... on Collection {\n        shopify {\n          handle {\n            ...Slug\n          }\n        }\n      }\n    }\n  }\n  url\n  section\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n  newTab\n}": typeof types.LinkFragmentDoc,
     "fragment Media on Media {\n  type\n  image {\n    ...SanityImage\n  }\n  video {\n    ...MuxVideo\n  }\n}": typeof types.MediaFragmentDoc,
     "fragment Meta on Meta {\n  title\n  description\n  image {\n    ...SanityImage\n  }\n}": typeof types.MetaFragmentDoc,
     "fragment MuxVideo on MuxVideo {\n  asset {\n    ...MuxVideoAsset\n  }\n}\n\nfragment MuxVideoAsset on MuxVideoAsset {\n  playbackId\n  filename\n  data {\n    ...MuxAssetData\n  }\n}\n\nfragment MuxAssetData on MuxAssetData {\n  aspect_ratio\n  duration\n}": typeof types.MuxVideoFragmentDoc,
@@ -32,6 +32,8 @@ type Documents = {
     "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}": typeof types.SectionCollectionFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": typeof types.SectionHeroFragmentDoc,
     "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}": typeof types.SectionTextFragmentDoc,
+    "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(\n      where: { shopify: { handle: { current: { eq: $handle } } } }\n    ) {\n      ...Collection\n    }\n  }\n": typeof types.CollectionByHandleQueryDocument,
+    "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n": typeof types.CollectionsQueryDocument,
     "\n  query FooterQuery {\n    allFooter {\n      ...Footer\n    }\n  }\n": typeof types.FooterQueryDocument,
     "\n  query HeaderQuery {\n    allHeader {\n      ...Header\n    }\n  }\n": typeof types.HeaderQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": typeof types.HomeQueryDocument,
@@ -45,7 +47,7 @@ const documents: Documents = {
     "fragment Button on Button {\n  label\n  link {\n    ...Link\n  }\n}": types.ButtonFragmentDoc,
     "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}": types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": types.HeaderFragmentDoc,
-    "fragment Link on Link {\n  type\n  reference {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n    }\n  }\n  href\n  anchor\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n}": types.LinkFragmentDoc,
+    "fragment Link on Link {\n  type\n  page {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n      ... on Product {\n        shopify {\n          handle {\n            ...Slug\n          }\n        }\n      }\n      ... on Collection {\n        shopify {\n          handle {\n            ...Slug\n          }\n        }\n      }\n    }\n  }\n  url\n  section\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n  newTab\n}": types.LinkFragmentDoc,
     "fragment Media on Media {\n  type\n  image {\n    ...SanityImage\n  }\n  video {\n    ...MuxVideo\n  }\n}": types.MediaFragmentDoc,
     "fragment Meta on Meta {\n  title\n  description\n  image {\n    ...SanityImage\n  }\n}": types.MetaFragmentDoc,
     "fragment MuxVideo on MuxVideo {\n  asset {\n    ...MuxVideoAsset\n  }\n}\n\nfragment MuxVideoAsset on MuxVideoAsset {\n  playbackId\n  filename\n  data {\n    ...MuxAssetData\n  }\n}\n\nfragment MuxAssetData on MuxAssetData {\n  aspect_ratio\n  duration\n}": types.MuxVideoFragmentDoc,
@@ -60,6 +62,8 @@ const documents: Documents = {
     "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}": types.SectionCollectionFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": types.SectionHeroFragmentDoc,
     "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}": types.SectionTextFragmentDoc,
+    "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(\n      where: { shopify: { handle: { current: { eq: $handle } } } }\n    ) {\n      ...Collection\n    }\n  }\n": types.CollectionByHandleQueryDocument,
+    "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n": types.CollectionsQueryDocument,
     "\n  query FooterQuery {\n    allFooter {\n      ...Footer\n    }\n  }\n": types.FooterQueryDocument,
     "\n  query HeaderQuery {\n    allHeader {\n      ...Header\n    }\n  }\n": types.HeaderQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": types.HomeQueryDocument,
@@ -99,7 +103,7 @@ export function graphql(source: "fragment Header on Header {\n  __typename\n  _i
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Link on Link {\n  type\n  reference {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n    }\n  }\n  href\n  anchor\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n}"): (typeof documents)["fragment Link on Link {\n  type\n  reference {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n    }\n  }\n  href\n  anchor\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n}"];
+export function graphql(source: "fragment Link on Link {\n  type\n  page {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n      ... on Product {\n        shopify {\n          handle {\n            ...Slug\n          }\n        }\n      }\n      ... on Collection {\n        shopify {\n          handle {\n            ...Slug\n          }\n        }\n      }\n    }\n  }\n  url\n  section\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n  newTab\n}"): (typeof documents)["fragment Link on Link {\n  type\n  page {\n    ... on Document {\n      __typename\n      _id\n      _type\n      ... on Page {\n        slug {\n          ...Slug\n        }\n      }\n      ... on Product {\n        shopify {\n          handle {\n            ...Slug\n          }\n        }\n      }\n      ... on Collection {\n        shopify {\n          handle {\n            ...Slug\n          }\n        }\n      }\n    }\n  }\n  url\n  section\n  email\n  phone\n  file {\n    ...SanityFile\n  }\n  newTab\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -156,6 +160,14 @@ export function graphql(source: "fragment SectionHero on SectionHero {\n  __type
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}"): (typeof documents)["fragment SectionText on SectionText {\n  __typename\n  textRaw\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(\n      where: { shopify: { handle: { current: { eq: $handle } } } }\n    ) {\n      ...Collection\n    }\n  }\n"): (typeof documents)["\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(\n      where: { shopify: { handle: { current: { eq: $handle } } } }\n    ) {\n      ...Collection\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n"): (typeof documents)["\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

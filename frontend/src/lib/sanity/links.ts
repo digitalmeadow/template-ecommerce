@@ -4,9 +4,9 @@ import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
 
 export function resolveLinkHref(linkData: LinkFragment): string {
   if (!linkData) return "";
-  if (linkData.type === "anchor") return linkData.anchor ?? "";
-  if (linkData.type === "url") return linkData.href ?? "";
-  if (linkData.type === "page") return resolveReferenceHref(linkData.reference) ?? "";
+  if (linkData.type === "section") return linkData.section ?? "";
+  if (linkData.type === "url") return linkData.url ?? "";
+  if (linkData.type === "page") return resolveReferenceHref(linkData.page) ?? "";
   if (linkData.type === "email") return `mailto:${linkData.email}`;
   if (linkData.type === "phone") return `tel:${linkData.phone}`;
   if (linkData.type === "file") {
@@ -38,15 +38,19 @@ export function resolveSanityHref(documentType: string, slug?: string | null): s
   return pattern.replace("[slug]", "");
 }
 
-function resolveReferenceHref(reference: LinkFragment["reference"]): string {
+function resolveReferenceHref(reference: LinkFragment["page"]): string {
   if (!reference?._type || !(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
     throw new Error("Invalid reference type");
   }
 
-  return resolveSanityHref(
-    reference._type,
-    "slug" in reference && reference.slug ? reference.slug.current || "" : "",
-  );
+  const slug =
+    "slug" in reference && reference.slug
+      ? reference.slug.current
+      : "shopify" in reference
+        ? reference.shopify?.handle?.current
+        : undefined;
+
+  return resolveSanityHref(reference._type, slug);
 }
 
 function sanityFileUrlFromRef(source: string | undefined): string {

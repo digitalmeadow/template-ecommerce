@@ -1,6 +1,4 @@
 ---
-import SanityMedia from "@fields/SanityMedia.astro";
-import PortableText from "@fields/PortableText.astro";
 import type { SectionHeroFragment } from "sanity/generated/graphql";
 
 interface Props {
@@ -11,32 +9,14 @@ const { section }: Props = Astro.props;
 ---
 
 <section>
-  <div class="media">
-    <SanityMedia mediaData={section.backgroundMedia} layout="cover" sizes={[100, 100, 100]} />
-  </div>
-
-  <h1>{section.heading}</h1>
-  <PortableText value={section.textRaw} />
+  <h1 data-text-fill-width>{section.heading}</h1>
 </section>
 
 <style>
   section {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: var(--s200) var(--margin);
-    color: var(--color-white);
-  }
-
-  .media {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
+    width: var(--container-width);
+    margin: 0 auto;
+    margin-top: var(--s200);
+    margin-bottom: var(--s64);
   }
 </style>

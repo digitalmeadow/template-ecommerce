@@ -33,22 +33,48 @@ for (const handle of productHandles || []) {
 ---
 
 <section>
-  <h2>{section.collection?.shopify?.title}</h2>
+  <h2>
+    Collection: {section.collection?.shopify?.title}<sup
+      >({shopifyCollection.collectionByHandle?.products.edges.length})</sup
+    >
 
-  <div class="grid">
-    {productsData.map((productData) => <ProductThumbnail productData={productData} />)}
-  </div>
+    <div class="grid">
+      {
+        productsData.map((productData) => (
+          <div class="grid-item">
+            <ProductThumbnail productData={productData} />
+          </div>
+        ))
+      }
+    </div>
+  </h2>
 </section>
 
 <style>
   section {
-    padding: var(--s40) var(--margin-dynamic);
+    width: var(--container-width);
+    margin: 0 auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--s40);
     margin-top: var(--s40);
+  }
+
+  .grid-item {
+    width: 100%;
+  }
+
+  /* The first and every fourth item should span 2 rows and two columns to create a masonry effect */
+  .grid > .grid-item:nth-child(6n + 1) {
+    grid-row: span 2;
+    grid-column: span 2;
   }
 </style>

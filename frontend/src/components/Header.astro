@@ -2,60 +2,115 @@
 import SanityLink from "@fields/SanityLink.astro";
 import { sanityClient } from "sanity/client";
 import { headerQuery } from "sanity/queries/header";
+import LogoSvg from "@svgs/logo.svg";
 import LocaleSelector from "@blocks/LocaleSelector.astro";
+import CartButton from "./cart/CartButton.astro";
 
 const headerQueryQuery = await sanityClient.request(headerQuery);
 const headerData = headerQueryQuery.allHeader[0];
 ---
 
 <header>
-  <a href="/"> Template Ecommerce </a>
+  <div class="background"></div>
+
+  <div class="locale-selector">
+    <LocaleSelector />
+  </div>
+
+  <a class="logo" href="/">
+    <LogoSvg />
+  </a>
 
   <nav>
-    <LocaleSelector />
-
     {
       headerData.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
-        return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
+        return (
+          <div
+            class:list={[
+              "nav-item",
+              {
+                collection:
+                  navigationItem.link?.type === "page" &&
+                  navigationItem.link?.page?._type === "collection",
+              },
+            ]}
+          >
+            <SanityLink class:list={["text-link"]} linkData={navigationItem.link}>
+              {navigationItem.label}
+            </SanityLink>
+          </div>
+        );
       })
     }
-
-    <button data-trigger-overlay-toggle="cart" aria-label="Toggle cart">
-      Cart<span data-cart-count></span>
-    </button>
   </nav>
+
+  <div class="cart-button">
+    <CartButton />
+  </div>
 </header>
-
-<script>
-  import type { EventCartUpdated } from "@components/cart/Cart.astro.0.mts";
-  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
-
-  const cartCountElement = document.querySelector("[data-cart-count]") as HTMLElement;
-  const cartOverlay = document.querySelector(`overlay-root[id="cart"]`) as OverlayElement | null;
-
-  document.addEventListener("product:add-to-cart", () => {
-    if (!cartOverlay) throw new Error("Cart overlay element not found");
-    cartOverlay.open();
-  });
-
-  document.addEventListener("cart:updated", (e: Event) => {
-    const eventCartUpdated = e as EventCartUpdated;
-    cartCountElement.textContent = `(${eventCartUpdated.detail.count})`;
-  });
-</script>
 
 <style>
   header {
+    position: relative;
+    z-index: 10;
+
+    width: var(--container-width);
+    height: 100%;
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: start;
+    padding: var(--margin) 0 var(--s120);
+
+    pointer-events: none;
+  }
+
+  .background {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: var(--margin) var(--margin);
-    display: flex;
-    justify-content: space-between;
+    height: var(--s64);
+    background-color: var(--color-background);
+  }
+
+  .locale-selector {
+    position: sticky;
+    top: var(--margin);
+    pointer-events: auto;
+  }
+
+  .cart-button {
+    position: sticky;
+    top: var(--margin);
+    justify-self: end;
+    pointer-events: auto;
+  }
+
+  .logo {
+    position: relative;
+
+    grid-area: 1 / 2 / 2 / 3;
+    justify-self: center;
+    width: 48px;
+    margin-bottom: var(--s24);
+    pointer-events: auto;
   }
 
   nav {
+    grid-area: 1 / 2 / 2 / 3;
+    justify-self: center;
+
+    position: sticky;
+    top: var(--margin);
+
+    margin-top: var(--s80);
+
     display: flex;
     flex-wrap: wrap;
-    gap: var(--s8);
+    gap: var(--s16);
+    pointer-events: auto;
   }
 </style>
