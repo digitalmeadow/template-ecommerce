@@ -1,8 +1,8 @@
 ---
 import PriceDisplay from "@blocks/PriceDisplay.astro";
 import QuantitySelector from "@blocks/QuantitySelector.astro";
-import CartLineItem from "@components/cart/CartLineItem.astro";
 import Overlay from "@layouts/Overlay.astro";
+import CartLineItem from "./CartLineItem.astro";
 ---
 
 <Overlay id="cart" layout="right">
@@ -15,6 +15,7 @@ import Overlay from "@layouts/Overlay.astro";
     <div style="display: none">
       <QuantitySelector />
       <PriceDisplay />
+      <CartLineItem />
     </div>
 
     <template data-cart-line-template>
@@ -76,8 +77,6 @@ import Overlay from "@layouts/Overlay.astro";
 
 <script>
   import { shopifyClient } from "shopify/client";
-  import { sanityClient } from "sanity/client";
-  import { productThumbnailByHandleQuery } from "sanity/queries/product";
   import { cartByIdQuery } from "shopify/queries/cart";
   import { cartLinesUpdateMutation, cartLinesRemoveMutation } from "shopify/mutations/cart";
   import type { CartFragment } from "shopify/generated/graphql";
@@ -86,12 +85,12 @@ import Overlay from "@layouts/Overlay.astro";
     CART_DATA_STORAGE_KEY_SUFFIX,
     getStorageKey,
   } from "@lib/shopify/cart";
-  import { getCurrency, getCountryCode } from "@lib/shopify/locale";
+  import { getCountryCode } from "@lib/shopify/locale";
   import type {
     QuantitySelectorElement,
     EventQuantityChanged,
   } from "@blocks/QuantitySelector.astro.0.mts";
-  import { resolveSanityHref } from "@lib/sanity/links";
+  import type { CartLineItemElement, CartLineRemoveEvent } from "./CartLineItem.astro.0.mts";
 
   export type EventCartUpdatedDetail = {
     count: number;
@@ -99,47 +98,29 @@ import Overlay from "@layouts/Overlay.astro";
   export type EventCartUpdated = CustomEvent<EventCartUpdatedDetail>;
 
   class CartRootElement extends HTMLElement {
-    private template!: HTMLTemplateElement;
     private lineItemsContainer!: HTMLUListElement;
     private checkoutButton!: HTMLButtonElement;
     private totalPriceDisplay!: HTMLElement;
+    private itemTemplate!: HTMLTemplateElement;
 
     private cart: CartFragment | null = null;
     private mutationQueue: Promise<void> = Promise.resolve();
 
-    async loadSanityImage(handle: string, img: HTMLImageElement) {
-      const cacheKey = `sanity-image-${handle}`;
-      const cached = localStorage.getItem(cacheKey);
-
-      if (cached) {
-        img.src = cached;
-        img.style.display = "";
-        return;
-      }
-
-      try {
-        const data = await sanityClient.request(productThumbnailByHandleQuery, { handle });
-        const asset = data.allProduct[0]?.mediaThumbnail?.image?.asset;
-
-        if (asset?.url) {
-          const src = `${asset.url}?w=120&h=120&fit=crop&auto=format`;
-          localStorage.setItem(cacheKey, src);
-          img.src = src;
-          img.style.display = "";
-        }
-      } catch (e) {
-        console.error("Failed to load Sanity image", e);
-      }
+    private get cartId() {
+      const key = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
+      return localStorage.getItem(key);
     }
 
     connectedCallback() {
-      this.template = this.querySelector("[data-cart-line-template]")!;
       this.lineItemsContainer = this.querySelector("[data-cart-line-items]")!;
       this.totalPriceDisplay = this.querySelector("[data-cart-total] price-display")!;
       this.checkoutButton = this.querySelector("[data-cart-checkout]")!;
+      this.itemTemplate = this.querySelector("[data-cart-line-template]")!;
 
       this.checkoutButton.addEventListener("click", this.onCheckoutClick);
       this.addEventListener("quantity-selector:quantity-changed", this.onQuantityChange);
+      this.addEventListener("cart-line:remove", this.onLineRemove);
+
       document.addEventListener("product:add-to-cart", this.onProductAdded);
 
       this.loadCart();
@@ -148,6 +129,7 @@ import Overlay from "@layouts/Overlay.astro";
     disconnectedCallback() {
       this.checkoutButton.removeEventListener("click", this.onCheckoutClick);
       this.removeEventListener("quantity-selector:quantity-changed", this.onQuantityChange);
+      this.removeEventListener("cart-line:remove", this.onLineRemove);
       document.removeEventListener("product:add-to-cart", this.onProductAdded);
     }
 
@@ -165,44 +147,62 @@ import Overlay from "@layouts/Overlay.astro";
     onQuantityChange = async (e: Event) => {
       const event = e as EventQuantityChanged;
       const quantitySelector = event.target as QuantitySelectorElement;
-      const li = quantitySelector.closest("li") as HTMLLIElement;
-      const lineId = li.dataset.lineId!;
+
+      const lineItemEl = quantitySelector.closest("cart-line-item") as CartLineItemElement;
+      if (!lineItemEl || !lineItemEl.line) return;
+
+      const lineId = lineItemEl.line.id;
       const newQuantity = event.detail.value;
-      const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
-      const cartId = localStorage.getItem(cartIdKey)!;
+
+      const cartId = this.cartId;
+      if (!cartId) return;
 
       quantitySelector.setUpdatingState(true);
 
       document.body.style.cursor = "wait";
 
       this.mutationQueue = this.mutationQueue.then(async () => {
-        await shopifyClient.request(cartLinesUpdateMutation, {
-          cartId,
-          lines: [{ id: lineId, quantity: newQuantity }],
-          countryCode: getCountryCode(),
-        });
-        await this.loadCart(true);
-        document.body.style.cursor = "";
+        try {
+          await shopifyClient.request(cartLinesUpdateMutation, {
+            cartId,
+            lines: [{ id: lineId, quantity: newQuantity }],
+            countryCode: getCountryCode(),
+          });
+          await this.loadCart(true);
+        } catch (error) {
+          console.error("Failed to update cart quantity", error);
+        } finally {
+          document.body.style.cursor = "";
+        }
       });
       await this.mutationQueue;
     };
 
-    removeCartLineItem = (lineId: string, lineItem: HTMLDivElement) => async () => {
-      const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
-      const cartId = localStorage.getItem(cartIdKey)!;
+    onLineRemove = async (e: Event) => {
+      const event = e as CartLineRemoveEvent;
+      const { lineId } = event.detail;
+      const lineItemEl = event.target as CartLineItemElement;
 
-      lineItem.setAttribute("data-state", "removing");
+      const cartId = this.cartId;
+      if (!cartId) return;
+
+      lineItemEl?.setRemoving(true);
 
       document.body.style.cursor = "wait";
 
       this.mutationQueue = this.mutationQueue.then(async () => {
-        await shopifyClient.request(cartLinesRemoveMutation, {
-          cartId,
-          countryCode: getCountryCode(),
-          lineIds: [lineId],
-        });
-        await this.loadCart(true);
-        document.body.style.cursor = "";
+        try {
+          await shopifyClient.request(cartLinesRemoveMutation, {
+            cartId,
+            countryCode: getCountryCode(),
+            lineIds: [lineId],
+          });
+          await this.loadCart(true);
+        } catch (error) {
+          console.error("Failed to remove cart line", error);
+        } finally {
+          document.body.style.cursor = "";
+        }
       });
       await this.mutationQueue;
     };
@@ -220,8 +220,13 @@ import Overlay from "@layouts/Overlay.astro";
       if (!skipCache) {
         const cached = localStorage.getItem(cartDataKey);
         if (cached) {
-          this.cart = JSON.parse(cached) as CartFragment;
-          this.renderCart();
+          try {
+            this.cart = JSON.parse(cached) as CartFragment;
+            this.renderCart();
+          } catch (e) {
+            console.error("Failed to parse cached cart", e);
+            localStorage.removeItem(cartDataKey);
+          }
         }
       }
 
@@ -271,79 +276,23 @@ import Overlay from "@layouts/Overlay.astro";
       }
 
       this.setAttribute("state", "loaded");
-
       this.clearLineItems();
 
       for (const edge of this.cart.lines.edges) {
         const line = edge.node;
         if (line.__typename !== "CartLine") continue;
 
-        const li = (this.template.content.cloneNode(true) as DocumentFragment)
-          .firstElementChild as HTMLLIElement;
-        const lineItem = li.querySelector("[data-cart-line-item]") as HTMLDivElement;
+        // Clone template
+        const clone = this.itemTemplate.content.cloneNode(true) as DocumentFragment;
+        const itemEl = clone.querySelector("cart-line-item") as CartLineItemElement;
 
-        const productLinks = lineItem.querySelectorAll(
-          "[data-cart-line-item-link]",
-        ) as NodeListOf<HTMLAnchorElement>;
-
-        const productImage = lineItem.querySelector("[data-product-image]") as HTMLImageElement;
-
-        const productTitleElement = lineItem.querySelector(
-          "[data-product-title]",
-        ) as HTMLSpanElement;
-        const productVariantTitleElement = lineItem.querySelector(
-          "[data-product-variant-title]",
-        ) as HTMLSpanElement;
-        const priceDisplay = lineItem.querySelector("[data-price]") as HTMLElement;
-        const compareAtPriceDisplay = lineItem.querySelector(
-          "[data-price-compare-at]",
-        ) as HTMLElement;
-        const quantitySelector = lineItem.querySelector("quantity-selector") as HTMLElement;
-        const cartLineRemoveButton = lineItem.querySelector(
-          "[data-cart-line-remove-button]",
-        ) as HTMLButtonElement;
-
-        const variantTitle = line.merchandise?.title;
-        const productTitle = line.merchandise?.product?.title;
-
-        const isSingleDefaultVariant =
-          variantTitle === "Default Title" &&
-          productTitle &&
-          line.merchandise?.product?.variants?.edges.length === 1;
-
-        for (const productLink of productLinks) {
-          const href = resolveSanityHref("product", line.merchandise.product.handle);
-          productLink.href = href;
+        if (itemEl) {
+          customElements.whenDefined("cart-line-item").then(() => {
+            itemEl.init(line);
+          });
         }
 
-        this.loadSanityImage(line.merchandise.product.handle, productImage);
-
-        productTitleElement.textContent = productTitle;
-        if (!isSingleDefaultVariant) productVariantTitleElement.textContent = variantTitle;
-
-        priceDisplay.setAttribute("amount", String(line.cost.totalAmount.amount ?? 0));
-        priceDisplay.setAttribute("currency", line.cost.totalAmount.currencyCode ?? getCurrency());
-
-        // Handle compare-at price
-        if (line.merchandise?.compareAtPrice) {
-          const compareAtTotal = Number(line.merchandise.compareAtPrice.amount) * line.quantity;
-          compareAtPriceDisplay.setAttribute("amount", String(compareAtTotal));
-          compareAtPriceDisplay.setAttribute(
-            "currency",
-            line.merchandise.compareAtPrice.currencyCode ?? getCurrency(),
-          );
-          compareAtPriceDisplay.style.display = "";
-        } else {
-          compareAtPriceDisplay.style.display = "none";
-        }
-
-        quantitySelector.setAttribute("initial", String(line.quantity));
-
-        cartLineRemoveButton.addEventListener("click", this.removeCartLineItem(line.id, lineItem));
-
-        li.dataset.lineId = line.id;
-
-        this.lineItemsContainer.appendChild(li);
+        this.lineItemsContainer.appendChild(clone);
       }
 
       const total = this.cart.cost.totalAmount;

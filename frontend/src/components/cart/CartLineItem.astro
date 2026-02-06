@@ -3,56 +3,291 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
 import QuantitySelector from "@blocks/QuantitySelector.astro";
 ---
 
-<div class="cart-line-item" data-cart-line-item>
-  <a data-cart-line-item-link>
-    <img data-product-image alt="" />
-  </a>
-
-  <div class="info">
-    <a data-cart-line-item-link>
-      <div>
-        <span data-product-title></span>
-        <span data-product-variant-title></span>
-      </div>
+<cart-line-item>
+  <div class="cart-line-item">
+    <a data-link class="image-link">
+      <img data-image alt="" />
     </a>
 
-    <QuantitySelector />
-    <div>
-      <PriceDisplay variant="compare-at" data-price-compare-at />
-      <PriceDisplay data-price />
+    <div class="info">
+      <a data-link class="text-link-wrapper">
+        <div>
+          <span class="product-title" data-title></span>
+          <span class="variant-title" data-variant-title></span>
+        </div>
+      </a>
+
+      <QuantitySelector data-quantity-selector />
+
+      <div class="prices">
+        <!-- Compare At Price (Hidden by default) -->
+        <div style="display: none;" data-compare-at-wrapper>
+          <PriceDisplay variant="compare-at" data-compare-at-price />
+        </div>
+        <PriceDisplay data-price />
+      </div>
+
+      <button
+        class="text-link underline-color-orange remove-button"
+        type="button"
+        data-remove-button
+        aria-label="Remove item from cart"
+      >
+        Remove
+      </button>
     </div>
-    <button
-      class="text-link"
-      type="button"
-      data-cart-line-remove-button
-      aria-label="Remove item from cart"></button>
   </div>
-</div>
+</cart-line-item>
+
+<script>
+  import { sanityClient } from "sanity/client";
+  import { productThumbnailByHandleQuery } from "sanity/queries/product";
+  import { resolveSanityHref } from "@lib/sanity/links";
+  import { getCurrency } from "@lib/shopify/locale";
+  import type { QuantitySelectorElement } from "@blocks/QuantitySelector.astro.0.mts";
+  import type { PriceDisplayElement } from "@blocks/PriceDisplay.astro.0.mts";
+  import type { CartLineFragment } from "shopify/generated/graphql";
+
+  export type EventCartLineRemoveDetail = {
+    lineId: string;
+  };
+  export type CartLineRemoveEvent = CustomEvent<EventCartLineRemoveDetail>;
+
+  export class CartLineItemElement extends HTMLElement {
+    line?: CartLineFragment;
+
+    init(line: CartLineFragment) {
+      this.line = line;
+      this.render();
+    }
+
+    // UI References
+    private linkElements: NodeListOf<HTMLAnchorElement> | undefined;
+    private imageElement: HTMLImageElement | null = null;
+    private titleElement: HTMLElement | null = null;
+    private variantTitleElement: HTMLElement | null = null;
+    private removeButton: HTMLButtonElement | null = null;
+    private quantitySelector: QuantitySelectorElement | null = null;
+
+    // Prices
+    private priceDisplay: PriceDisplayElement | null = null;
+    private compareAtWrapper: HTMLElement | null = null;
+    private compareAtDisplay: PriceDisplayElement | null = null;
+
+    constructor() {
+      super();
+    }
+
+    connectedCallback() {
+      // 1. Query Elements
+      this.linkElements = this.querySelectorAll("[data-link]");
+      this.imageElement = this.querySelector("[data-image]");
+      this.titleElement = this.querySelector("[data-title]");
+      this.variantTitleElement = this.querySelector("[data-variant-title]");
+      this.removeButton = this.querySelector("[data-remove-button]");
+      this.quantitySelector = this.querySelector("quantity-selector");
+
+      this.priceDisplay = this.querySelector("[data-price]");
+      this.compareAtWrapper = this.querySelector("[data-compare-at-wrapper]");
+      this.compareAtDisplay = this.querySelector("[data-compare-at-price]");
+
+      // Listeners
+      if (this.removeButton) {
+        this.removeButton.addEventListener("click", this.handleRemove);
+      }
+
+      // Initial Render if data is already present
+      this.render();
+    }
+
+    disconnectedCallback() {
+      if (this.removeButton) {
+        this.removeButton.removeEventListener("click", this.handleRemove);
+      }
+    }
+
+    setRemoving(isRemoving: boolean) {
+      if (isRemoving) {
+        this.setAttribute("state", "removing");
+        if (this.removeButton) {
+          this.removeButton.textContent = "Removing...";
+          this.removeButton.disabled = true;
+        }
+      } else {
+        this.removeAttribute("state");
+        if (this.removeButton) {
+          this.removeButton.textContent = "Remove";
+          this.removeButton.disabled = false;
+        }
+      }
+    }
+
+    private render() {
+      // Guard: Data must be present
+      if (!this.line) return;
+
+      // Guard: Elements must be queried (connectedCallback must have run)
+      if (!this.titleElement || !this.linkElements || !this.imageElement) return;
+
+      const { merchandise, quantity, cost, id } = this.line;
+      const { product, title: variantTitle, compareAtPrice } = merchandise;
+
+      this.dataset.lineId = id;
+
+      // 1. Links
+      const href = resolveSanityHref("product", product.handle);
+      this.linkElements.forEach((el) => (el.href = href));
+
+      // 2. Titles
+      this.titleElement.textContent = product.title;
+
+      // Check if variant is default
+      const isSingleDefaultVariant =
+        variantTitle === "Default Title" && product.variants?.edges?.length === 1;
+
+      if (this.variantTitleElement) {
+        if (!isSingleDefaultVariant) {
+          this.variantTitleElement.textContent = variantTitle;
+          this.variantTitleElement.style.display = "";
+        } else {
+          this.variantTitleElement.style.display = "none";
+        }
+      }
+
+      // 3. Image
+      this.loadSanityImage(product.handle);
+
+      // 4. Quantity
+      if (this.quantitySelector) {
+        this.quantitySelector.setAttribute("initial", String(quantity));
+        // Force update if component is already upgraded and has these props
+        // We cast to any because we know the methods exist on the custom element instance
+        if ("value" in this.quantitySelector) {
+          (this.quantitySelector as any).value = quantity;
+          if (typeof (this.quantitySelector as any).render === "function") {
+            (this.quantitySelector as any).render();
+          }
+        }
+      }
+
+      // 5. Price
+      if (this.priceDisplay) {
+        this.priceDisplay.setAttribute("amount", String(cost.totalAmount.amount ?? 0));
+        this.priceDisplay.setAttribute("currency", cost.totalAmount.currencyCode ?? getCurrency());
+      }
+
+      // 6. Compare At Price
+      if (this.compareAtDisplay && this.compareAtWrapper) {
+        if (compareAtPrice) {
+          const compareAtTotal = Number(compareAtPrice.amount) * quantity;
+          this.compareAtDisplay.setAttribute("amount", String(compareAtTotal));
+          this.compareAtDisplay.setAttribute(
+            "currency",
+            compareAtPrice.currencyCode ?? getCurrency(),
+          );
+          this.compareAtWrapper.style.display = "";
+        } else {
+          this.compareAtWrapper.style.display = "none";
+        }
+      }
+    }
+
+    private async loadSanityImage(handle: string) {
+      if (!this.imageElement) return;
+
+      const cacheKey = `sanity-image-${handle}`;
+      const cached = localStorage.getItem(cacheKey);
+
+      if (cached) {
+        this.imageElement.src = cached;
+        this.imageElement.style.display = "";
+        return;
+      }
+
+      try {
+        const data = await sanityClient.request(productThumbnailByHandleQuery, { handle });
+        // @ts-ignore
+        const asset = data.allProduct[0]?.mediaThumbnail?.image?.asset;
+
+        if (asset?.url) {
+          const src = `${asset.url}?w=120&h=120&fit=crop&auto=format`;
+          localStorage.setItem(cacheKey, src);
+          if (this.imageElement.isConnected) {
+            this.imageElement.src = src;
+            this.imageElement.style.display = "";
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load Sanity image", e);
+      }
+    }
+
+    private handleRemove = () => {
+      if (!this.line) return;
+
+      this.dispatchEvent(
+        new CustomEvent("cart-line:remove", {
+          bubbles: true,
+          detail: { lineId: this.line.id },
+        }),
+      );
+    };
+  }
+
+  customElements.define("cart-line-item", CartLineItemElement);
+</script>
 
 <style>
+  cart-line-item {
+    display: block;
+    width: 100%;
+  }
+
+  /* Note: Use global convention or scoped styles. Since we control the internal structure here, scoped is fine. */
   .cart-line-item {
     display: flex;
     gap: var(--s16);
     align-items: flex-start;
   }
 
-  [data-product-image] {
+  [data-image] {
     width: 60px;
     height: 60px;
     object-fit: cover;
     background-color: #f0f0f0;
+    display: none; /* Hidden until loaded */
   }
 
-  [data-cart-line-remove-button]::before {
-    content: "Remove";
+  .info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s8);
   }
 
-  [data-cart-line-item][data-state="removing"] {
+  .prices {
+    display: flex;
+    gap: var(--s8);
+  }
+
+  .product-title {
+    font-weight: bold;
+    display: block;
+  }
+
+  .variant-title {
+    font-size: 0.9em;
+    color: var(--color-ink-light);
+    display: block;
+  }
+
+  .remove-button {
+    align-self: flex-start;
+    font-size: 0.9em;
+  }
+
+  cart-line-item[state="removing"] {
     opacity: 0.5;
     pointer-events: none;
-  }
-
-  [data-cart-line-item][data-state="removing"] [data-cart-line-remove-button]::before {
-    content: "Removing...";
   }
 </style>

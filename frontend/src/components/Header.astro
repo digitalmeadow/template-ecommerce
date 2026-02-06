@@ -9,6 +9,14 @@ import { resolveLinkHref } from "@lib/sanity/links";
 
 const headerQueryQuery = await sanityClient.request(headerQuery);
 const headerData = headerQueryQuery.allHeader[0];
+
+const underlineStyles = [
+  "underline-color-green",
+  "underline-color-blue",
+  "underline-color-purple",
+  "underline-color-orange",
+  "underline-color-yellow",
+];
 ---
 
 <header>
@@ -24,7 +32,7 @@ const headerData = headerQueryQuery.allHeader[0];
 
   <nav>
     {
-      headerData.navigationItems?.map((navigationItem) => {
+      headerData.navigationItems?.map((navigationItem, index) => {
         if (!navigationItem?.link) return null;
         return (
           <div
@@ -40,6 +48,7 @@ const headerData = headerQueryQuery.allHeader[0];
             <SanityLink
               class:list={[
                 "text-link",
+                underlineStyles[index % underlineStyles.length],
                 { active: Astro.url.pathname === resolveLinkHref(navigationItem.link) },
               ]}
               linkData={navigationItem.link}

@@ -26,7 +26,7 @@ const collectionData = await fetchCollectionShopifySanity(slug);
     }}
   />
 
-  <div class="grid">
+  <div class="grid hover-group">
     {
       collectionData.productThumbnails.map((productData) => (
         <ProductThumbnail productData={productData} />

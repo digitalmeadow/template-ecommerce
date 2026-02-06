@@ -1,3 +1,15 @@
 - Client-side stale-while-revalidate for product availability and prices
   - Find all product variant selectors, construct a single query to Shopify to fetch price and availability
   - Trigger revalidate events and update elements accordingly
+
+
+- Cart line item, I wonder if theres a more delcarive way instead of querying and updating content from the Cart component we could do:
+  new CartLineItem(all of the info we need to render the line item) and set it up in the contructor method?
+
+- I wonder if all state classes: eg: .active, .hidden .open etc should instead be data attributes? eg: data-state="open" data-focused="true" data-active="true" etc. 
+This would be more verbose but also more descriptive and easier to read in the markup. 
+It also allows for multiple states to be applied to an element without having to worry about class name conflicts. 
+For example, an element could have data-state="open" and data-active="true" without having to worry about the order of class names or potential conflicts with other classes.
+
+- Could we compress the server data attributes on the HTML?
+It's currently JSON stringified and stored in a data attribute, which can take up a lot of space.
