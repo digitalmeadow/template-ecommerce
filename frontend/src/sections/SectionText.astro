@@ -20,4 +20,9 @@ const { section }: Props = Astro.props;
     padding: var(--s40) 0 var(--s120) 0;
     text-align: center;
   }
+  @media (max-width: 500px) {
+    section {
+      padding: 0 0 var(--s80) 0;
+    }
+  }
 </style>

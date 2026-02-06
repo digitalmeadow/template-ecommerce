@@ -1,0 +1,175 @@
+<accordion-root {...Astro.props}>
+  <div data-accordion-toggle class="summary">
+    <slot name="summary" />
+
+    <div class="icon">
+      <div class="icon-open">+</div>
+      <div class="icon-close">-</div>
+    </div>
+  </div>
+
+  <div class="content" data-accordion-content>
+    <div class="accordion-inner">
+      <slot name="content" />
+    </div>
+  </div>
+</accordion-root>
+
+<script>
+  export type EventAccordionOpenDetail = {
+    target: HTMLElement;
+  };
+  export type EventAccordionOpen = CustomEvent<EventAccordionOpenDetail>;
+
+  class AccordionRoot extends HTMLElement {
+    private toggleElement!: HTMLElement;
+    private summaryElement!: HTMLElement;
+    private contentElement!: HTMLElement;
+    private group: string | null = null;
+    private isOpen = false;
+
+    static get observedAttributes() {
+      return ["group", "init-open"];
+    }
+
+    connectedCallback() {
+      this.toggleElement = this.querySelector("[data-accordion-toggle]")!;
+      this.summaryElement = this.querySelector(".summary")!;
+      this.contentElement = this.querySelector("[data-accordion-content]")!;
+      this.group = this.getAttribute("group");
+
+      this.isOpen = this.hasAttribute("init-open");
+
+      this.toggleElement.addEventListener("click", this.toggle);
+      if (this.group) {
+        window.addEventListener(`accordion:opened:${this.group}`, this.handleAccordionOpen);
+      }
+
+      this.render();
+    }
+
+    disconnectedCallback() {
+      this.toggleElement.removeEventListener("click", this.toggle);
+      if (this.group) {
+        window.removeEventListener(`accordion:opened:${this.group}`, this.handleAccordionOpen);
+      }
+    }
+
+    attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+      this.render();
+    }
+
+    open = () => {
+      this.isOpen = true;
+
+      if (this.isOpen && this.group) {
+        const detail: EventAccordionOpenDetail = { target: this };
+        const openedEvent = new CustomEvent(`accordion:opened:${this.group}`, {
+          detail,
+        });
+        window.dispatchEvent(openedEvent);
+      }
+
+      this.render();
+    };
+
+    close = () => {
+      this.isOpen = false;
+      this.render();
+    };
+
+    toggle = () => {
+      if (this.isOpen) {
+        this.close();
+      } else {
+        this.open();
+      }
+    };
+
+    private handleAccordionOpen = (event: Event) => {
+      const customEvent = event as EventAccordionOpen;
+      const openedItem = customEvent.detail.target;
+      if (this !== openedItem) {
+        this.close();
+      }
+    };
+
+    private render() {
+      if (!this.contentElement || !this.summaryElement) return;
+      this.contentElement.classList.toggle("closed", !this.isOpen);
+      this.summaryElement.querySelector(".icon")!.classList.toggle("closed", !this.isOpen);
+    }
+  }
+
+  customElements.define("accordion-root", AccordionRoot);
+</script>
+
+<style>
+  accordion-root {
+    margin-top: calc(-1 * var(--border-width));
+    display: block;
+    border-top: var(--border-width) solid var(--color-grey_05);
+  }
+
+  accordion-root:last-child {
+    border-bottom: var(--border-width) solid var(--color-grey_05);
+  }
+
+  [data-accordion-toggle] {
+    cursor: pointer;
+  }
+
+  /* Accordion container */
+  [data-accordion-content] {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.3s ease;
+  }
+
+  [data-accordion-content] > * {
+    overflow: hidden;
+  }
+
+  [data-accordion-content].closed {
+    grid-template-rows: 0fr;
+  }
+
+  .summary {
+    padding: var(--s4) 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: var(--s8);
+  }
+
+  .icon {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    width: var(--s16);
+    height: var(--s16);
+    font-size: 18px;
+    line-height: 18px;
+  }
+
+  .icon-open,
+  .icon-close {
+    grid-area: 1 / 1 / 2 / 2;
+  }
+
+  .icon.closed .icon-open {
+    opacity: 1;
+  }
+
+  .icon.closed .icon-close {
+    opacity: 0;
+  }
+
+  .icon:not(.closed) .icon-open {
+    opacity: 0;
+  }
+
+  .icon:not(.closed) .icon-close {
+    opacity: 1;
+  }
+</style>

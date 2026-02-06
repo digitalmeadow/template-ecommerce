@@ -1,0 +1,7 @@
+fragment SectionAccordions on SectionAccordions {
+  __typename
+
+  accordions {
+    ...Accordion
+  }
+}

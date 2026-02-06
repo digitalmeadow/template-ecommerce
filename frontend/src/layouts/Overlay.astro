@@ -184,7 +184,7 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
   overlay-root.open .panel.fullscreen {
     opacity: 1;
   }
-  @media (max-width: 744px) {
+  @media (max-width: 500px) {
     .panel.fullscreen {
       padding: var(--margin);
     }
@@ -205,13 +205,13 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
   overlay-root.open .panel.right {
     transform: translateX(0);
   }
-  @media (max-width: 744px) {
+  @media (max-width: 500px) {
     .panel.right {
       top: auto;
       bottom: 0;
 
       width: 100%;
-      height: calc(100svh - var(--s40));
+      height: calc(100svh - var(--s120));
       padding: var(--s20) var(--margin) var(--s40) var(--margin);
 
       border-top-left-radius: var(--border-radius--large);

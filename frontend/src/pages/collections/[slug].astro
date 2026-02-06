@@ -4,6 +4,7 @@ import PageLayout from "@layouts/PageLayout.astro";
 import { collectionsQuery } from "sanity/queries/collection";
 import { fetchCollectionShopifySanity } from "@lib/fetches/collectionShopifySanity";
 import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
+import SectionHero from "@sections/SectionHero.astro";
 
 export async function getStaticPaths() {
   const collectionsQueryQuery = await sanityClient.request(collectionsQuery);
@@ -18,6 +19,13 @@ const collectionData = await fetchCollectionShopifySanity(slug);
 ---
 
 <PageLayout metaData={collectionData?.sanity.meta}>
+  <SectionHero
+    section={{
+      __typename: "SectionHero",
+      heading: collectionData.shopify.title,
+    }}
+  />
+
   <div class="grid">
     {
       collectionData.productThumbnails.map((productData) => (
@@ -36,5 +44,10 @@ const collectionData = await fetchCollectionShopifySanity(slug);
     grid-template-columns: repeat(4, 1fr);
     gap: var(--s40);
     margin-top: var(--s40);
+  }
+  @media (max-width: 500px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 </style>

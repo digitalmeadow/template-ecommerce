@@ -28,7 +28,8 @@ summary {
   text-decoration-color: var(--color-yellow);
 }
 
-.text-link:hover {
+.text-link:hover,
+.text-link.active {
   text-decoration-thickness: 12px;
   text-underline-offset: -12px;
 }

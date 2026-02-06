@@ -16,6 +16,8 @@ const pageDataQuery = await sanityClient.request(pageQuery, {
   slug,
 });
 const pageData = pageDataQuery.allPage[0];
+
+console.log("pageData", pageData);
 ---
 
 <PageLayout metaData={pageData?.meta}>

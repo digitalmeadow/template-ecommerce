@@ -6,6 +6,7 @@ fragment Home on Home {
     ...SectionHero
     ...SectionText
     ...SectionCollection
+    ...SectionAccordions
   }
   meta {
     ...Meta

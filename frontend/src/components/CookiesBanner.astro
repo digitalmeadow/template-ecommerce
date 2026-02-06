@@ -13,11 +13,11 @@ const {
 ---
 
 <cookie-banner>
-  <div data-banner>
+  <div class="cookie-banner" data-banner>
     <p>{message}</p>
     <div data-actions>
-      <button type="button" data-decline-button>{declineLabel}</button>
-      <button type="button" data-accept-button>{acceptLabel}</button>
+      <button class="text-link" type="button" data-decline-button>{declineLabel}</button>
+      <button class="text-link" type="button" data-accept-button>{acceptLabel}</button>
     </div>
   </div>
 </cookie-banner>
@@ -139,5 +139,20 @@ const {
 
   cookie-banner[visible] {
     display: block;
+  }
+
+  .cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: var(--margin) var(--margin-dynamic);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    background-color: var(--color-background);
   }
 </style>

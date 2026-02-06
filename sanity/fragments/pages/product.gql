@@ -27,6 +27,10 @@ fragment Product on Product {
     ...Media
   }
 
+  accordions {
+    ...Accordion
+  }
+
   meta {
     ...Meta
   }

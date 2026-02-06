@@ -1,0 +1,41 @@
+---
+import type { SectionAccordionsFragment } from "sanity/generated/graphql";
+import Accordion from "@layouts/Accordion.astro";
+import PortableText from "@fields/PortableText.astro";
+
+interface Props {
+  section: SectionAccordionsFragment;
+}
+
+const { section }: Props = Astro.props;
+console.log("section", section);
+---
+
+<section>
+  {
+    section.accordions?.map((accordion) => {
+      if (!accordion) return null;
+      return (
+        <Accordion group="default">
+          <h2 slot="summary">{accordion.summary}</h2>
+          <div class="content" slot="content">
+            <PortableText value={accordion.contentRaw} />
+          </div>
+        </Accordion>
+      );
+    })
+  }
+</section>
+
+<style>
+  section {
+    width: var(--container-width);
+    margin: 0 auto;
+    margin-top: var(--s200);
+    margin-bottom: var(--s64);
+  }
+
+  .content {
+    padding: var(--s8) 0;
+  }
+</style>

@@ -10,6 +10,7 @@ fragment Page on Page {
     ...SectionHero
     ...SectionText
     ...SectionCollection
+    ...SectionAccordions
   }
   meta {
     ...Meta

@@ -2,10 +2,14 @@
 import SectionHero from "@sections/SectionHero.astro";
 import SectionText from "@sections/SectionText.astro";
 import SectionCollection from "@sections/SectionCollection.astro";
-import { type SectionCollectionOrSectionHeroOrSectionText } from "sanity/generated/graphql";
+import { type SectionAccordionsOrSectionCollectionOrSectionHeroOrSectionText } from "sanity/generated/graphql";
+import SectionAccordions from "./SectionAccordions.astro";
 
 interface Props {
-  sections: (SectionCollectionOrSectionHeroOrSectionText | null)[] | null | undefined;
+  sections:
+    | (SectionAccordionsOrSectionCollectionOrSectionHeroOrSectionText | null)[]
+    | null
+    | undefined;
 }
 
 const { sections }: Props = Astro.props;
@@ -25,6 +29,10 @@ const { sections }: Props = Astro.props;
 
     if (section.__typename === "SectionCollection") {
       return <SectionCollection section={section} />;
+    }
+
+    if (section.__typename === "SectionAccordions") {
+      return <SectionAccordions section={section} />;
     }
 
     return null;

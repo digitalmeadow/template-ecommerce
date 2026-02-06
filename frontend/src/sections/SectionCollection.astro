@@ -67,14 +67,28 @@ for (const handle of productHandles || []) {
     gap: var(--s40);
     margin-top: var(--s40);
   }
+  @media (max-width: 500px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
 
   .grid-item {
     width: 100%;
   }
 
-  /* The first and every fourth item should span 2 rows and two columns to create a masonry effect */
   .grid > .grid-item:nth-child(6n + 1) {
     grid-row: span 2;
     grid-column: span 2;
+  }
+  @media (max-width: 500px) {
+    .grid > .grid-item:nth-child(6n + 1) {
+      grid-row: span 1;
+      grid-column: span 1;
+    }
+    .grid > .grid-item:nth-child(5n + 1) {
+      grid-row: span 2;
+      grid-column: span 2;
+    }
   }
 </style>

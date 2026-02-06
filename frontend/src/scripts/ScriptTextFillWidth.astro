@@ -13,6 +13,8 @@
       const section = text.parentElement;
       if (!section) return;
 
+      text.style.fontSize = "1px";
+
       const sectionWidth = section.clientWidth;
       text.style.whiteSpace = "nowrap";
 
@@ -29,6 +31,7 @@
   }
 
   window.addEventListener("resize", adjustFontSize);
+  document.addEventListener("DOMContentLoaded", adjustFontSize);
   document.fonts.ready.then(adjustFontSize);
   adjustFontSize();
 </script>

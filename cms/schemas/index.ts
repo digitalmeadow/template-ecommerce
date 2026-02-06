@@ -16,14 +16,16 @@ import { shopifyProductVariant } from "./shopify/shopifyProductVariant";
 import { shopifyCollection } from "./shopify/shopifyCollection";
 import { sectionText } from "./sections/sectionText";
 import { sectionCollection } from "./sections/sectionCollection";
+import { accordion } from "./fields/accordion";
+import { sectionAccordions } from "./sections/sectionAccordions";
 
 export const schemaTypes = [
   // Fields
-  // Core
   link,
   textRich,
   meta,
   media,
+  accordion,
 
   // Shopify
   shopifyProduct,
@@ -37,6 +39,7 @@ export const schemaTypes = [
   sectionHero,
   sectionText,
   sectionCollection,
+  sectionAccordions,
 
   // Components
   header,

@@ -1,11 +1,11 @@
 :root {
-  --scroll-padding-top: 200px;
+  --scroll-padding-top: 120px;
   --border-radius: 12px;
 }
 
 @media (max-width: 1000px) {
   :root {
-    --scroll-padding-top: 120px;
+    --scroll-padding-top: 80px;
     --border-radius: 12px;
   }
 }

@@ -1,4 +1,6 @@
 ---
+import PortableText from "@fields/PortableText.astro";
+import Accordion from "@layouts/Accordion.astro";
 import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import ProductGallery from "@sections/product/ProductGallery.astro";
 import ProductPurchase from "@sections/product/ProductPurchase.astro";
@@ -14,6 +16,21 @@ const { productData }: Props = Astro.props;
   <ProductGallery productData={productData} />
   <div class="product-purchase">
     <ProductPurchase productData={productData} />
+    <div class="accordions">
+      {
+        productData.sanity.accordions?.map((accordion) => {
+          if (!accordion) return null;
+          return (
+            <Accordion group="product">
+              <h2 slot="summary">{accordion.summary}</h2>
+              <div class="content" slot="content">
+                <PortableText value={accordion.contentRaw} />
+              </div>
+            </Accordion>
+          );
+        })
+      }
+    </div>
   </div>
 </section>
 
@@ -26,9 +43,28 @@ const { productData }: Props = Astro.props;
     display: grid;
     gap: var(--gutter);
     grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+  @media (max-width: 1000px) {
+    section {
+      display: flex;
+      flex-direction: column-reverse;
+    }
   }
 
   .product-purchase {
+    position: sticky;
+    top: var(--scroll-padding-top);
     padding-left: calc(var(--column) + var(--gutter));
+
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--s80);
+  }
+  @media (max-width: 1000px) {
+    .product-purchase {
+      position: static;
+      padding-left: 0;
+    }
   }
 </style>
