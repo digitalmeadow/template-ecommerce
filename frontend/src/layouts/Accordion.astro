@@ -96,8 +96,8 @@
 
     private render() {
       if (!this.contentElement || !this.summaryElement) return;
-      this.contentElement.classList.toggle("closed", !this.isOpen);
-      this.summaryElement.querySelector(".icon")!.classList.toggle("closed", !this.isOpen);
+      this.contentElement.classList.toggle("open", this.isOpen);
+      this.summaryElement.querySelector(".icon")!.classList.toggle("open", this.isOpen);
     }
   }
 
@@ -122,7 +122,7 @@
   /* Accordion container */
   [data-accordion-content] {
     display: grid;
-    grid-template-rows: 1fr;
+    grid-template-rows: 0fr;
     transition: grid-template-rows 0.3s ease;
   }
 
@@ -130,8 +130,8 @@
     overflow: hidden;
   }
 
-  [data-accordion-content].closed {
-    grid-template-rows: 0fr;
+  [data-accordion-content].open {
+    grid-template-rows: 1fr;
   }
 
   .summary {
@@ -155,21 +155,24 @@
   .icon-open,
   .icon-close {
     grid-area: 1 / 1 / 2 / 2;
+    transition: opacity 0.3s ease;
   }
 
-  .icon.closed .icon-open {
+  /* Default state (closed) */
+  .icon .icon-open {
     opacity: 1;
   }
 
-  .icon.closed .icon-close {
+  .icon .icon-close {
     opacity: 0;
   }
 
-  .icon:not(.closed) .icon-open {
+  /* Open state */
+  .icon.open .icon-open {
     opacity: 0;
   }
 
-  .icon:not(.closed) .icon-close {
+  .icon.open .icon-close {
     opacity: 1;
   }
 </style>
