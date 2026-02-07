@@ -11,13 +11,13 @@ const { productData }: Props = Astro.props;
 
 <div class="product-gallery">
   <div class="media-item">
-    <SanityMedia mediaData={productData.sanity.mediaThumbnail} layout="contain" />
+    <SanityMedia mediaData={productData.sanity.mediaThumbnail} layout="width" />
   </div>
 
   {
     productData.sanity.mediaGallery?.map((mediaItem) => (
       <div class="media-item">
-        <SanityMedia mediaData={mediaItem} layout="contain" />
+        <SanityMedia mediaData={mediaItem} layout="width" />
       </div>
     ))
   }
@@ -28,5 +28,9 @@ const { productData }: Props = Astro.props;
     width: 100%;
     display: grid;
     gap: var(--gutter);
+  }
+
+  .media-item {
+    width: 100%;
   }
 </style>

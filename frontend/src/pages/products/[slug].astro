@@ -5,6 +5,7 @@ import { fetchProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import { productsQuery } from "sanity/queries/product";
 import ProductSection from "@sections/product/ProductSection.astro";
 import RelatedProductsSection from "@sections/product/RelatedProductsSection.astro";
+import type { MetaFragment } from "sanity/generated/graphql";
 
 export async function getStaticPaths() {
   const productsQueryQuery = await sanityClient.request(productsQuery);
@@ -20,9 +21,16 @@ export async function getStaticPaths() {
 
 let { slug } = Astro.params;
 const productData = await fetchProductShopifySanity(slug);
+
+// Meta fallbacks
+const metaData: MetaFragment = {
+  ...productData.sanity?.meta,
+  __typename: "Meta",
+  title: productData.sanity?.meta?.title || productData.shopify.title,
+};
 ---
 
-<PageLayout metaData={productData.sanity?.meta}>
+<PageLayout metaData={metaData}>
   <ProductSection productData={productData} />
   <RelatedProductsSection productsData={productData.relatedProducts} />
 </PageLayout>

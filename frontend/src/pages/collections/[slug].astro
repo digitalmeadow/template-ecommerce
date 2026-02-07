@@ -5,6 +5,7 @@ import { collectionsQuery } from "sanity/queries/collection";
 import { fetchCollectionShopifySanity } from "@lib/fetches/collectionShopifySanity";
 import SectionHero from "@sections/SectionHero.astro";
 import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
+import type { MetaFragment } from "sanity/generated/graphql";
 
 export async function getStaticPaths() {
   const collectionsQueryQuery = await sanityClient.request(collectionsQuery);
@@ -16,9 +17,16 @@ export async function getStaticPaths() {
 
 let { slug } = Astro.params;
 const collectionData = await fetchCollectionShopifySanity(slug);
+
+// Meta fallbacks
+const metaData: MetaFragment = {
+  ...collectionData.sanity?.meta,
+  __typename: "Meta",
+  title: collectionData.sanity?.meta?.title || collectionData.shopify.title,
+};
 ---
 
-<PageLayout metaData={collectionData?.sanity.meta}>
+<PageLayout metaData={metaData}>
   <SectionHero
     section={{
       __typename: "SectionHero",
