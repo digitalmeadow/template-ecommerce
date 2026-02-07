@@ -49,6 +49,13 @@ const localeConfig = LOCALE_CONFIG[currentLocale];
     <title>{metaData?.title}</title>
     <Meta metaData={metaData} />
     <link rel="canonical" href={canonicalUrl} />
+    <link
+      rel="preload"
+      href="/fonts/BIZUDMincho-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <ScriptSpacing />
     <ScriptTextFillWidth />
   </head>

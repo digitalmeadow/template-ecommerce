@@ -1,33 +1,31 @@
-<script>
+<script is:inline>
   function adjustFontSize() {
-    const textFillWidthElements = document.querySelectorAll(
-      "[data-text-fill-width]",
-    ) as NodeListOf<HTMLElement>;
+    const textFillWidthElements = document.querySelectorAll("[data-text-fill-width]");
     if (textFillWidthElements.length === 0) return;
 
     for (const textFillWidthElement of textFillWidthElements) {
       adjustFontSizeForElement(textFillWidthElement);
     }
 
-    function adjustFontSizeForElement(text: HTMLElement) {
-      const section = text.parentElement;
+    function adjustFontSizeForElement(textElement) {
+      const section = textElement.parentElement;
       if (!section) return;
 
-      text.style.fontSize = "1px";
-      text.style.textTransform = "uppercase";
+      textElement.style.fontSize = "1px";
+      textElement.style.textTransform = "uppercase";
 
       const sectionWidth = section.clientWidth;
-      text.style.whiteSpace = "nowrap";
+      textElement.style.whiteSpace = "nowrap";
 
       const referenceFontSize = 100;
-      text.style.fontSize = `${referenceFontSize}px`;
-      text.style.display = "inline-block";
+      textElement.style.fontSize = `${referenceFontSize}px`;
+      textElement.style.display = "inline-block";
 
-      const textWidth = text.getBoundingClientRect().width;
+      const textWidth = textElement.getBoundingClientRect().width;
       const newFontSize = (sectionWidth / textWidth) * referenceFontSize;
-      text.style.fontSize = `${newFontSize}px`;
-      text.style.lineHeight = "0.8";
-      text.style.display = "";
+      textElement.style.fontSize = `${newFontSize}px`;
+      textElement.style.lineHeight = "0.8";
+      textElement.style.display = "";
     }
   }
 
