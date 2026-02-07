@@ -36,7 +36,7 @@
       this.increaseButton.addEventListener("click", this.increase);
       this.input.addEventListener("change", this.onInputChange);
 
-      this.setup();
+      this.init();
     }
 
     disconnectedCallback() {
@@ -47,10 +47,10 @@
 
     attributeChangedCallback() {
       if (!this.input || !this.increaseButton || !this.decreaseButton) return;
-      this.setup();
+      this.init();
     }
 
-    setup() {
+    init() {
       this.min = Math.max(Number(this.getAttribute("min")) || 1, 1);
       this.max = Number(this.getAttribute("max")) || Infinity;
       this.value = Math.max(
@@ -137,7 +137,8 @@
   }
 
   input {
-    width: 5ch;
+    width: 2ch;
+    text-align: center;
   }
 
   button:disabled {

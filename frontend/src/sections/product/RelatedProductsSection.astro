@@ -1,6 +1,7 @@
 ---
 import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
-import ProductThumbnailsGrid from "./ProductThumbnailsGrid.astro";
+import Carousel from "@layouts/Carousel.astro";
+import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
 
 interface Props {
   productsData: ProductThumbnailShopifySanity[] | null | undefined;
@@ -12,8 +13,88 @@ const { productsData }: Props = Astro.props;
 {
   productsData && productsData.length > 0 && (
     <section>
-      <h2>Related Products</h2>
-      <ProductThumbnailsGrid productsData={productsData} />
+      <div class="top">
+        <h2>Related Products</h2>
+
+        <div class="carousel-controls">
+          <button
+            data-carousel-trigger-prev="related-products-carousel"
+            aria-label="Previous related products"
+          >
+            ←
+          </button>
+          <button
+            data-carousel-trigger-next="related-products-carousel"
+            aria-label="Next related products"
+          >
+            →
+          </button>
+        </div>
+      </div>
+
+      <Carousel id="related-products-carousel">
+        <Fragment slot="content">
+          {productsData.map((productData) => (
+            <div class="carousel-item">
+              <ProductThumbnail productData={productData} />
+            </div>
+          ))}
+        </Fragment>
+      </Carousel>
     </section>
   )
 }
+
+<style>
+  section {
+    width: var(--container-width);
+    margin: 0 auto;
+    margin-top: var(--s80);
+  }
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--s16);
+    column-gap: var(--s4);
+  }
+
+  .carousel-controls {
+    display: flex;
+    gap: var(--s4);
+  }
+
+  .carousel-item {
+    width: calc(4 * var(--column) + 3 * var(--gutter));
+    margin-right: var(--gutter);
+  }
+  @media (max-width: 1000px) {
+    .carousel-item {
+      width: calc(8 * var(--column) + 7 * var(--gutter));
+    }
+  }
+</style>
+
+<script>
+  import type { CarouselElement } from "@layouts/Carousel.astro.0.mjs";
+
+  const carousel = document.querySelector(
+    'carousel-root[id="related-products-carousel"]',
+  ) as CarouselElement;
+
+  const prevButton = document.querySelector(
+    '[data-carousel-trigger-prev="related-products-carousel"]',
+  ) as HTMLButtonElement;
+  const nextButton = document.querySelector(
+    '[data-carousel-trigger-next="related-products-carousel"]',
+  ) as HTMLButtonElement;
+
+  prevButton.addEventListener("click", () => {
+    carousel.api?.scrollPrev();
+  });
+
+  nextButton.addEventListener("click", () => {
+    carousel.api?.scrollNext();
+  });
+</script>

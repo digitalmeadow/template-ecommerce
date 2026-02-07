@@ -14,7 +14,9 @@ button,
 input,
 textarea,
 select,
-summary {
+summary,
+legend,
+details {
   font-size: 14px;
   line-height: 18px;
   font-weight: 400;

@@ -14,17 +14,37 @@ const { productData }: Props = Astro.props;
 
 <div class="product-purchase">
   <h1 data-text-fill-width>{productData.shopify?.title}</h1>
-  <ProductVariantSelector productData={productData} />
   <ProductPrice />
-  <QuantitySelector />
-  <ProductAddToCart />
+
+  <div class="variant-selector">
+    <ProductVariantSelector productData={productData} />
+  </div>
+
+  <div class="purchase">
+    <ProductAddToCart />
+    <QuantitySelector />
+  </div>
 </div>
 
 <style>
+  h1 {
+    margin-bottom: var(--s20);
+  }
+
+  .variant-selector {
+    margin-top: var(--s40);
+  }
+
   .product-purchase {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--s16);
+  }
+
+  .purchase {
+    margin-top: var(--s40);
+    display: flex;
+    align-items: center;
+    gap: var(--s24);
   }
 </style>

@@ -1,0 +1,103 @@
+---
+import type { EmblaOptionsType } from "embla-carousel";
+
+interface Props {
+  id?: string;
+  class?: string;
+  align?: EmblaOptionsType["align"];
+  dragFree?: boolean;
+  loop?: boolean;
+  skipSnaps?: boolean;
+  slidesToScroll?: EmblaOptionsType["slidesToScroll"];
+}
+
+const {
+  id,
+  class: className,
+  align,
+  dragFree,
+  loop,
+  skipSnaps,
+  slidesToScroll,
+  ...rest
+} = Astro.props;
+---
+
+<carousel-root
+  id={id}
+  class={className}
+  align={align}
+  drag-free={dragFree}
+  loop={loop}
+  skip-snaps={skipSnaps}
+  slides-to-scroll={slidesToScroll}
+  {...rest}
+>
+  <div data-carousel-viewport>
+    <div data-carousel-container>
+      <slot name="content" />
+    </div>
+  </div>
+</carousel-root>
+
+<style>
+  [data-carousel-viewport] {
+    overflow: hidden;
+  }
+
+  [data-carousel-container] {
+    display: flex;
+    touch-action: pan-y pinch-zoom;
+  }
+</style>
+
+<style is:inline>
+  [data-carousel-container] > * {
+    flex-shrink: 0;
+  }
+</style>
+
+<script>
+  import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from "embla-carousel";
+
+  export class CarouselElement extends HTMLElement {
+    public api: EmblaCarouselType | undefined;
+    private viewport!: HTMLElement;
+
+    static get observedAttributes() {
+      return ["align", "drag-free", "loop", "skip-snaps", "slides-to-scroll"];
+    }
+
+    connectedCallback() {
+      this.viewport = this.querySelector("[data-carousel-viewport]")!;
+      this.init();
+    }
+
+    disconnectedCallback() {
+      if (this.api) this.api.destroy();
+    }
+
+    attributeChangedCallback() {
+      this.init();
+    }
+
+    private init() {
+      if (this.api) this.api.destroy();
+
+      const options: EmblaOptionsType = {
+        align: (this.getAttribute("align") as EmblaOptionsType["align"]) || "start",
+        dragFree: this.getAttribute("drag-free") !== null, // Only check for existence for boolean props
+        loop: this.getAttribute("loop") !== null,
+        skipSnaps: this.getAttribute("skip-snaps") !== null,
+        slidesToScroll:
+          this.getAttribute("slides-to-scroll") === "auto"
+            ? "auto"
+            : Number(this.getAttribute("slides-to-scroll")) || 1,
+      };
+
+      this.api = EmblaCarousel(this.viewport, options);
+    }
+  }
+
+  customElements.define("carousel-root", CarouselElement);
+</script>

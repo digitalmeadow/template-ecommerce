@@ -16,6 +16,7 @@ const { productData }: Props = Astro.props;
   <ProductGallery productData={productData} />
   <div class="product-purchase">
     <ProductPurchase productData={productData} />
+
     <div class="accordions">
       {
         productData.sanity.accordions?.map((accordion) => {
@@ -54,7 +55,9 @@ const { productData }: Props = Astro.props;
 
   .product-purchase {
     position: sticky;
-    top: var(--scroll-padding-top);
+    top: var(--s200);
+
+    height: calc(100svh - var(--s200));
     padding-left: calc(var(--column) + var(--gutter));
 
     display: flex;
@@ -64,7 +67,13 @@ const { productData }: Props = Astro.props;
   @media (max-width: 1000px) {
     .product-purchase {
       position: static;
+      height: auto;
       padding-left: 0;
     }
+  }
+
+  .accordions {
+    margin-top: auto;
+    padding-bottom: var(--s40);
   }
 </style>

@@ -1,5 +1,5 @@
 <accordion-root {...Astro.props}>
-  <div data-accordion-toggle class="summary">
+  <div data-accordion-toggle data-summary class="summary">
     <slot name="summary" />
 
     <div class="icon">
@@ -8,9 +8,11 @@
     </div>
   </div>
 
-  <div class="content" data-accordion-content>
-    <div class="accordion-inner">
-      <slot name="content" />
+  <div class="content-container" data-accordion-content>
+    <div class="content-inner">
+      <div class="content">
+        <slot name="content" />
+      </div>
     </div>
   </div>
 </accordion-root>
@@ -21,7 +23,7 @@
   };
   export type EventAccordionOpen = CustomEvent<EventAccordionOpenDetail>;
 
-  class AccordionRoot extends HTMLElement {
+  class AccordionElement extends HTMLElement {
     private toggleElement!: HTMLElement;
     private summaryElement!: HTMLElement;
     private contentElement!: HTMLElement;
@@ -34,7 +36,7 @@
 
     connectedCallback() {
       this.toggleElement = this.querySelector("[data-accordion-toggle]")!;
-      this.summaryElement = this.querySelector(".summary")!;
+      this.summaryElement = this.querySelector("[data-summary")!;
       this.contentElement = this.querySelector("[data-accordion-content]")!;
       this.group = this.getAttribute("group");
 
@@ -109,7 +111,7 @@
     }
   }
 
-  customElements.define("accordion-root", AccordionRoot);
+  customElements.define("accordion-root", AccordionElement);
 </script>
 
 <style>
@@ -182,5 +184,9 @@
 
   .icon[data-state]:not([data-state="false"]) .icon-close {
     opacity: 1;
+  }
+
+  .content {
+    padding: var(--s8) 0 var(--s24);
   }
 </style>

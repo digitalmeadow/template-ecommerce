@@ -14,6 +14,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}": typeof types.CartFragmentDoc,
     "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}": typeof types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": typeof types.HeaderFragmentDoc,
     "fragment Accordion on Accordion {\n  summary\n  contentRaw\n}": typeof types.AccordionFragmentDoc,
@@ -34,6 +35,7 @@ type Documents = {
     "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}": typeof types.SectionCollectionFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": typeof types.SectionHeroFragmentDoc,
     "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}": typeof types.SectionTextFragmentDoc,
+    "\n  query CartQuery {\n    allCart {\n      ...Cart\n    }\n  }\n": typeof types.CartQueryDocument,
     "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(\n      where: { shopify: { handle: { current: { eq: $handle } } } }\n    ) {\n      ...Collection\n    }\n  }\n": typeof types.CollectionByHandleQueryDocument,
     "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n": typeof types.CollectionsQueryDocument,
     "\n  query FooterQuery {\n    allFooter {\n      ...Footer\n    }\n  }\n": typeof types.FooterQueryDocument,
@@ -46,6 +48,7 @@ type Documents = {
     "\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n": typeof types.ProductsQueryDocument,
 };
 const documents: Documents = {
+    "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}": types.CartFragmentDoc,
     "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}": types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": types.HeaderFragmentDoc,
     "fragment Accordion on Accordion {\n  summary\n  contentRaw\n}": types.AccordionFragmentDoc,
@@ -66,6 +69,7 @@ const documents: Documents = {
     "fragment SectionCollection on SectionCollection {\n  __typename\n  collection {\n    ...Collection\n  }\n}": types.SectionCollectionFragmentDoc,
     "fragment SectionHero on SectionHero {\n  __typename\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": types.SectionHeroFragmentDoc,
     "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}": types.SectionTextFragmentDoc,
+    "\n  query CartQuery {\n    allCart {\n      ...Cart\n    }\n  }\n": types.CartQueryDocument,
     "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(\n      where: { shopify: { handle: { current: { eq: $handle } } } }\n    ) {\n      ...Collection\n    }\n  }\n": types.CollectionByHandleQueryDocument,
     "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n": types.CollectionsQueryDocument,
     "\n  query FooterQuery {\n    allFooter {\n      ...Footer\n    }\n  }\n": types.FooterQueryDocument,
@@ -92,6 +96,10 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}"): (typeof documents)["fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -172,6 +180,10 @@ export function graphql(source: "fragment SectionHero on SectionHero {\n  __type
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "fragment SectionText on SectionText {\n  __typename\n  textRaw\n}"): (typeof documents)["fragment SectionText on SectionText {\n  __typename\n  textRaw\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query CartQuery {\n    allCart {\n      ...Cart\n    }\n  }\n"): (typeof documents)["\n  query CartQuery {\n    allCart {\n      ...Cart\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

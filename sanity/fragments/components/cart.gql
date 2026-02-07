@@ -1,0 +1,7 @@
+fragment Cart on Cart {
+  __typename
+  _id
+
+  emptyMessageRaw
+  noteRaw
+}

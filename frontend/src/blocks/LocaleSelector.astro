@@ -43,7 +43,7 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
 
   const LOCALE_STORAGE_KEY = "preferred-locale";
 
-  class LocaleSelector extends HTMLElement {
+  export class LocaleSelectorElement extends HTMLElement {
     connectedCallback() {
       const select = this.querySelector("select") as HTMLSelectElement;
 
@@ -62,5 +62,5 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
     }
   }
 
-  customElements.define("locale-selector", LocaleSelector);
+  customElements.define("locale-selector", LocaleSelectorElement);
 </script>

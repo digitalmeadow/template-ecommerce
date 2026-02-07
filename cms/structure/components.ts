@@ -24,6 +24,12 @@ export const components = (S: StructureBuilder) => {
 					.child(
 						S.document().schemaType('footer').documentId('footer')
 					),
+				S.listItem()
+					.title('Cart')
+					.schemaType('cart')
+					.child(
+						S.document().schemaType('cart').documentId('cart')
+					),
 			]
 		)
 	)

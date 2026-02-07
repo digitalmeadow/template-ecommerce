@@ -18,6 +18,7 @@ import { sectionText } from "./sections/sectionText";
 import { sectionCollection } from "./sections/sectionCollection";
 import { accordion } from "./fields/accordion";
 import { sectionAccordions } from "./sections/sectionAccordions";
+import { cart } from "./components/cart";
 
 export const schemaTypes = [
   // Fields
@@ -44,6 +45,7 @@ export const schemaTypes = [
   // Components
   header,
   footer,
+  cart,
 
   // Pages
   home,

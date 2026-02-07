@@ -28,7 +28,7 @@ const variantsForMatching: Variant[] = variants.map((edge) => ({
   availableForSale: edge.node.availableForSale,
 }));
 
-const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
+const shopifyId = shopifyIdFromGid(productData.shopify.id);
 ---
 
 <div
@@ -39,16 +39,32 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
   {
     !isSingleDefaultVariant &&
       options.map((option) => {
-        const selectId = `${selectIdSafe}-${option.name.toLowerCase()}`;
+        const selectId = `${shopifyId}-${option.name.toLowerCase()}`;
         return (
-          <div>
-            <label for={selectId}>{option.name}:</label>
-            <select id={selectId} data-option-select data-option-name={option.name}>
+          <fieldset class="option-fieldset">
+            <legend>{option.name}:</legend>
+            <div class="option-values">
               {option.values.map((value) => (
-                <option value={value}>{value}</option>
+                <label
+                  class="text-link"
+                  for={selectId + "-" + value}
+                  data-active={value === option.values[0]}
+                >
+                  <input
+                    class="visually-hidden"
+                    type="radio"
+                    name={option.name}
+                    id={selectId + "-" + value}
+                    data-option-input
+                    data-option-name={option.name}
+                    value={value}
+                    checked={value === option.values[0]}
+                  />
+                  {value}
+                </label>
               ))}
-            </select>
-          </div>
+            </div>
+          </fieldset>
         );
       })
   }
@@ -66,9 +82,9 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
     if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
 
-    const optionSelects = Array.from(
-      rootElement.querySelectorAll("[data-option-select]"),
-    ) as HTMLSelectElement[];
+    const optionInputs = Array.from(
+      rootElement.querySelectorAll("[data-option-input]"),
+    ) as HTMLInputElement[];
     const variantIdInput = rootElement.querySelector("[data-variant-id]") as HTMLInputElement;
 
     const variantsJson = (rootElement as HTMLElement).dataset.variants;
@@ -76,14 +92,21 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
     const variants = JSON.parse(variantsJson);
 
     function getSelectedOptions() {
-      return optionSelects.map((select) => ({
-        name: select.dataset.optionName!,
-        value: select.value,
+      // Find the checked input for each option group
+      const checkedInputs = optionInputs.filter((input) => input.checked);
+      return checkedInputs.map((input) => ({
+        name: input.dataset.optionName!,
+        value: input.value,
       }));
     }
 
     function findMatchingVariant() {
       const selectedOptions = getSelectedOptions();
+
+      // Check if we have a selection for every option available
+      // (This counts unique names in all optionInputs vs our selected list)
+      const uniqueOptionNames = new Set(optionInputs.map((i) => i.dataset.optionName));
+      if (selectedOptions.length < uniqueOptionNames.size) return null;
 
       const variant = variants.find((v: any) => {
         return selectedOptions.every((selected) =>
@@ -114,14 +137,33 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
       );
     }
 
-    optionSelects.forEach((select) => {
-      select.addEventListener("change", updateVariantId);
+    function updateUI() {
+      optionInputs.forEach((input) => {
+        const label = input.closest("label");
+        if (label) {
+          if (input.checked) {
+            label.setAttribute("data-active", "");
+          } else {
+            label.removeAttribute("data-active");
+          }
+        }
+      });
+    }
+
+    optionInputs.forEach((input) => {
+      input.addEventListener("change", () => {
+        updateUI();
+        updateVariantId();
+      });
     });
 
     productRoot.addEventListener("product:request-variant-update", () => {
+      // When requested, re-emit current state
       updateVariantId();
     });
 
+    // Initial sync
+    updateUI();
     updateVariantId();
   }
 
@@ -130,3 +172,39 @@ const selectIdSafe = shopifyIdFromGid(productData.shopify.id);
     initialiseVariantSelector(rootElement);
   }
 </script>
+
+<style>
+  .variant-selector {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s16);
+  }
+
+  .option-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .option-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s8);
+  }
+
+  label {
+    cursor: pointer;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+</style>

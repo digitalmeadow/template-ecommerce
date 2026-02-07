@@ -17,7 +17,17 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
         </div>
       </a>
 
-      <QuantitySelector data-quantity-selector />
+      <div class="inventory">
+        <QuantitySelector data-quantity-selector />
+        <button
+          class="text-link underline-color-orange remove-button"
+          type="button"
+          data-remove-button
+          aria-label="Remove item from cart"
+        >
+          Remove
+        </button>
+      </div>
 
       <div class="prices">
         <div style="display: none;" data-compare-at-wrapper>
@@ -25,15 +35,6 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
         </div>
         <PriceDisplay data-price />
       </div>
-
-      <button
-        class="text-link underline-color-orange remove-button"
-        type="button"
-        data-remove-button
-        aria-label="Remove item from cart"
-      >
-        Remove
-      </button>
     </div>
   </div>
 </cart-line-item>
@@ -69,7 +70,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     // Required data
     line?: CartLineFragment;
 
-    setup(line: CartLineFragment) {
+    init(line: CartLineFragment) {
       this.line = line;
       this.render();
     }
@@ -96,7 +97,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     setRemoving(isRemoving: boolean) {
       if (isRemoving) {
         this.setAttribute("state", "removing");
-        this.removeButton.textContent = "Removing...";
+        this.removeButton.textContent = "Removing";
         this.removeButton.disabled = true;
       } else {
         this.removeAttribute("state");
@@ -234,6 +235,13 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
   cart-line-item[data-single-default-variant]:not([data-single-default-variant="false"])
     .variant-title {
     display: none;
+  }
+
+  .inventory {
+    display: flex;
+    align-items: center;
+    gap: var(--s16);
+    flex-wrap: wrap;
   }
 
   .remove-button {
