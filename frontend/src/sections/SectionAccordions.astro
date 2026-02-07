@@ -41,4 +41,9 @@ const { section }: Props = Astro.props;
   .accordion {
     max-width: calc(6 * var(--column) + 5 * var(--gutter));
   }
+  @media (max-width: 1000px) {
+    .accordion {
+      max-width: 100%;
+    }
+  }
 </style>
