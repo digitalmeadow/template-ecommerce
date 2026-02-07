@@ -176,13 +176,13 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
     width: 100%;
     padding: var(--s24);
 
-    transition: opacity var(--transition-default);
-  }
-  overlay-root:not([data-state]:not([data-state="false"])) .panel.fullscreen {
     opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-default);
   }
   overlay-root[data-state]:not([data-state="false"]) .panel.fullscreen {
     opacity: 1;
+    pointer-events: auto;
   }
   @media (max-width: 500px) {
     .panel.fullscreen {
@@ -197,10 +197,8 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
     width: 480px;
     padding: var(--margin);
 
-    transition: transform var(--transition-default);
-  }
-  overlay-root:not([data-state]:not([data-state="false"])) .panel.right {
     transform: translateX(100%);
+    transition: transform var(--transition-default);
   }
   overlay-root[data-state]:not([data-state="false"]) .panel.right {
     transform: translateX(0);
@@ -216,8 +214,7 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
 
       border-top-left-radius: var(--border-radius--large);
       border-top-right-radius: var(--border-radius--large);
-    }
-    overlay-root:not([data-state]:not([data-state="false"])) .panel.right {
+
       transform: translateY(100%);
     }
     overlay-root[data-state]:not([data-state="false"]) .panel.right {
