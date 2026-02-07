@@ -79,6 +79,11 @@ const underlineStyles = [
 
     pointer-events: none;
   }
+  @media (max-width: 1000px) {
+    header {
+      padding: var(--s16) 0 var(--s120);
+    }
+  }
   @media (max-width: 500px) {
     header {
       grid-template-columns: 1fr auto;
@@ -93,11 +98,21 @@ const underlineStyles = [
     height: 64px;
     background-color: var(--color-background);
   }
+  @media (max-width: 1000px) {
+    .background {
+      height: 40px;
+    }
+  }
 
   .locale-selector {
     position: sticky;
     top: var(--margin);
     pointer-events: auto;
+  }
+  @media (max-width: 1000px) {
+    .locale-selector {
+      top: var(--s16);
+    }
   }
   @media (max-width: 500px) {
     .locale-selector {
@@ -110,6 +125,11 @@ const underlineStyles = [
     top: var(--margin);
     justify-self: end;
     pointer-events: auto;
+  }
+  @media (max-width: 1000px) {
+    .cart-button {
+      top: var(--s16);
+    }
   }
   @media (max-width: 500px) {
     .cart-button {
@@ -147,6 +167,11 @@ const underlineStyles = [
     flex-wrap: wrap;
     gap: var(--s16);
     pointer-events: auto;
+  }
+  @media (max-width: 1000px) {
+    nav {
+      top: var(--s16);
+    }
   }
   @media (max-width: 500px) {
     nav {
