@@ -19,6 +19,11 @@ const { section }: Props = Astro.props;
     margin-top: var(--s200);
     margin-bottom: var(--s64);
   }
+  @media (max-width: 500px) {
+    section {
+      margin-top: calc(var(--s200) + var(--s24));
+    }
+  }
 
   h1 {
     text-transform: uppercase;
