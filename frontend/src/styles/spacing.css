@@ -32,7 +32,7 @@
   --margin-dynamic: calc((100 * var(--vw) - var(--container-width)) / 2);
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1000px) {
   :root {
     --s16: 8px;
     --s24: 16px;
@@ -44,5 +44,8 @@
     --s200: 120px;
     --s300: 200px;
     --s400: 300px;
+
+    --margin: 16px;
+    --gutter: 16px;
   }
 }
