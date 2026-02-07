@@ -1,3 +1,13 @@
+<style is:inline>
+  [data-text-fill-width] {
+    display: inline-block;
+    font-size: 100px;
+    line-height: 0.8;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+</style>
+
 <script is:inline>
   function adjustFontSize() {
     const textFillWidthElements = document.querySelectorAll("[data-text-fill-width]");
@@ -11,21 +21,14 @@
       const section = textElement.parentElement;
       if (!section) return;
 
-      textElement.style.fontSize = "1px";
-      textElement.style.textTransform = "uppercase";
-
       const sectionWidth = section.clientWidth;
-      textElement.style.whiteSpace = "nowrap";
 
       const referenceFontSize = 100;
       textElement.style.fontSize = `${referenceFontSize}px`;
-      textElement.style.display = "inline-block";
 
       const textWidth = textElement.getBoundingClientRect().width;
       const newFontSize = (sectionWidth / textWidth) * referenceFontSize;
       textElement.style.fontSize = `${newFontSize}px`;
-      textElement.style.lineHeight = "0.8";
-      textElement.style.display = "";
     }
   }
 

@@ -15,7 +15,7 @@ const {
 <cookie-banner>
   <div class="cookie-banner" data-banner>
     <p>{message}</p>
-    <div data-actions>
+    <div class="actions" data-actions>
       <button class="text-link underline-color-orange" type="button" data-decline-button
         >{declineLabel}</button
       >
@@ -158,5 +158,11 @@ const {
     text-align: center;
 
     background-color: var(--color-background);
+  }
+
+  .actions {
+    display: flex;
+    gap: var(--s16);
+    flex-wrap: wrap;
   }
 </style>
