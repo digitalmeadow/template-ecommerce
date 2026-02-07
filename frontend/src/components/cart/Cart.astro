@@ -11,7 +11,7 @@ const cartQueryQuery = await sanityClient.request(cartQuery);
 const cartData = cartQueryQuery.allCart[0];
 ---
 
-<Overlay id="cart" layout="right">
+<Overlay id="cart" layout="right" aria-label="Shopping Cart">
   <div class="header" slot="header">
     <h2>Your Cart <span data-cart-count></span></h2>
   </div>

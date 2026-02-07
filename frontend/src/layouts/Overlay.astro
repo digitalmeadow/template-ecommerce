@@ -2,12 +2,13 @@
 interface Props {
   id: string;
   layout?: "fullscreen" | "right";
+  "aria-label"?: string;
 }
 
-const { id, layout = "fullscreen" }: Props = Astro.props;
+const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.props;
 ---
 
-<overlay-root id={id} layout={layout}>
+<overlay-root id={id} layout={layout} data-aria-label={ariaLabel}>
   <div class="backdrop"></div>
 
   <div class:list={["panel", layout]}>
@@ -36,6 +37,11 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
       this.panel.setAttribute("role", "dialog");
       this.panel.setAttribute("aria-modal", "true");
       this.panel.setAttribute("tabindex", "-1");
+
+      const label = this.dataset.ariaLabel;
+      if (label) {
+        this.panel.setAttribute("aria-label", label);
+      }
 
       this.backdrop.addEventListener("click", this.handleCloseClick);
     }
