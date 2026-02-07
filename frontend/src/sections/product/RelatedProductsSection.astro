@@ -1,0 +1,19 @@
+---
+import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
+import ProductThumbnailsGrid from "./ProductThumbnailsGrid.astro";
+
+interface Props {
+  productsData: ProductThumbnailShopifySanity[] | null | undefined;
+}
+
+const { productsData }: Props = Astro.props;
+---
+
+{
+  productsData && productsData.length > 0 && (
+    <section>
+      <h2>Related Products</h2>
+      <ProductThumbnailsGrid productsData={productsData} />
+    </section>
+  )
+}

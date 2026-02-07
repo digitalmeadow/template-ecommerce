@@ -16,13 +16,12 @@ const { section }: Props = Astro.props;
 <style>
   section {
     width: var(--container-width);
-    margin: 0 auto;
-    padding: var(--s40) 0 var(--s120) 0;
+    margin: var(--s40) auto var(--s80);
     text-align: center;
   }
   @media (max-width: 500px) {
     section {
-      padding: 0 0 var(--s80) 0;
+      margin: 0 auto var(--s80);
     }
   }
 </style>

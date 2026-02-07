@@ -4,6 +4,7 @@ import PageLayout from "@layouts/PageLayout.astro";
 import { fetchProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import { productsQuery } from "sanity/queries/product";
 import ProductSection from "@sections/product/ProductSection.astro";
+import RelatedProductsSection from "@sections/product/RelatedProductsSection.astro";
 
 export async function getStaticPaths() {
   const productsQueryQuery = await sanityClient.request(productsQuery);
@@ -23,4 +24,5 @@ const productData = await fetchProductShopifySanity(slug);
 
 <PageLayout metaData={productData.sanity?.meta}>
   <ProductSection productData={productData} />
+  <RelatedProductsSection productsData={productData.relatedProducts} />
 </PageLayout>

@@ -31,7 +31,7 @@ const blurhashSrc = imageData?.asset?.metadata?.lqip;
     {...getSanityImageProps({ sanityImage: imageData, sizes })}
     alt={altText}
     loading={loading}
-    onload="this.classList.add('loaded')"
+    onload="this.dataset.loaded = ''"
   />
 </div>
 
@@ -56,7 +56,7 @@ const blurhashSrc = imageData?.asset?.metadata?.lqip;
     transition: opacity var(--transition-media-load);
   }
 
-  .image.loaded {
+  .image[data-loaded]:not([data-loaded="false"]) {
     opacity: var(--media-opacity, 1);
   }
 

@@ -6,7 +6,7 @@ import {
   type ProductThumbnailShopifySanity,
   fetchProductThumbnailShopifySanity,
 } from "@lib/fetches/productShopifySanity";
-import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
+import ProductThumbnailsGrid from "./product/ProductThumbnailsGrid.astro";
 
 interface Props {
   section: SectionCollectionFragment;
@@ -38,15 +38,7 @@ for (const handle of productHandles || []) {
       >({shopifyCollection.collectionByHandle?.products.edges.length})</sup
     >
 
-    <div class="grid hover-group">
-      {
-        productsData.map((productData) => (
-          <div class="grid-item">
-            <ProductThumbnail productData={productData} />
-          </div>
-        ))
-      }
-    </div>
+    <ProductThumbnailsGrid productsData={productsData} />
   </h2>
 </section>
 
@@ -59,36 +51,5 @@ for (const handle of productHandles || []) {
     flex-direction: column;
     align-items: center;
     text-align: center;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--s40);
-    margin-top: var(--s40);
-  }
-  @media (max-width: 500px) {
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  .grid-item {
-    width: 100%;
-  }
-
-  .grid > .grid-item:nth-child(6n + 1) {
-    grid-row: span 2;
-    grid-column: span 2;
-  }
-  @media (max-width: 500px) {
-    .grid > .grid-item:nth-child(6n + 1) {
-      grid-row: span 1;
-      grid-column: span 1;
-    }
-    .grid > .grid-item:nth-child(5n + 1) {
-      grid-row: span 2;
-      grid-column: span 2;
-    }
   }
 </style>

@@ -3,8 +3,8 @@ import { sanityClient } from "sanity/client";
 import PageLayout from "@layouts/PageLayout.astro";
 import { collectionsQuery } from "sanity/queries/collection";
 import { fetchCollectionShopifySanity } from "@lib/fetches/collectionShopifySanity";
-import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
 import SectionHero from "@sections/SectionHero.astro";
+import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
 
 export async function getStaticPaths() {
   const collectionsQueryQuery = await sanityClient.request(collectionsQuery);
@@ -26,13 +26,7 @@ const collectionData = await fetchCollectionShopifySanity(slug);
     }}
   />
 
-  <div class="grid hover-group">
-    {
-      collectionData.productThumbnails.map((productData) => (
-        <ProductThumbnail productData={productData} />
-      ))
-    }
-  </div>
+  <ProductThumbnailsGrid productsData={collectionData.productThumbnails} />
 </PageLayout>
 
 <style>
@@ -42,7 +36,7 @@ const collectionData = await fetchCollectionShopifySanity(slug);
 
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--s40);
+    gap: var(--gutter);
     margin-top: var(--s40);
   }
   @media (max-width: 500px) {

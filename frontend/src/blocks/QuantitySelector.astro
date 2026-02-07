@@ -2,11 +2,10 @@
   <button type="button" data-decrease-button aria-label="Decrease quantity">−</button>
   <input
     type="number"
+    data-input
     inputmode="numeric"
-    min="1"
     step="1"
     pattern="[0-9]+"
-    data-input
     aria-label="Quantity"
   />
   <button type="button" data-increase-button aria-label="Increase quantity">+</button>
@@ -22,15 +21,36 @@
     private input!: HTMLInputElement;
     private decreaseButton!: HTMLButtonElement;
     private increaseButton!: HTMLButtonElement;
-    private value!: number;
     private min!: number;
     private max!: number;
+    value!: number;
+
+    static observedAttributes = ["min", "max", "initial"];
 
     connectedCallback() {
       this.input = this.querySelector("[data-input]")!;
       this.decreaseButton = this.querySelector("[data-decrease-button]")!;
       this.increaseButton = this.querySelector("[data-increase-button]")!;
 
+      this.decreaseButton.addEventListener("click", this.decrease);
+      this.increaseButton.addEventListener("click", this.increase);
+      this.input.addEventListener("change", this.onInputChange);
+
+      this.setup();
+    }
+
+    disconnectedCallback() {
+      this.decreaseButton.removeEventListener("click", this.decrease);
+      this.increaseButton.removeEventListener("click", this.increase);
+      this.input.removeEventListener("change", this.onInputChange);
+    }
+
+    attributeChangedCallback() {
+      if (!this.input || !this.increaseButton || !this.decreaseButton) return;
+      this.setup();
+    }
+
+    setup() {
       this.min = Math.max(Number(this.getAttribute("min")) || 1, 1);
       this.max = Number(this.getAttribute("max")) || Infinity;
       this.value = Math.max(
@@ -39,16 +59,6 @@
       );
 
       this.render();
-
-      this.decreaseButton.addEventListener("click", this.decrease);
-      this.increaseButton.addEventListener("click", this.increase);
-      this.input.addEventListener("change", this.onInputChange);
-    }
-
-    disconnectedCallback() {
-      this.decreaseButton.removeEventListener("click", this.decrease);
-      this.increaseButton.removeEventListener("click", this.increase);
-      this.input.removeEventListener("change", this.onInputChange);
     }
 
     render() {
@@ -85,22 +95,23 @@
       );
     }
 
+    setValue(newValue: number) {
+      if (newValue === this.value) return;
+      this.value = Math.max(this.min, Math.min(this.max, newValue));
+      this.render();
+      this.emitChangedEvent();
+    }
+
     decrease = (event: MouseEvent) => {
       event.preventDefault();
-      if (this.value > this.min) {
-        this.value--;
-        this.render();
-        this.emitChangedEvent();
-      }
+      const newValue = this.value - 1;
+      this.setValue(newValue);
     };
 
     increase = (event: MouseEvent) => {
       event.preventDefault();
-      if (this.value < this.max) {
-        this.value++;
-        this.render();
-        this.emitChangedEvent();
-      }
+      const newValue = this.value + 1;
+      this.setValue(newValue);
     };
 
     onInputChange = (_e: Event) => {
@@ -108,12 +119,8 @@
       const result = quantitySchema.safeParse(this.input.value);
 
       if (result.success) {
-        const next = result.data;
-        if (next !== this.value) {
-          this.value = next;
-          this.render();
-          this.emitChangedEvent();
-        }
+        const value = result.data;
+        this.setValue(value);
       } else {
         this.render();
       }

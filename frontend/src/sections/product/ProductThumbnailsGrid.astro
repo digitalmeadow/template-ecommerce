@@ -1,0 +1,56 @@
+---
+import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
+import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
+
+interface Props {
+  productsData: ProductThumbnailShopifySanity[];
+}
+
+const { productsData }: Props = Astro.props;
+---
+
+<div class="grid hover-group">
+  {
+    productsData.map((productData) => (
+      <div class="grid-item">
+        <ProductThumbnail productData={productData} />
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .grid {
+    width: min(100%, var(--container-width));
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--gutter);
+    margin-top: var(--s40);
+  }
+  @media (max-width: 500px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .grid-item {
+    width: 100%;
+  }
+
+  .grid > .grid-item:nth-child(6n + 1) {
+    grid-row: span 2;
+    grid-column: span 2;
+  }
+  @media (max-width: 500px) {
+    .grid > .grid-item:nth-child(6n + 1) {
+      grid-row: span 1;
+      grid-column: span 1;
+    }
+    .grid > .grid-item:nth-child(5n + 1) {
+      grid-row: span 2;
+      grid-column: span 2;
+    }
+  }
+</style>

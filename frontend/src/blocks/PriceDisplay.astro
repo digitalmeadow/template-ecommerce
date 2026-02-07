@@ -12,6 +12,8 @@
     private locale!: string;
     private currency!: string;
 
+    static observedAttributes = ["amount", "currency", "locale", "variant", "prefix"];
+
     connectedCallback() {
       this.prefixElement = this.querySelector("[data-price-prefix]")!;
       this.priceElement = this.querySelector("[data-price-value]")!;
@@ -19,6 +21,11 @@
       this.locale = this.getAttribute("locale") || getStoredLocale();
       this.currency = this.getAttribute("currency") || getCurrency();
 
+      this.updatePrice();
+    }
+
+    attributeChangedCallback() {
+      if (!this.prefixElement || !this.priceElement) return;
       this.updatePrice();
     }
 
@@ -32,29 +39,14 @@
 
       this.setAttribute("data-variant", variant || "standard");
 
-      if (prefix) {
-        this.prefixElement.textContent = prefix;
-        this.prefixElement.style.display = "";
-      } else {
-        this.prefixElement.textContent = "";
-        this.prefixElement.style.display = "none";
-      }
+      this.prefixElement.textContent = prefix;
+      this.dataset.prefixed = prefix ? "true" : "false";
 
       this.priceElement.textContent = new Intl.NumberFormat(this.locale, {
         style: "currency",
         currency: currency,
         currencyDisplay: "code",
       }).format(numericAmount);
-    }
-
-    static get observedAttributes() {
-      return ["amount", "currency", "locale", "variant", "prefix"];
-    }
-
-    attributeChangedCallback() {
-      if (this.priceElement) {
-        this.updatePrice();
-      }
     }
   }
 
@@ -70,5 +62,13 @@
   price-display[data-variant="compare-at"] span {
     text-decoration: line-through;
     opacity: 0.7;
+  }
+
+  [data-price-prefix] {
+    display: none;
+  }
+
+  price-display[data-prefixed]:not([data-prefixed="false"]) [data-price-prefix] {
+    display: inline;
   }
 </style>

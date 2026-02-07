@@ -8,7 +8,6 @@ interface Props {
 }
 
 const { section }: Props = Astro.props;
-console.log("section", section);
 ---
 
 <section>
@@ -16,12 +15,14 @@ console.log("section", section);
     section.accordions?.map((accordion) => {
       if (!accordion) return null;
       return (
-        <Accordion group="default">
-          <h2 slot="summary">{accordion.summary}</h2>
-          <div class="content" slot="content">
-            <PortableText value={accordion.contentRaw} />
-          </div>
-        </Accordion>
+        <div class="accordion">
+          <Accordion group="default">
+            <h2 slot="summary">{accordion.summary}</h2>
+            <div class="content" slot="content">
+              <PortableText value={accordion.contentRaw} />
+            </div>
+          </Accordion>
+        </div>
       );
     })
   }
@@ -30,12 +31,18 @@ console.log("section", section);
 <style>
   section {
     width: var(--container-width);
-    margin: 0 auto;
-    margin-top: var(--s200);
-    margin-bottom: var(--s64);
+    margin: var(--s120) auto var(--s64);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .accordion {
+    max-width: calc(6 * var(--column) + 5 * var(--gutter));
   }
 
   .content {
-    padding: var(--s8) 0;
+    padding: var(--s8) 0 var(--s24);
   }
 </style>

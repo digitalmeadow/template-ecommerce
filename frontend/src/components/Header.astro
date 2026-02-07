@@ -11,11 +11,11 @@ const headerQueryQuery = await sanityClient.request(headerQuery);
 const headerData = headerQueryQuery.allHeader[0];
 
 const underlineStyles = [
+  "underline-color-orange",
+  "underline-color-yellow",
   "underline-color-green",
   "underline-color-blue",
   "underline-color-purple",
-  "underline-color-orange",
-  "underline-color-yellow",
 ];
 ---
 
@@ -46,11 +46,8 @@ const underlineStyles = [
             ]}
           >
             <SanityLink
-              class:list={[
-                "text-link",
-                underlineStyles[index % underlineStyles.length],
-                { active: Astro.url.pathname === resolveLinkHref(navigationItem.link) },
-              ]}
+              class:list={["text-link", underlineStyles[index % underlineStyles.length]]}
+              data-active={Astro.url.pathname === resolveLinkHref(navigationItem.link)}
               linkData={navigationItem.link}
             >
               {navigationItem.label}

@@ -36,7 +36,7 @@ const { imageDataURL } = await createBlurUp(playbackId, {});
     loop
     title={videoData?.asset?.filename}
     min_resolution="720p"
-    oncanplay="this.classList.add('loaded')"
+    oncanplay="this.dataset.loaded = ''"
   >
   </mux-player>
 </div>
@@ -50,7 +50,7 @@ const { imageDataURL } = await createBlurUp(playbackId, {});
     transition: opacity var(--transition-media-load);
   }
 
-  mux-player.loaded {
+  mux-player[data-loaded]:not([data-loaded="false"]) {
     opacity: var(--media-opacity, 1);
   }
 

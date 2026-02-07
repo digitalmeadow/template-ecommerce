@@ -22,6 +22,11 @@ export const product = defineType({
       of: [defineArrayMember({ type: "reference", to: { type: "accordion" } })],
     }),
     defineField({
+      type: "array",
+      name: "relatedProducts",
+      of: [defineArrayMember({ type: "reference", to: { type: "product" } })],
+    }),
+    defineField({
       type: "meta",
       name: "meta",
     }),

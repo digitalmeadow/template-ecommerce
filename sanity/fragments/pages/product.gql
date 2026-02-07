@@ -31,6 +31,10 @@ fragment Product on Product {
     ...Accordion
   }
 
+  relatedProducts {
+    ...ProductThumbnail
+  }
+
   meta {
     ...Meta
   }

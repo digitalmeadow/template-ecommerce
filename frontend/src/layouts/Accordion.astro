@@ -96,8 +96,16 @@
 
     private render() {
       if (!this.contentElement || !this.summaryElement) return;
-      this.contentElement.classList.toggle("open", this.isOpen);
-      this.summaryElement.querySelector(".icon")!.classList.toggle("open", this.isOpen);
+
+      const icon = this.summaryElement.querySelector(".icon")! as HTMLElement;
+
+      if (this.isOpen) {
+        this.contentElement.dataset.state = "open";
+        icon.dataset.state = "open";
+      } else {
+        delete this.contentElement.dataset.state;
+        delete icon.dataset.state;
+      }
     }
   }
 
@@ -130,7 +138,7 @@
     overflow: hidden;
   }
 
-  [data-accordion-content].open {
+  [data-accordion-content][data-state]:not([data-accordion-content][data-state="false"]) {
     grid-template-rows: 1fr;
   }
 
@@ -168,11 +176,11 @@
   }
 
   /* Open state */
-  .icon.open .icon-open {
+  .icon[data-state]:not([data-state="false"]) .icon-open {
     opacity: 0;
   }
 
-  .icon.open .icon-close {
+  .icon[data-state]:not([data-state="false"]) .icon-close {
     opacity: 1;
   }
 </style>

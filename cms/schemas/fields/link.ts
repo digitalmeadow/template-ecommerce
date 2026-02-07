@@ -115,7 +115,7 @@ export const link = defineType({
       name: "newTab",
       title: "Open in new tab",
       initialValue: true,
-      hidden: ({ parent }) => parent?.type != "page" || parent?.type != "url",
+      hidden: ({ parent }) => parent?.type != "page" && parent?.type != "url",
     }),
   ],
   options: { collapsible: true, collapsed: false },

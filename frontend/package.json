@@ -15,15 +15,16 @@
     "@mux/mux-player": "3.10.2",
     "astro": "5.16.9",
     "astro-portabletext": "0.13.0",
+    "embla-carousel": "^8.6.0",
     "graphql-request": "7.4.0",
+    "octokit": "5.0.5",
     "sanity": "workspace:*",
-    "shopify": "workspace:*",
-    "octokit": "5.0.5"
+    "shopify": "workspace:*"
   },
   "devDependencies": {
-    "wrangler": "4.54.0",
     "prettier": "3.7.4",
-    "prettier-plugin-astro": "0.14.1"
+    "prettier-plugin-astro": "0.14.1",
+    "wrangler": "4.54.0"
   },
   "prettier": {
     "semi": true,

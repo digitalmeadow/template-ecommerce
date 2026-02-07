@@ -123,9 +123,9 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
 
     render() {
       if (this.isOpen) {
-        this.classList.add("open");
+        this.dataset.state = "open";
       } else {
-        this.classList.remove("open");
+        delete this.dataset.state;
       }
     }
   }
@@ -140,7 +140,7 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
     pointer-events: none;
   }
 
-  overlay-root.open {
+  overlay-root[data-state]:not([data-state="false"]) {
     z-index: 21;
     pointer-events: auto;
   }
@@ -153,7 +153,7 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
     transition: opacity var(--transition-default);
   }
 
-  overlay-root.open .backdrop {
+  overlay-root[data-state]:not([data-state="false"]) .backdrop {
     opacity: 1;
   }
 
@@ -178,10 +178,10 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
 
     transition: opacity var(--transition-default);
   }
-  overlay-root:not(.open) .panel.fullscreen {
+  overlay-root:not([data-state]:not([data-state="false"])) .panel.fullscreen {
     opacity: 0;
   }
-  overlay-root.open .panel.fullscreen {
+  overlay-root[data-state]:not([data-state="false"]) .panel.fullscreen {
     opacity: 1;
   }
   @media (max-width: 500px) {
@@ -199,10 +199,10 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
 
     transition: transform var(--transition-default);
   }
-  overlay-root:not(.open) .panel.right {
+  overlay-root:not([data-state]:not([data-state="false"])) .panel.right {
     transform: translateX(100%);
   }
-  overlay-root.open .panel.right {
+  overlay-root[data-state]:not([data-state="false"]) .panel.right {
     transform: translateX(0);
   }
   @media (max-width: 500px) {
@@ -217,10 +217,10 @@ const { id, layout = "fullscreen" }: Props = Astro.props;
       border-top-left-radius: var(--border-radius--large);
       border-top-right-radius: var(--border-radius--large);
     }
-    overlay-root:not(.open) .panel.right {
+    overlay-root:not([data-state]:not([data-state="false"])) .panel.right {
       transform: translateY(100%);
     }
-    overlay-root.open .panel.right {
+    overlay-root[data-state]:not([data-state="false"]) .panel.right {
       transform: translateY(0);
     }
   }

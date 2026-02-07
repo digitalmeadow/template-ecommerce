@@ -5,13 +5,31 @@ import Mark from "@fields/portableTextComponents/Mark.astro";
 interface Props {
   value: any;
   class?: string | undefined;
+  style?: "default" | "large";
 }
 
-const { value }: Props = Astro.props;
+const { value, class: className, style = "default" }: Props = Astro.props;
 
 const components = {
   mark: Mark,
 };
 ---
 
-<AstroPortableText value={value} components={components} />
+<div class:list={["portable-text", className, style]}>
+  <AstroPortableText value={value} components={components} />
+</div>
+
+<style is:global>
+  .portable-text p,
+  .portable-text li {
+    margin-bottom: 1em;
+  }
+  .portable-text p:last-child,
+  .portable-text li:last-child {
+    margin-bottom: 0;
+  }
+
+  .portable-text li {
+    padding-left: 1em;
+  }
+</style>

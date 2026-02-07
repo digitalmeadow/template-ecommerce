@@ -5,7 +5,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 
 <cart-line-item>
   <div class="cart-line-item">
-    <a data-link class="image-link">
+    <a data-link class="thumbnail">
       <img data-image alt="" />
     </a>
 
@@ -20,7 +20,6 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       <QuantitySelector data-quantity-selector />
 
       <div class="prices">
-        <!-- Compare At Price (Hidden by default) -->
         <div style="display: none;" data-compare-at-wrapper>
           <PriceDisplay variant="compare-at" data-compare-at-price />
         </div>
@@ -54,141 +53,102 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
   export type CartLineRemoveEvent = CustomEvent<EventCartLineRemoveDetail>;
 
   export class CartLineItemElement extends HTMLElement {
+    // UI References
+    private linkElements: NodeListOf<HTMLAnchorElement> | undefined;
+    private imageElement!: HTMLImageElement;
+    private titleElement!: HTMLElement;
+    private variantTitleElement!: HTMLElement;
+    private removeButton!: HTMLButtonElement;
+    private quantitySelector!: QuantitySelectorElement;
+
+    // Prices
+    private priceDisplay!: PriceDisplayElement;
+    private compareAtWrapper!: HTMLElement;
+    private compareAtDisplay!: PriceDisplayElement;
+
+    // Required data
     line?: CartLineFragment;
 
-    init(line: CartLineFragment) {
+    setup(line: CartLineFragment) {
       this.line = line;
       this.render();
     }
 
-    // UI References
-    private linkElements: NodeListOf<HTMLAnchorElement> | undefined;
-    private imageElement: HTMLImageElement | null = null;
-    private titleElement: HTMLElement | null = null;
-    private variantTitleElement: HTMLElement | null = null;
-    private removeButton: HTMLButtonElement | null = null;
-    private quantitySelector: QuantitySelectorElement | null = null;
-
-    // Prices
-    private priceDisplay: PriceDisplayElement | null = null;
-    private compareAtWrapper: HTMLElement | null = null;
-    private compareAtDisplay: PriceDisplayElement | null = null;
-
-    constructor() {
-      super();
-    }
-
     connectedCallback() {
-      // 1. Query Elements
       this.linkElements = this.querySelectorAll("[data-link]");
-      this.imageElement = this.querySelector("[data-image]");
-      this.titleElement = this.querySelector("[data-title]");
-      this.variantTitleElement = this.querySelector("[data-variant-title]");
-      this.removeButton = this.querySelector("[data-remove-button]");
-      this.quantitySelector = this.querySelector("quantity-selector");
+      this.imageElement = this.querySelector("[data-image]")!;
+      this.titleElement = this.querySelector("[data-title]")!;
+      this.variantTitleElement = this.querySelector("[data-variant-title]")!;
+      this.removeButton = this.querySelector("[data-remove-button]")!;
+      this.quantitySelector = this.querySelector("quantity-selector")!;
 
-      this.priceDisplay = this.querySelector("[data-price]");
-      this.compareAtWrapper = this.querySelector("[data-compare-at-wrapper]");
-      this.compareAtDisplay = this.querySelector("[data-compare-at-price]");
+      this.priceDisplay = this.querySelector("[data-price]")!;
+      this.compareAtWrapper = this.querySelector("[data-compare-at-wrapper]")!;
+      this.compareAtDisplay = this.querySelector("[data-compare-at-price]")!;
 
-      // Listeners
-      if (this.removeButton) {
-        this.removeButton.addEventListener("click", this.handleRemove);
-      }
-
-      // Initial Render if data is already present
-      this.render();
+      this.removeButton.addEventListener("click", this.handleRemove);
     }
 
     disconnectedCallback() {
-      if (this.removeButton) {
-        this.removeButton.removeEventListener("click", this.handleRemove);
-      }
+      this.removeButton.removeEventListener("click", this.handleRemove);
     }
 
     setRemoving(isRemoving: boolean) {
       if (isRemoving) {
         this.setAttribute("state", "removing");
-        if (this.removeButton) {
-          this.removeButton.textContent = "Removing...";
-          this.removeButton.disabled = true;
-        }
+        this.removeButton.textContent = "Removing...";
+        this.removeButton.disabled = true;
       } else {
         this.removeAttribute("state");
-        if (this.removeButton) {
-          this.removeButton.textContent = "Remove";
-          this.removeButton.disabled = false;
-        }
+        this.removeButton.textContent = "Remove";
+        this.removeButton.disabled = false;
       }
     }
 
     private render() {
-      // Guard: Data must be present
       if (!this.line) return;
-
-      // Guard: Elements must be queried (connectedCallback must have run)
-      if (!this.titleElement || !this.linkElements || !this.imageElement) return;
 
       const { merchandise, quantity, cost, id } = this.line;
       const { product, title: variantTitle, compareAtPrice } = merchandise;
 
       this.dataset.lineId = id;
 
-      // 1. Links
+      // Links
       const href = resolveSanityHref("product", product.handle);
-      this.linkElements.forEach((el) => (el.href = href));
+      for (const linkElement of this.linkElements!) {
+        linkElement.href = href;
+      }
 
-      // 2. Titles
+      // Titles
       this.titleElement.textContent = product.title;
+      this.variantTitleElement.textContent = variantTitle;
 
       // Check if variant is default
       const isSingleDefaultVariant =
         variantTitle === "Default Title" && product.variants?.edges?.length === 1;
+      this.dataset.singleDefaultVariant = String(isSingleDefaultVariant);
 
-      if (this.variantTitleElement) {
-        if (!isSingleDefaultVariant) {
-          this.variantTitleElement.textContent = variantTitle;
-          this.variantTitleElement.style.display = "";
-        } else {
-          this.variantTitleElement.style.display = "none";
-        }
-      }
-
-      // 3. Image
+      // Image
       this.loadSanityImage(product.handle);
 
-      // 4. Quantity
-      if (this.quantitySelector) {
-        this.quantitySelector.setAttribute("initial", String(quantity));
-        // Force update if component is already upgraded and has these props
-        // We cast to any because we know the methods exist on the custom element instance
-        if ("value" in this.quantitySelector) {
-          (this.quantitySelector as any).value = quantity;
-          if (typeof (this.quantitySelector as any).render === "function") {
-            (this.quantitySelector as any).render();
-          }
-        }
-      }
+      // Quantity
+      this.quantitySelector.setAttribute("initial", String(quantity));
 
-      // 5. Price
-      if (this.priceDisplay) {
-        this.priceDisplay.setAttribute("amount", String(cost.totalAmount.amount ?? 0));
-        this.priceDisplay.setAttribute("currency", cost.totalAmount.currencyCode ?? getCurrency());
-      }
+      // Price
+      this.priceDisplay.setAttribute("amount", String(cost.totalAmount.amount ?? 0));
+      this.priceDisplay.setAttribute("currency", cost.totalAmount.currencyCode ?? getCurrency());
 
-      // 6. Compare At Price
-      if (this.compareAtDisplay && this.compareAtWrapper) {
-        if (compareAtPrice) {
-          const compareAtTotal = Number(compareAtPrice.amount) * quantity;
-          this.compareAtDisplay.setAttribute("amount", String(compareAtTotal));
-          this.compareAtDisplay.setAttribute(
-            "currency",
-            compareAtPrice.currencyCode ?? getCurrency(),
-          );
-          this.compareAtWrapper.style.display = "";
-        } else {
-          this.compareAtWrapper.style.display = "none";
-        }
+      // Compare At Price
+      if (compareAtPrice) {
+        const compareAtTotal = Number(compareAtPrice.amount) * quantity;
+        this.compareAtDisplay.setAttribute("amount", String(compareAtTotal));
+        this.compareAtDisplay.setAttribute(
+          "currency",
+          compareAtPrice.currencyCode ?? getCurrency(),
+        );
+        this.compareAtWrapper.style.display = "";
+      } else {
+        this.compareAtWrapper.style.display = "none";
       }
     }
 
@@ -200,7 +160,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 
       if (cached) {
         this.imageElement.src = cached;
-        this.imageElement.style.display = "";
+        this.imageElement.dataset.loaded = "true";
         return;
       }
 
@@ -214,7 +174,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
           localStorage.setItem(cacheKey, src);
           if (this.imageElement.isConnected) {
             this.imageElement.src = src;
-            this.imageElement.style.display = "";
+            this.imageElement.dataset.loaded = "true";
           }
         }
       } catch (e) {
@@ -243,47 +203,41 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     width: 100%;
   }
 
-  /* Note: Use global convention or scoped styles. Since we control the internal structure here, scoped is fine. */
   .cart-line-item {
-    display: flex;
-    gap: var(--s16);
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--gutter);
+  }
+
+  .thumbnail {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    background-color: var(--color-text);
   }
 
   [data-image] {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    background-color: #f0f0f0;
-    display: none; /* Hidden until loaded */
+    opacity: 0;
+    transition: opacity var(--transition-media-load);
+  }
+
+  [data-image][data-loaded]:not([data-loaded="false"]) {
+    opacity: 1;
   }
 
   .info {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--s8);
+    gap: var(--s4);
   }
 
-  .prices {
-    display: flex;
-    gap: var(--s8);
-  }
-
-  .product-title {
-    font-weight: bold;
-    display: block;
-  }
-
-  .variant-title {
-    font-size: 0.9em;
-    color: var(--color-ink-light);
-    display: block;
+  cart-line-item[data-single-default-variant]:not([data-single-default-variant="false"])
+    .variant-title {
+    display: none;
   }
 
   .remove-button {
-    align-self: flex-start;
-    font-size: 0.9em;
+    align-self: start;
   }
 
   cart-line-item[state="removing"] {

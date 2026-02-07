@@ -29,7 +29,7 @@ summary {
 }
 
 .text-link:hover,
-.text-link.active {
+.text-link[data-active]:not([data-active="false"]) {
   text-decoration-thickness: 12px;
   text-underline-offset: -12px;
 }

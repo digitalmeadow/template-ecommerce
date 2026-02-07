@@ -54,6 +54,7 @@ export async function fetchProductThumbnailShopifySanity(
 export type ProductShopifySanity = {
   shopify: ShopifyProductFragment;
   sanity: SanityProductFragment;
+  relatedProducts: Array<ProductThumbnailShopifySanity>;
   pricesPerLocale: PricesPerLocale;
 };
 
@@ -67,11 +68,23 @@ export async function fetchProductShopifySanity(handle: string): Promise<Product
   if (!shopifyProduct || !sanityProduct)
     throw new Error(`Product with handle "${handle}" not found in Shopify or Sanity`);
 
+  const relatedProducts: Array<ProductThumbnailShopifySanity> = [];
+  for (const relatedProduct of sanityProduct.relatedProducts || []) {
+    if (!relatedProduct) continue;
+
+    const relatedHandle = relatedProduct.shopify?.handle?.current;
+    if (!relatedHandle) continue;
+
+    const relatedProductData = await fetchProductThumbnailShopifySanity(relatedHandle);
+    relatedProducts.push(relatedProductData);
+  }
+
   const pricesPerLocale = await fetchPricesPerLocale(handle);
 
   return {
     shopify: shopifyProduct,
     sanity: sanityProduct,
+    relatedProducts,
     pricesPerLocale,
   };
 }

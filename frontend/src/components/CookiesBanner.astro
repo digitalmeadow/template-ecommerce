@@ -99,12 +99,12 @@ const {
     }
 
     show() {
-      this.setAttribute("visible", "");
+      this.dataset.visible = "";
       this.banner.setAttribute("aria-hidden", "false");
     }
 
     hide() {
-      this.removeAttribute("visible");
+      delete this.dataset.visible;
       this.banner.setAttribute("aria-hidden", "true");
     }
 
@@ -141,7 +141,7 @@ const {
     display: none;
   }
 
-  cookie-banner[visible] {
+  cookie-banner[data-visible]:not([data-visible="false"]) {
     display: block;
   }
 

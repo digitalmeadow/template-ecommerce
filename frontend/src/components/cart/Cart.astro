@@ -154,6 +154,15 @@ import CartLineItem from "./CartLineItem.astro";
       const lineId = lineItemEl.line.id;
       const newQuantity = event.detail.value;
 
+      console.log(
+        "Quantity changed: ",
+        newQuantity,
+        "Quantity selector current value: ",
+        quantitySelector.value,
+        "Line item quantity: ",
+        lineItemEl.line.quantity,
+      );
+
       const cartId = this.cartId;
       if (!cartId) return;
 
@@ -284,13 +293,10 @@ import CartLineItem from "./CartLineItem.astro";
 
         // Clone template
         const clone = this.itemTemplate.content.cloneNode(true) as DocumentFragment;
-        const itemEl = clone.querySelector("cart-line-item") as CartLineItemElement;
-
-        if (itemEl) {
-          customElements.whenDefined("cart-line-item").then(() => {
-            itemEl.init(line);
-          });
-        }
+        const cartLineItemElement = clone.querySelector("cart-line-item") as CartLineItemElement;
+        customElements.whenDefined("cart-line-item").then(() => {
+          cartLineItemElement.setup(line);
+        });
 
         this.lineItemsContainer.appendChild(clone);
       }

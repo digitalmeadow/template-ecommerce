@@ -16,3 +16,8 @@ body {
   background-color: var(--color-background);
   color: var(--color-text);
 }
+
+::selection {
+  background: var(--color-yellow);
+  color: var(--color-text);
+}
