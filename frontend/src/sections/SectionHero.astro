@@ -9,7 +9,9 @@ const { section }: Props = Astro.props;
 ---
 
 <section>
-  <h1 data-text-fill-width data-text-animate-colors>{section.heading}</h1>
+  <h1 data-text-fill-width data-text-animate-colors aria-label={section.heading}>
+    {section.heading}
+  </h1>
 </section>
 
 <style>
