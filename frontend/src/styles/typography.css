@@ -51,3 +51,9 @@ details {
 .text-link.underline-color-purple {
   text-decoration-color: var(--color-purple);
 }
+
+.text-inherit {
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+}

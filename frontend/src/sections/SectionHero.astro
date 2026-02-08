@@ -9,7 +9,7 @@ const { section }: Props = Astro.props;
 ---
 
 <section>
-  <h1 data-text-fill-width>{section.heading}</h1>
+  <h1 data-text-fill-width data-text-animate-colors>{section.heading}</h1>
 </section>
 
 <style>
@@ -34,3 +34,42 @@ const { section }: Props = Astro.props;
     text-transform: uppercase;
   }
 </style>
+
+<script>
+  // A simple script which animates the headin text
+  // It splits into individual characters and animates them from their starting color of var(--color-text)
+  // With the color options flowing across from left to right before settling back on var(--color-text)
+  const COLORS = [
+    "var(--color-green)",
+    "var(--color-blue)",
+    "var(--color-purple)",
+    "var(--color-yellow)",
+    "var(--color-orange)",
+  ];
+
+  const textAnimate = document.querySelector("[data-text-animate-colors]") as HTMLElement;
+
+  const text = textAnimate.textContent || "";
+  const characters = text.split("");
+
+  textAnimate.innerHTML = characters
+    .map((char) => `<span class="text-inherit text-animate-char">${char}</span>`)
+    .join("");
+
+  const charElements = textAnimate.querySelectorAll(".text-animate-char");
+
+  charElements.forEach((char, index) => {
+    char.animate(
+      [
+        { color: "var(--color-text)" },
+        ...COLORS.map((color) => ({ color })),
+        { color: "var(--color-text)" },
+      ],
+      {
+        duration: 2000,
+        delay: index * 50,
+        iterations: 1,
+      },
+    );
+  });
+</script>
