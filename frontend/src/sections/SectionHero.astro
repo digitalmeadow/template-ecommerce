@@ -38,9 +38,6 @@ const { section }: Props = Astro.props;
 </style>
 
 <script>
-  // A simple script which animates the headin text
-  // It splits into individual characters and animates them from their starting color of var(--color-text)
-  // With the color options flowing across from left to right before settling back on var(--color-text)
   const COLORS = [
     "var(--color-green)",
     "var(--color-blue)",
@@ -69,7 +66,7 @@ const { section }: Props = Astro.props;
       ],
       {
         duration: 2000,
-        delay: index * 50,
+        delay: 500 + index * 50,
         iterations: 1,
       },
     );

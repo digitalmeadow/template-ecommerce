@@ -6,7 +6,5 @@
 
 - Look at using ProductPrice in the CartLineItem component
 
-- Bigger CTA just before the footer
-- More attention grabbing hero section
-  - maybe try get flowers to grow off of the lettering?
-  
+- Look at not building out inactive product pages or showing them in collection sections etc
+(drafts, hidden products, etc)
