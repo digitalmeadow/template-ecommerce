@@ -72,3 +72,14 @@ input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+select {
+  padding-left: 0;
+  padding-right: 0;
+  margin: 0;
+  border: none; /* optional */
+  appearance: none; /* remove native styling in most browsers */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-indent: 0; /* fixes some Firefox padding */
+}

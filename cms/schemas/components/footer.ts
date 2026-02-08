@@ -15,5 +15,10 @@ export const footer = defineType({
       name: "navigationItems",
       of: [defineArrayMember({ type: "button" })],
     }),
+    defineField({
+      type: "media",
+      name: "mediaBackground",
+      validation: (Rule) => Rule.required(),
+    }),
   ],
 });

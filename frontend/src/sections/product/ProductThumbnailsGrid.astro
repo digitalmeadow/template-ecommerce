@@ -54,15 +54,3 @@ const { productsData }: Props = Astro.props;
     }
   }
 </style>
-
-<style is:inline>
-  /* Target the non-double spanned items, find the media element and set its aspect ratio to 1 / 1 */
-  .grid > .grid-item:not(:nth-child(6n + 1)) .product-thumbnail .media {
-    aspect-ratio: 1 / 1;
-  }
-  @media (max-width: 500px) {
-    .grid > .grid-item:not(:nth-child(5n + 1)) .product-thumbnail .media {
-      aspect-ratio: 1 / 1;
-    }
-  }
-</style>

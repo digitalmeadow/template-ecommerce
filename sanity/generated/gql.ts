@@ -15,7 +15,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}": typeof types.CartFragmentDoc,
-    "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}": typeof types.FooterFragmentDoc,
+    "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}": typeof types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": typeof types.HeaderFragmentDoc,
     "fragment Accordion on Accordion {\n  summary\n  contentRaw\n}": typeof types.AccordionFragmentDoc,
     "fragment Button on Button {\n  label\n  link {\n    ...Link\n  }\n}": typeof types.ButtonFragmentDoc,
@@ -49,7 +49,7 @@ type Documents = {
 };
 const documents: Documents = {
     "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}": types.CartFragmentDoc,
-    "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}": types.FooterFragmentDoc,
+    "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}": types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": types.HeaderFragmentDoc,
     "fragment Accordion on Accordion {\n  summary\n  contentRaw\n}": types.AccordionFragmentDoc,
     "fragment Button on Button {\n  label\n  link {\n    ...Link\n  }\n}": types.ButtonFragmentDoc,
@@ -103,7 +103,7 @@ export function graphql(source: "fragment Cart on Cart {\n  __typename\n  _id\n 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}"): (typeof documents)["fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n}"];
+export function graphql(source: "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}"): (typeof documents)["fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

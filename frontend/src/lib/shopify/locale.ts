@@ -24,7 +24,7 @@ export const LOCALE_CONFIG = {
   },
 } as const;
 
-const DEFAULT_LOCALE: LocaleCode = "en-US";
+const DEFAULT_LOCALE: LocaleCode = "en-AU";
 const LOCALE_STORAGE_KEY = "preferred-locale";
 
 export type LocaleCode = keyof typeof LOCALE_CONFIG;

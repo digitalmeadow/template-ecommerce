@@ -6,4 +6,7 @@ fragment Footer on Footer {
   navigationItems {
     ...Button
   }
+  mediaBackground {
+    ...Media
+  }
 }
