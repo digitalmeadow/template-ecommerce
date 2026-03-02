@@ -8,8 +8,8 @@ import RelatedProductsSection from "@sections/product/RelatedProductsSection.ast
 import type { MetaFragment } from "sanity/generated/graphql";
 
 export async function getStaticPaths() {
-  const productsQueryQuery = await sanityClient.request(productsQuery);
-  const paths = productsQueryQuery.allProduct
+  const productsQueryResult = await sanityClient.request(productsQuery);
+  const paths = productsQueryResult.allProduct
     .filter((product) => product.shopify!.status === "active")
     .map((product) => {
       return {

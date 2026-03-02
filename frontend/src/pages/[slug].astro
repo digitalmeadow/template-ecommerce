@@ -6,8 +6,8 @@ import SectionsRenderer from "@sections/SectionsRenderer.astro";
 import { pageQuery, pagesQuery } from "sanity/queries/page";
 
 export async function getStaticPaths() {
-  const pagesQueryQuery = await sanityClient.request(pagesQuery);
-  const slugs = pagesQueryQuery.allPage.map((page) => page.slug?.current);
+  const pagesQueryResult = await sanityClient.request(pagesQuery);
+  const slugs = pagesQueryResult.allPage.map((page) => page.slug?.current);
   return slugs.map((slug) => (slug ? { params: { slug } } : null));
 }
 

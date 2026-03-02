@@ -5,8 +5,8 @@ import SanityMedia from "@fields/SanityMedia.astro";
 import { sanityClient } from "sanity/client";
 import { footerQuery } from "sanity/queries/footer";
 
-const footerQueryQuery = await sanityClient.request(footerQuery);
-const footerData = footerQueryQuery.allFooter[0];
+const footerQueryResult = await sanityClient.request(footerQuery);
+const footerData = footerQueryResult.allFooter[0];
 ---
 
 <footer>

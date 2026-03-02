@@ -8,8 +8,8 @@ import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro
 import type { MetaFragment } from "sanity/generated/graphql";
 
 export async function getStaticPaths() {
-  const collectionsQueryQuery = await sanityClient.request(collectionsQuery);
-  const slugs = collectionsQueryQuery.allCollection.map(
+  const collectionsQueryResult = await sanityClient.request(collectionsQuery);
+  const slugs = collectionsQueryResult.allCollection.map(
     (collection) => collection.shopify?.handle?.current,
   );
   return slugs.map((slug) => (slug ? { params: { slug } } : null));

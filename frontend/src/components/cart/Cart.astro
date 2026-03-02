@@ -7,8 +7,8 @@ import { sanityClient } from "sanity/client";
 import { cartQuery } from "sanity/queries/cart";
 import PortableText from "@fields/PortableText.astro";
 
-const cartQueryQuery = await sanityClient.request(cartQuery);
-const cartData = cartQueryQuery.allCart[0];
+const cartQueryResult = await sanityClient.request(cartQuery);
+const cartData = cartQueryResult.allCart[0];
 ---
 
 <Overlay id="cart" layout="right" aria-label="Shopping Cart">

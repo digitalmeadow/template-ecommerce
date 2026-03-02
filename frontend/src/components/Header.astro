@@ -7,8 +7,8 @@ import LocaleSelector from "@blocks/LocaleSelector.astro";
 import CartButton from "./cart/CartButton.astro";
 import { resolveLinkHref } from "@lib/sanity/links";
 
-const headerQueryQuery = await sanityClient.request(headerQuery);
-const headerData = headerQueryQuery.allHeader[0];
+const headerQueryResult = await sanityClient.request(headerQuery);
+const headerData = headerQueryResult.allHeader[0];
 
 const underlineStyles = [
   "underline-color-orange",
