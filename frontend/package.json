@@ -12,8 +12,8 @@
   "dependencies": {
     "@astrojs/cloudflare": "12.6.12",
     "@mux/blurup": "1.0.2",
-    "@mux/mux-player": "3.10.2",
-    "astro": "5.16.9",
+    "@mux/mux-player": "3.11.5",
+    "astro": "5.18.0",
     "astro-portabletext": "0.13.0",
     "embla-carousel": "^8.6.0",
     "graphql-request": "7.4.0",
@@ -22,9 +22,9 @@
     "shopify": "workspace:*"
   },
   "devDependencies": {
-    "prettier": "3.7.4",
+    "prettier": "3.8.1",
     "prettier-plugin-astro": "0.14.1",
-    "wrangler": "4.54.0"
+    "wrangler": "4.69.0"
   },
   "prettier": {
     "semi": true,
