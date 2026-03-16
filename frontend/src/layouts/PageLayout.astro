@@ -3,7 +3,7 @@ import "@styles/reset.css";
 import "@styles/base.css";
 import "@styles/colors.css";
 import "@styles/spacing.css";
-import "@styles/typography.css";
+import "@styles/text.css";
 import "@styles/elements.css";
 import "@styles/animations.css";
 import "@styles/aspects.css";
@@ -14,12 +14,13 @@ import Footer from "@components/Footer.astro";
 import Grid from "@dev/Grid.astro";
 import Meta from "@meta/Meta.astro";
 import type { MetaFragment } from "sanity/generated/graphql";
-import { WEBSITE_URL } from "astro:env/client";
 import { getLocaleFromPath, LOCALE_CONFIG } from "@lib/shopify/locale";
 import CookiesBanner from "@components/CookiesBanner.astro";
 import ScriptSpacing from "../scripts/ScriptSpacing.astro";
 import Cart from "@components/cart/Cart.astro";
 import ScriptTextFillWidth from "../scripts/ScriptTextFillWidth.astro";
+import { sanityClient } from "sanity/client";
+import { metaSettingsQuery } from "sanity/queries/metaSettings";
 
 interface Props {
   metaData: MetaFragment | null | undefined;
@@ -27,9 +28,11 @@ interface Props {
 
 const { metaData }: Props = Astro.props;
 
-const canonicalUrl = new URL(Astro.url.pathname, WEBSITE_URL).href;
 const currentLocale = getLocaleFromPath(Astro.url.pathname);
 const localeConfig = LOCALE_CONFIG[currentLocale];
+
+const metaSettingsQueryResult = await sanityClient.request(metaSettingsQuery);
+const metaSettingsData = metaSettingsQueryResult?.allMetaSettings?.[0];
 ---
 
 <html
@@ -54,9 +57,7 @@ const localeConfig = LOCALE_CONFIG[currentLocale];
     <meta name="theme" content="#F6F2E5" />
     <meta name="generator" content={Astro.generator} />
 
-    <title>{metaData?.title}</title>
-    <Meta metaData={metaData} />
-    <link rel="canonical" href={canonicalUrl} />
+    <Meta metaData={metaData} metaSettingsData={metaSettingsData} />
     <link
       rel="preload"
       href="/fonts/BIZUDMincho-Regular.woff2"

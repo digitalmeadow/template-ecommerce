@@ -1,15 +1,14 @@
-import { ComponentIcon } from "@sanity/icons";
-
+import { CogIcon } from "@sanity/icons";
 import { StructureBuilder } from "sanity/structure";
 
-export const components = (S: StructureBuilder) => {
+export const settings = (S: StructureBuilder) => {
   // prettier-ignore
   return S.listItem()
-	.title('Components')
-	.icon(ComponentIcon)
+	.title('Settings')
+	.icon(CogIcon)
 	.child(
 		S.list()
-			.title('Components')
+			.title('Settings')
 			.items(
 			[
 				S.listItem()
@@ -29,6 +28,12 @@ export const components = (S: StructureBuilder) => {
 					.schemaType('cart')
 					.child(
 						S.document().schemaType('cart').documentId('cart')
+					),
+				S.listItem()
+					.title('Meta Settings')
+					.schemaType('metaSettings')
+					.child(
+						S.document().schemaType('metaSettings').documentId('metaSettings')
 					),
 			]
 		)

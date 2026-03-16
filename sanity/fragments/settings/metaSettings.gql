@@ -1,0 +1,8 @@
+fragment MetaSettings on MetaSettings {
+  __typename
+  _id
+
+  meta {
+    ...Meta
+  }
+}

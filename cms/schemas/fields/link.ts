@@ -114,7 +114,7 @@ export const link = defineType({
       type: "boolean",
       name: "newTab",
       title: "Open in new tab",
-      initialValue: true,
+      initialValue: false,
       hidden: ({ parent }) => parent?.type != "page" && parent?.type != "url",
     }),
   ],

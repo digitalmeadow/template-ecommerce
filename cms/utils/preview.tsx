@@ -4,7 +4,7 @@ export function capitalize(string: string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-export function previewTextRich(richText: any[]): string {
+export function previewPortableText(richText: any[]): string {
   let text = "";
 
   for (const block of richText) {

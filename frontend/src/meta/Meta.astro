@@ -1,15 +1,26 @@
 ---
-import type { MetaFragment } from "sanity/generated/graphql";
+import { WEBSITE_URL } from "astro:env/client";
+import type { MetaFragment, MetaSettingsFragment } from "sanity/generated/graphql";
 
 interface Props {
   metaData: MetaFragment | null | undefined;
+  metaSettingsData: MetaSettingsFragment | null | undefined;
 }
 
-const { metaData }: Props = Astro.props;
+const { metaData, metaSettingsData }: Props = Astro.props;
+
+const title = metaData?.title || metaSettingsData?.meta?.title || "";
+const description = metaData?.description || metaSettingsData?.meta?.description || "";
+const image = metaData?.image || metaSettingsData?.meta?.image;
+
+const canonicalUrl = new URL(Astro.url.pathname, WEBSITE_URL).href;
 ---
 
-<meta name="description" content={metaData?.description} />
+<title>{title}</title>
+<meta name="description" content={description} />
 
-<meta property="og:title" content={metaData?.title ?? ""} />
-<meta property="og:description" content={metaData?.description ?? ""} />
-<meta property="og:image" content={metaData?.image?.asset?.url} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={image?.asset?.url} />
+
+<link rel="canonical" href={canonicalUrl} />

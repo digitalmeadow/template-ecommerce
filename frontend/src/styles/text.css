@@ -1,22 +1,5 @@
 .text-body,
-p,
-span,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-a,
-li,
-label,
-button,
-input,
-textarea,
-select,
-summary,
-legend,
-details {
+body {
   font-size: 14px;
   line-height: 18px;
   font-weight: 400;

@@ -1,24 +1,25 @@
 import { link } from "./fields/link";
 import { meta } from "./fields/meta";
-import { header } from "./components/header";
-import { footer } from "./components/footer";
-import { home } from "./pages/home";
+import { header } from "./settings/header";
+import { footer } from "./settings/footer";
+import { home } from "./documents/home";
 import { button } from "./fields/button";
-import { page } from "./pages/page";
+import { page } from "./documents/page";
 import { media } from "./fields/media";
 import { sectionHero } from "./sections/sectionHero";
 import { textRich } from "./fields/textRich";
-import { product } from "./pages/product";
-import { productVariant } from "./pages/productVariant";
-import { collection } from "./pages/collection";
-import { shopifyProduct } from "./shopify/shopifyProduct";
-import { shopifyProductVariant } from "./shopify/shopifyProductVariant";
-import { shopifyCollection } from "./shopify/shopifyCollection";
+import { product } from "./documents/product";
+import { productVariant } from "./documents/productVariant";
+import { collection } from "./documents/collection";
+import { shopifyProduct } from "./fields/shopifyProduct";
+import { shopifyProductVariant } from "./fields/shopifyProductVariant";
+import { shopifyCollection } from "./fields/shopifyCollection";
 import { sectionText } from "./sections/sectionText";
 import { sectionCollection } from "./sections/sectionCollection";
 import { accordion } from "./fields/accordion";
 import { sectionAccordions } from "./sections/sectionAccordions";
-import { cart } from "./components/cart";
+import { cart } from "./settings/cart";
+import { metaSettings } from "./settings/metaSettings";
 
 export const schemaTypes = [
   // Fields
@@ -27,13 +28,9 @@ export const schemaTypes = [
   meta,
   media,
   accordion,
-
-  // Shopify
   shopifyProduct,
   shopifyProductVariant,
   shopifyCollection,
-
-  // Blocks
   button,
 
   // Sections
@@ -42,15 +39,16 @@ export const schemaTypes = [
   sectionCollection,
   sectionAccordions,
 
-  // Components
-  header,
-  footer,
-  cart,
-
-  // Pages
+  // Documents
   home,
   page,
   product,
   productVariant,
   collection,
+
+  // Settings
+  metaSettings,
+  header,
+  footer,
+  cart,
 ];

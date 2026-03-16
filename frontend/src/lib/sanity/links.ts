@@ -1,20 +1,64 @@
 import { SANITY_PROJECT_ID } from "sanity/config";
 import type { LinkFragment } from "sanity/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
+import { sanityClientGroq } from "sanity/client";
 
-export function resolveLinkHref(linkData: LinkFragment): string {
-  if (!linkData) return "";
-  if (linkData.type === "section") return linkData.section ?? "";
-  if (linkData.type === "url") return linkData.url ?? "";
-  if (linkData.type === "page") return resolveReferenceHref(linkData.page) ?? "";
-  if (linkData.type === "email") return `mailto:${linkData.email}`;
-  if (linkData.type === "phone") return `tel:${linkData.phone}`;
-  if (linkData.type === "file") {
-    if (linkData.file?.asset && "_ref" in linkData.file?.asset && linkData.file?.asset?._ref) {
-      return sanityFileUrlFromRef(linkData.file?.asset?._ref as string);
+// This is only required because GraphQL doesn't resolve references in Portable Text
+async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragment | null> {
+  if (linkData?.type === "page" && linkData.page?._type === "reference") {
+    if (!("_ref" in linkData.page) || !linkData.page._ref) {
+      throw new Error("Page reference is missing _ref");
     }
-    if (linkData.file?.asset?.url) {
-      return linkData.file.asset.url;
+
+    const refId = linkData.page._ref;
+
+    const resolved = await sanityClientGroq.fetch(
+      `*[_id == $refId][0]{
+        _type,
+        _id,
+        "slug": slug.current
+      }`,
+      { refId },
+    );
+
+    if (resolved) {
+      return {
+        ...linkData,
+        page: {
+          __typename: "Page",
+          _type: resolved._type,
+          _id: resolved._id,
+          slug: { __typename: "Slug", current: resolved.slug },
+        },
+      };
+    }
+  }
+
+  // Already resolved or not a page link
+  return linkData;
+}
+
+export async function resolveLinkHref(linkData: LinkFragment | any): Promise<string> {
+  if (!linkData) return "";
+
+  const resolvedLink = await resolveLinkReference(linkData);
+  if (!resolvedLink) return "";
+
+  if (resolvedLink.type === "section") return resolvedLink.section ?? "";
+  if (resolvedLink.type === "url") return resolvedLink.url ?? "";
+  if (resolvedLink.type === "page") return resolveReferenceHref(resolvedLink.page) ?? "";
+  if (resolvedLink.type === "email") return `mailto:${resolvedLink.email}`;
+  if (resolvedLink.type === "phone") return `tel:${resolvedLink.phone}`;
+  if (resolvedLink.type === "file") {
+    if (
+      resolvedLink.file?.asset &&
+      "_ref" in resolvedLink.file?.asset &&
+      resolvedLink.file?.asset?._ref
+    ) {
+      return sanityFileUrlFromRef(resolvedLink.file?.asset?._ref as string);
+    }
+    if (resolvedLink.file?.asset?.url) {
+      return resolvedLink.file.asset.url;
     }
   }
   return "";
@@ -39,16 +83,15 @@ export function resolveSanityHref(documentType: string, slug?: string | null): s
 }
 
 function resolveReferenceHref(reference: LinkFragment["page"]): string {
-  if (!reference?._type || !(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
-    throw new Error("Invalid reference type");
+  if (!reference?._type) {
+    throw new Error("Reference is missing _type");
   }
 
-  const slug =
-    "slug" in reference && reference.slug
-      ? reference.slug.current
-      : "shopify" in reference
-        ? reference.shopify?.handle?.current
-        : undefined;
+  if (reference?._type && !(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
+    throw new Error(`_type: ${reference?._type} not found in SANITY_DOCUMENT_ROUTE_PATTERNS`);
+  }
+
+  const slug = "slug" in reference && reference.slug ? reference.slug.current : undefined;
 
   return resolveSanityHref(reference._type, slug);
 }

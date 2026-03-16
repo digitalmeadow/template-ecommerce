@@ -47,7 +47,10 @@ const {
 
   [data-carousel-container] {
     display: flex;
-    touch-action: pan-y pinch-zoom;
+    cursor: grab;
+  }
+  [data-carousel-container]:active {
+    cursor: grabbing;
   }
 </style>
 

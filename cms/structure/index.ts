@@ -1,6 +1,6 @@
 import { StructureResolver } from "sanity/structure";
 import { home } from "./home";
-import { components } from "./components";
+import { settings } from "./settings";
 import { pages } from "./pages";
 import { collections } from "./collections";
 import { products } from "./products";
@@ -10,7 +10,7 @@ export const structure: StructureResolver = (S) => {
   return S.list()
 		.title('Content')
 		.items([
-			components(S),
+			settings(S),
 			S.divider(),
 			home(S),
 			pages(S),
