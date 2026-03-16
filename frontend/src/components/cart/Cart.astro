@@ -58,66 +58,29 @@ const cartData = cartQueryResult.allCart[0];
     $checkoutUrl,
     $cartLines,
     loadCart,
-    updateLineQuantity,
-    removeLine,
   } from "@stores/cart";
   import { cartOpen, setCartOpen } from "@stores/ui";
   import type { CartLineItemElement } from "./CartLineItem.astro.0.mts";
 
-  const cartEl = document.querySelector("[data-cart]") as HTMLElement;
-  const lineItemsContainer = cartEl?.querySelector("[data-cart-line-items]") as HTMLUListElement;
-  const totalPriceDisplay = cartEl?.querySelector("[data-cart-total] price-display") as HTMLElement;
-  const checkoutButton = cartEl?.querySelector("[data-cart-checkout-button]") as HTMLButtonElement;
-  const itemTemplate = cartEl?.querySelector("[data-cart-line-template]") as HTMLTemplateElement;
+  const cartElement = document.querySelector("[data-cart]") as HTMLElement;
+  const lineItemsContainer = cartElement.querySelector(
+    "[data-cart-line-items]",
+  ) as HTMLUListElement;
+  const totalPriceDisplay = cartElement.querySelector(
+    "[data-cart-total] price-display",
+  ) as HTMLElement;
+  const checkoutButton = cartElement.querySelector(
+    "[data-cart-checkout-button]",
+  ) as HTMLButtonElement;
+  const itemTemplate = cartElement.querySelector(
+    "[data-cart-line-template]",
+  ) as HTMLTemplateElement;
   const overlayElement = document.querySelector('overlay-root[id="cart"]') as HTMLElement;
 
   function handleCheckoutClick() {
     const url = $checkoutUrl.get();
     if (!url) throw new Error("Checkout URL is not available");
     window.location.href = url;
-  }
-
-  async function handleQuantityChange(e: Event) {
-    const event = e as CustomEvent<{ value: number }>;
-    const quantitySelectorElement = event.target as HTMLElement;
-
-    const lineItemEl = quantitySelectorElement.closest("[data-cart] cart-line-item");
-    if (!lineItemEl) return;
-
-    const lineItem = lineItemEl as HTMLElement & { line?: { id: string } };
-    if (!lineItem.line) return;
-
-    const lineId = lineItem.line.id;
-    const newQuantity = event.detail.value;
-
-    quantitySelectorElement.setAttribute("data-updating", "true");
-    document.body.style.cursor = "wait";
-
-    try {
-      await updateLineQuantity(lineId, newQuantity);
-    } catch (error) {
-      console.error("Failed to update cart quantity", error);
-    } finally {
-      document.body.style.cursor = "";
-      quantitySelectorElement.removeAttribute("data-updating");
-    }
-  }
-
-  async function handleLineRemove(e: Event) {
-    const event = e as CustomEvent<{ lineId: string }>;
-    const { lineId } = event.detail;
-    const lineItemEl = event.target as HTMLElement;
-
-    lineItemEl?.setAttribute("data-removing", "true");
-    document.body.style.cursor = "wait";
-
-    try {
-      await removeLine(lineId);
-    } catch (error) {
-      console.error("Failed to remove cart line", error);
-    } finally {
-      document.body.style.cursor = "";
-    }
   }
 
   function clearLineItems() {
@@ -129,15 +92,15 @@ const cartData = cartQueryResult.allCart[0];
     const lines = $cartLines.get();
 
     if (!cart || !lines.length) {
-      cartEl.dataset.state = "empty";
+      cartElement.dataset.state = "empty";
       clearLineItems();
       totalPriceDisplay.removeAttribute("amount");
       checkoutButton.disabled = true;
-      cartEl.removeAttribute("data-checkout-valid");
+      cartElement.removeAttribute("data-checkout-valid");
       return;
     }
 
-    cartEl.dataset.state = "loaded";
+    cartElement.dataset.state = "loaded";
     clearLineItems();
 
     for (const line of lines) {
@@ -162,10 +125,10 @@ const cartData = cartQueryResult.allCart[0];
   });
   $checkoutUrl.subscribe((url: string | null) => {
     if (url) {
-      cartEl.setAttribute("data-checkout-valid", "");
+      cartElement.setAttribute("data-checkout-valid", "");
       checkoutButton.disabled = false;
     } else {
-      cartEl.removeAttribute("data-checkout-valid");
+      cartElement.removeAttribute("data-checkout-valid");
       checkoutButton.disabled = true;
     }
   });
@@ -179,8 +142,6 @@ const cartData = cartQueryResult.allCart[0];
   });
 
   checkoutButton.addEventListener("click", handleCheckoutClick);
-  cartEl.addEventListener("quantity-selector:quantity-changed", handleQuantityChange);
-  cartEl.addEventListener("cart-line:remove", handleLineRemove);
 
   overlayElement.addEventListener("overlay:closed", () => {
     setCartOpen(false);

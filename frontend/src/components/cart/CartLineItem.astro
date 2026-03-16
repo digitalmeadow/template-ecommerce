@@ -42,14 +42,10 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 <script>
   import { resolveSanityHref } from "@lib/sanity/links";
   import { getCurrency } from "@lib/shopify/locale";
+  import { updateLineQuantity, removeLine } from "@stores/cart";
   import type { QuantitySelectorElement } from "@blocks/QuantitySelector.astro.0.mts";
   import type { PriceDisplayElement } from "@blocks/PriceDisplay.astro.0.mts";
   import type { CartLineFragment } from "shopify/generated/graphql";
-
-  export type EventCartLineRemoveDetail = {
-    lineId: string;
-  };
-  export type CartLineRemoveEvent = CustomEvent<EventCartLineRemoveDetail>;
 
   export class CartLineItemElement extends HTMLElement {
     linkElements: NodeListOf<HTMLAnchorElement> | undefined;
@@ -83,19 +79,21 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       this.compareAtDisplay = this.querySelector("[data-compare-at-price]")!;
 
       this.removeButton.addEventListener("click", this.handleRemove);
+      this.addEventListener("quantity-selector:quantity-changed", this.handleQuantityChange);
     }
 
     disconnectedCallback() {
       this.removeButton.removeEventListener("click", this.handleRemove);
+      this.removeEventListener("quantity-selector:quantity-changed", this.handleQuantityChange);
     }
 
     setRemoving(isRemoving: boolean) {
       if (isRemoving) {
-        this.setAttribute("state", "removing");
+        this.setAttribute("data-state", "removing");
         this.removeButton.textContent = "Removing";
         this.removeButton.disabled = true;
       } else {
-        this.removeAttribute("state");
+        this.removeAttribute("data-state");
         this.removeButton.textContent = "Remove";
         this.removeButton.disabled = false;
       }
@@ -145,15 +143,41 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       }
     }
 
-    private handleRemove = () => {
+    private handleRemove = async () => {
       if (!this.line) return;
 
-      this.dispatchEvent(
-        new CustomEvent("cart-line:remove", {
-          bubbles: true,
-          detail: { lineId: this.line.id },
-        }),
-      );
+      this.setRemoving(true);
+      document.body.style.cursor = "wait";
+
+      try {
+        await removeLine(this.line.id);
+      } catch (error) {
+        console.error("Failed to remove cart line", error);
+        this.setRemoving(false);
+      } finally {
+        document.body.style.cursor = "";
+      }
+    };
+
+    private handleQuantityChange = async (e: Event) => {
+      const event = e as CustomEvent<{ value: number }>;
+      const quantitySelectorElement = event.target as QuantitySelectorElement;
+
+      if (!this.line) return;
+
+      const newQuantity = event.detail.value;
+
+      quantitySelectorElement.setAttribute("data-state", "updating");
+      document.body.style.cursor = "wait";
+
+      try {
+        await updateLineQuantity(this.line.id, newQuantity);
+      } catch (error) {
+        console.error("Failed to update cart quantity", error);
+      } finally {
+        document.body.style.cursor = "";
+        quantitySelectorElement.removeAttribute("data-state");
+      }
     };
   }
 
@@ -210,7 +234,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     align-self: start;
   }
 
-  cart-line-item[state="removing"] {
+  cart-line-item[data-state="removing"] {
     opacity: 0.5;
     pointer-events: none;
   }
