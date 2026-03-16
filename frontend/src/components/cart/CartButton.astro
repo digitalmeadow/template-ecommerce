@@ -1,6 +1,24 @@
-<button class="cart-button" data-trigger-overlay-toggle="cart" aria-label="Toggle cart">
+<button class="cart-button" data-cart-button aria-label="Toggle cart">
   Cart<span data-cart-count></span>
 </button>
+
+<script>
+  import { $cartCount, loadCart } from "@stores/cart";
+  import { setCartOpen } from "@stores/ui";
+
+  const button = document.querySelector("[data-cart-button]") as HTMLButtonElement;
+  const cartCountElement = document.querySelector("[data-cart-count]") as HTMLElement;
+
+  $cartCount.subscribe((count: number) => {
+    cartCountElement.textContent = `(${count})`;
+  });
+
+  button.addEventListener("click", () => {
+    setCartOpen(true);
+  });
+
+  loadCart();
+</script>
 
 <style>
   .cart-button {

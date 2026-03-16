@@ -4,14 +4,8 @@
 </div>
 
 <script>
-  import { shopifyClient } from "shopify/client";
-  import { cartCreateMutation, cartLinesAddMutation } from "shopify/mutations/cart";
-  import {
-    CART_DATA_STORAGE_KEY_SUFFIX,
-    CART_ID_STORAGE_KEY_SUFFIX,
-    getStorageKey,
-  } from "@lib/shopify/cart";
-  import { getCountryCode } from "@lib/shopify/locale";
+  import { addToCart } from "@stores/cart";
+  import { setCartOpen } from "@stores/ui";
   import type { Variant } from "@sections/product/ProductVariantSelector.astro";
   import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
 
@@ -52,61 +46,22 @@
       return Number(quantityInput.value);
     }
 
-    async function addToCart(variantId: string, quantity: number) {
-      if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
+    async function handleAddToCart() {
+      const variantId = getSelectedVariantId();
+      const quantity = getSelectedQuantity();
 
       if (!variantId) throw new Error("ProductAddToCart: variantId is required");
 
       if (!Number.isFinite(quantity) || quantity < 1)
         throw new Error("ProductAddToCart: quantity must be at least 1");
 
-      const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
-      const cartDataKey = getStorageKey(CART_DATA_STORAGE_KEY_SUFFIX);
-
       button.disabled = true;
       button.setAttribute("data-loading", "true");
       document.body.style.cursor = "wait";
 
       try {
-        let cartId = localStorage.getItem(cartIdKey);
-
-        let result;
-
-        if (!cartId) {
-          const createResponse = await shopifyClient.request(cartCreateMutation, {
-            cartInput: {
-              lines: [{ merchandiseId: variantId, quantity }],
-            },
-            countryCode: getCountryCode(),
-          });
-
-          result = createResponse.cartCreate;
-
-          if (!result?.cart)
-            throw new Error(result?.userErrors?.[0]?.message || "Cart creation failed");
-
-          cartId = result.cart.id;
-          localStorage.setItem(cartIdKey, cartId);
-          localStorage.setItem(cartDataKey, JSON.stringify(result.cart));
-        } else {
-          const addResponse = await shopifyClient.request(cartLinesAddMutation, {
-            cartId,
-            lines: [{ merchandiseId: variantId, quantity }],
-            countryCode: getCountryCode(),
-          });
-
-          result = addResponse.cartLinesAdd;
-
-          if (!result?.cart)
-            throw new Error(result?.userErrors?.[0]?.message || "Adding to cart failed");
-        }
-
-        productRoot.dispatchEvent(
-          new CustomEvent("product:add-to-cart", {
-            bubbles: true,
-            detail: { variantId, quantity, cart: result.cart },
-          }),
-        );
+        await addToCart(variantId, quantity);
+        setCartOpen(true);
       } catch (error: any) {
         console.error("[ProductAddToCart] Error:", error);
       } finally {
@@ -131,12 +86,7 @@
 
     productRoot.addEventListener("product:variant-change", handleVariantChange);
 
-    button.addEventListener("click", async () => {
-      if (!selectedVariantAvailableForSale) return;
-      const variantId = getSelectedVariantId();
-      const quantity = getSelectedQuantity();
-      await addToCart(variantId, quantity);
-    });
+    button.addEventListener("click", handleAddToCart);
   }
 
   const rootElements = document.querySelectorAll("[data-product-add-to-cart]");

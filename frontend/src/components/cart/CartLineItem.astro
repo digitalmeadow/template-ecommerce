@@ -40,8 +40,6 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 </cart-line-item>
 
 <script>
-  import { sanityClient } from "sanity/client";
-  import { productThumbnailByHandleQuery } from "sanity/queries/product";
   import { resolveSanityHref } from "@lib/sanity/links";
   import { getCurrency } from "@lib/shopify/locale";
   import type { QuantitySelectorElement } from "@blocks/QuantitySelector.astro.0.mts";
@@ -54,20 +52,17 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
   export type CartLineRemoveEvent = CustomEvent<EventCartLineRemoveDetail>;
 
   export class CartLineItemElement extends HTMLElement {
-    // UI References
-    private linkElements: NodeListOf<HTMLAnchorElement> | undefined;
-    private imageElement!: HTMLImageElement;
-    private titleElement!: HTMLElement;
-    private variantTitleElement!: HTMLElement;
-    private removeButton!: HTMLButtonElement;
-    private quantitySelector!: QuantitySelectorElement;
+    linkElements: NodeListOf<HTMLAnchorElement> | undefined;
+    imageElement!: HTMLImageElement;
+    titleElement!: HTMLElement;
+    variantTitleElement!: HTMLElement;
+    removeButton!: HTMLButtonElement;
+    quantitySelector!: QuantitySelectorElement;
 
-    // Prices
-    private priceDisplay!: PriceDisplayElement;
-    private compareAtWrapper!: HTMLElement;
-    private compareAtDisplay!: PriceDisplayElement;
+    priceDisplay!: PriceDisplayElement;
+    compareAtWrapper!: HTMLElement;
+    compareAtDisplay!: PriceDisplayElement;
 
-    // Required data
     line?: CartLineFragment;
 
     init(line: CartLineFragment) {
@@ -110,36 +105,33 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       if (!this.line) return;
 
       const { merchandise, quantity, cost, id } = this.line;
-      const { product, title: variantTitle, compareAtPrice } = merchandise;
+      const { product, title: variantTitle, compareAtPrice, image: variantImage } = merchandise;
 
       this.dataset.lineId = id;
 
-      // Links
       const href = resolveSanityHref("product", product.handle);
       for (const linkElement of this.linkElements!) {
         linkElement.href = href;
       }
 
-      // Titles
       this.titleElement.textContent = product.title;
       this.variantTitleElement.textContent = variantTitle;
 
-      // Check if variant is default
       const isSingleDefaultVariant =
         variantTitle === "Default Title" && product.variants?.edges?.length === 1;
       this.dataset.singleDefaultVariant = String(isSingleDefaultVariant);
 
-      // Image
-      this.loadSanityImage(product.handle);
+      const imageUrl = variantImage?.url ?? product.variants?.edges?.[0]?.node?.image?.url;
+      if (imageUrl) {
+        this.imageElement.src = `${imageUrl}?w=120&h=120&fit=crop&auto=format`;
+        this.imageElement.dataset.loaded = "true";
+      }
 
-      // Quantity
       this.quantitySelector.setAttribute("initial", String(quantity));
 
-      // Price
       this.priceDisplay.setAttribute("amount", String(cost.totalAmount.amount ?? 0));
       this.priceDisplay.setAttribute("currency", cost.totalAmount.currencyCode ?? getCurrency());
 
-      // Compare At Price
       if (compareAtPrice) {
         const compareAtTotal = Number(compareAtPrice.amount) * quantity;
         this.compareAtDisplay.setAttribute("amount", String(compareAtTotal));
@@ -150,36 +142,6 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
         this.compareAtWrapper.style.display = "";
       } else {
         this.compareAtWrapper.style.display = "none";
-      }
-    }
-
-    private async loadSanityImage(handle: string) {
-      if (!this.imageElement) return;
-
-      const cacheKey = `sanity-image-${handle}`;
-      const cached = localStorage.getItem(cacheKey);
-
-      if (cached) {
-        this.imageElement.src = cached;
-        this.imageElement.dataset.loaded = "true";
-        return;
-      }
-
-      try {
-        const data = await sanityClient.request(productThumbnailByHandleQuery, { handle });
-        // @ts-ignore
-        const asset = data.allProduct[0]?.mediaThumbnail?.image?.asset;
-
-        if (asset?.url) {
-          const src = `${asset.url}?w=120&h=120&fit=crop&auto=format`;
-          localStorage.setItem(cacheKey, src);
-          if (this.imageElement.isConnected) {
-            this.imageElement.src = src;
-            this.imageElement.dataset.loaded = "true";
-          }
-        }
-      } catch (e) {
-        console.error("Failed to load Sanity image", e);
       }
     }
 

@@ -16,8 +16,7 @@ const cartData = cartQueryResult.allCart[0];
     <h2>Your Cart <span data-cart-count></span></h2>
   </div>
 
-  <cart-root slot="content">
-    <!-- BUG: Astro dedup fails to mount native web components when within <template> tags -->
+  <aside class="cart" data-cart slot="content">
     <div style="display: none">
       <QuantitySelector />
       <PriceDisplay />
@@ -49,279 +48,149 @@ const cartData = cartQueryResult.allCart[0];
         <button class="text-link checkout-button" data-cart-checkout-button>Checkout</button>
       </div>
     </div>
-  </cart-root>
+  </aside>
 </Overlay>
 
 <script>
-  import { shopifyClient } from "shopify/client";
-  import { cartByIdQuery } from "shopify/queries/cart";
-  import { cartLinesUpdateMutation, cartLinesRemoveMutation } from "shopify/mutations/cart";
-  import type { CartFragment } from "shopify/generated/graphql";
   import {
-    CART_ID_STORAGE_KEY_SUFFIX,
-    CART_DATA_STORAGE_KEY_SUFFIX,
-    getStorageKey,
-  } from "@lib/shopify/cart";
-  import { getCountryCode } from "@lib/shopify/locale";
-  import type {
-    QuantitySelectorElement,
-    EventQuantityChanged,
-  } from "@blocks/QuantitySelector.astro.0.mts";
-  import type { CartLineItemElement, CartLineRemoveEvent } from "./CartLineItem.astro.0.mts";
+    $cart,
+    $cartTotal,
+    $checkoutUrl,
+    $cartLines,
+    loadCart,
+    updateLineQuantity,
+    removeLine,
+  } from "@stores/cart";
+  import { cartOpen, setCartOpen } from "@stores/ui";
+  import type { CartLineItemElement } from "./CartLineItem.astro.0.mts";
 
-  export type EventCartUpdatedDetail = {
-    count: number;
-  };
-  export type EventCartUpdated = CustomEvent<EventCartUpdatedDetail>;
+  const cartEl = document.querySelector("[data-cart]") as HTMLElement;
+  const lineItemsContainer = cartEl?.querySelector("[data-cart-line-items]") as HTMLUListElement;
+  const totalPriceDisplay = cartEl?.querySelector("[data-cart-total] price-display") as HTMLElement;
+  const checkoutButton = cartEl?.querySelector("[data-cart-checkout-button]") as HTMLButtonElement;
+  const itemTemplate = cartEl?.querySelector("[data-cart-line-template]") as HTMLTemplateElement;
+  const overlayElement = document.querySelector('overlay-root[id="cart"]') as HTMLElement;
 
-  class CartRootElement extends HTMLElement {
-    private lineItemsContainer!: HTMLUListElement;
-    private checkoutButton!: HTMLButtonElement;
-    private totalPriceDisplay!: HTMLElement;
-    private itemTemplate!: HTMLTemplateElement;
+  function handleCheckoutClick() {
+    const url = $checkoutUrl.get();
+    if (!url) throw new Error("Checkout URL is not available");
+    window.location.href = url;
+  }
 
-    private cart: CartFragment | null = null;
-    private mutationQueue: Promise<void> = Promise.resolve();
+  async function handleQuantityChange(e: Event) {
+    const event = e as CustomEvent<{ value: number }>;
+    const quantitySelectorElement = event.target as HTMLElement;
 
-    private get cartId() {
-      const key = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
-      return localStorage.getItem(key);
-    }
+    const lineItemEl = quantitySelectorElement.closest("[data-cart] cart-line-item");
+    if (!lineItemEl) return;
 
-    connectedCallback() {
-      this.lineItemsContainer = this.querySelector("[data-cart-line-items]")!;
-      this.totalPriceDisplay = this.querySelector("[data-cart-total] price-display")!;
-      this.checkoutButton = this.querySelector("[data-cart-checkout-button]")!;
-      this.itemTemplate = this.querySelector("[data-cart-line-template]")!;
+    const lineItem = lineItemEl as HTMLElement & { line?: { id: string } };
+    if (!lineItem.line) return;
 
-      this.checkoutButton.addEventListener("click", this.onCheckoutClick);
-      this.addEventListener("quantity-selector:quantity-changed", this.onQuantityChange);
-      this.addEventListener("cart-line:remove", this.onLineRemove);
+    const lineId = lineItem.line.id;
+    const newQuantity = event.detail.value;
 
-      document.addEventListener("product:add-to-cart", this.onProductAdded);
+    quantitySelectorElement.setAttribute("data-updating", "true");
+    document.body.style.cursor = "wait";
 
-      this.loadCart();
-    }
-
-    disconnectedCallback() {
-      this.checkoutButton.removeEventListener("click", this.onCheckoutClick);
-      this.removeEventListener("quantity-selector:quantity-changed", this.onQuantityChange);
-      this.removeEventListener("cart-line:remove", this.onLineRemove);
-      document.removeEventListener("product:add-to-cart", this.onProductAdded);
-    }
-
-    onCheckoutClick = (_event: MouseEvent) => {
-      if (this.cart?.checkoutUrl) {
-        window.location.href = this.cart.checkoutUrl;
-      }
-    };
-
-    onProductAdded = async () => {
-      await this.mutationQueue;
-      await this.loadCart();
-    };
-
-    onQuantityChange = async (e: Event) => {
-      const event = e as EventQuantityChanged;
-      const quantitySelectorElement = event.target as QuantitySelectorElement;
-
-      const lineItemEl = quantitySelectorElement.closest("cart-line-item") as CartLineItemElement;
-      if (!lineItemEl || !lineItemEl.line) return;
-
-      const lineId = lineItemEl.line.id;
-      const newQuantity = event.detail.value;
-
-      console.log(
-        "Quantity changed: ",
-        newQuantity,
-        "Quantity selector current value: ",
-        quantitySelectorElement.value,
-        "Line item quantity: ",
-        lineItemEl.line.quantity,
-      );
-
-      const cartId = this.cartId;
-      if (!cartId) return;
-
-      quantitySelectorElement.setUpdatingState(true);
-
-      document.body.style.cursor = "wait";
-
-      this.mutationQueue = this.mutationQueue.then(async () => {
-        try {
-          await shopifyClient.request(cartLinesUpdateMutation, {
-            cartId,
-            lines: [{ id: lineId, quantity: newQuantity }],
-            countryCode: getCountryCode(),
-          });
-          await this.loadCart(true);
-        } catch (error) {
-          console.error("Failed to update cart quantity", error);
-        } finally {
-          document.body.style.cursor = "";
-        }
-      });
-      await this.mutationQueue;
-    };
-
-    onLineRemove = async (e: Event) => {
-      const event = e as CartLineRemoveEvent;
-      const { lineId } = event.detail;
-      const lineItemEl = event.target as CartLineItemElement;
-
-      const cartId = this.cartId;
-      if (!cartId) return;
-
-      lineItemEl?.setRemoving(true);
-
-      document.body.style.cursor = "wait";
-
-      this.mutationQueue = this.mutationQueue.then(async () => {
-        try {
-          await shopifyClient.request(cartLinesRemoveMutation, {
-            cartId,
-            countryCode: getCountryCode(),
-            lineIds: [lineId],
-          });
-          await this.loadCart(true);
-        } catch (error) {
-          console.error("Failed to remove cart line", error);
-        } finally {
-          document.body.style.cursor = "";
-        }
-      });
-      await this.mutationQueue;
-    };
-
-    async loadCart(skipCache = false) {
-      const cartIdKey = getStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
-      const cartDataKey = getStorageKey(CART_DATA_STORAGE_KEY_SUFFIX);
-
-      const cartId = localStorage.getItem(cartIdKey);
-      if (!cartId) {
-        this.renderEmpty();
-        return;
-      }
-
-      if (!skipCache) {
-        const cached = localStorage.getItem(cartDataKey);
-        if (cached) {
-          try {
-            this.cart = JSON.parse(cached) as CartFragment;
-            this.renderCart();
-          } catch (e) {
-            console.error("Failed to parse cached cart", e);
-            localStorage.removeItem(cartDataKey);
-          }
-        }
-      }
-
-      try {
-        const cart = (
-          await shopifyClient.request(cartByIdQuery, {
-            cartId,
-            countryCode: getCountryCode(),
-          })
-        ).cart;
-
-        if (!cart) {
-          localStorage.removeItem(cartIdKey);
-          localStorage.removeItem(cartDataKey);
-          this.renderEmpty();
-          return;
-        }
-
-        this.cart = cart;
-        localStorage.setItem(cartDataKey, JSON.stringify(cart));
-        this.renderCart();
-      } catch (error) {
-        console.error("Failed to load cart:", error);
-      }
-    }
-
-    clearLineItems() {
-      this.lineItemsContainer.innerHTML = "";
-    }
-
-    renderEmpty() {
-      this.setAttribute("state", "empty");
-      this.clearLineItems();
-
-      this.totalPriceDisplay.removeAttribute("amount");
-      this.checkoutButton.setAttribute("disabled", "true");
-      this.removeAttribute("checkout-valid");
-
-      const eventCartUpdatedDetail: EventCartUpdatedDetail = { count: 0 };
-      document.dispatchEvent(new CustomEvent("cart:updated", { detail: eventCartUpdatedDetail }));
-    }
-
-    renderCart() {
-      if (!this.cart || !this.cart.lines?.edges?.length) {
-        this.renderEmpty();
-        return;
-      }
-
-      this.setAttribute("state", "loaded");
-      this.clearLineItems();
-
-      for (const edge of this.cart.lines.edges) {
-        const line = edge.node;
-        if (line.__typename !== "CartLine") continue;
-
-        // Clone template
-        const clone = this.itemTemplate.content.cloneNode(true) as DocumentFragment;
-        const cartLineItemElement = clone.querySelector("cart-line-item") as CartLineItemElement;
-        customElements.whenDefined("cart-line-item").then(() => {
-          cartLineItemElement.init(line);
-        });
-
-        this.lineItemsContainer.appendChild(clone);
-      }
-
-      const total = this.cart.cost.totalAmount;
-      this.totalPriceDisplay.setAttribute("amount", String(total.amount));
-      this.totalPriceDisplay.setAttribute("currency", total.currencyCode);
-
-      if (this.cart.checkoutUrl && this.cart.lines?.edges?.length) {
-        this.setAttribute("checkout-valid", "");
-      } else {
-        this.removeAttribute("checkout-valid");
-      }
-
-      const count = this.cart.lines.edges.reduce((sum, edge) => {
-        return sum + (edge.node.__typename === "CartLine" ? edge.node.quantity : 0);
-      }, 0);
-      document.dispatchEvent(new CustomEvent("cart:updated", { detail: { count } }));
+    try {
+      await updateLineQuantity(lineId, newQuantity);
+    } catch (error) {
+      console.error("Failed to update cart quantity", error);
+    } finally {
+      document.body.style.cursor = "";
+      quantitySelectorElement.removeAttribute("data-updating");
     }
   }
 
-  customElements.define("cart-root", CartRootElement);
-</script>
+  async function handleLineRemove(e: Event) {
+    const event = e as CustomEvent<{ lineId: string }>;
+    const { lineId } = event.detail;
+    const lineItemEl = event.target as HTMLElement;
 
-<script>
-  import type { EventCartUpdated } from "@components/cart/Cart.astro.0.mts";
-  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
+    lineItemEl?.setAttribute("data-removing", "true");
+    document.body.style.cursor = "wait";
 
-  const cartCountElements = document.querySelectorAll(
-    "[data-cart-count]",
-  ) as NodeListOf<HTMLElement>;
-  const cartOverlay = document.querySelector(`overlay-root[id="cart"]`) as OverlayElement | null;
+    try {
+      await removeLine(lineId);
+    } catch (error) {
+      console.error("Failed to remove cart line", error);
+    } finally {
+      document.body.style.cursor = "";
+    }
+  }
 
-  document.addEventListener("product:add-to-cart", () => {
-    if (!cartOverlay) throw new Error("Cart overlay element not found");
-    cartOverlay.open();
+  function clearLineItems() {
+    lineItemsContainer.innerHTML = "";
+  }
+
+  function renderCart() {
+    const cart = $cart.get();
+    const lines = $cartLines.get();
+
+    if (!cart || !lines.length) {
+      cartEl.dataset.state = "empty";
+      clearLineItems();
+      totalPriceDisplay.removeAttribute("amount");
+      checkoutButton.disabled = true;
+      cartEl.removeAttribute("data-checkout-valid");
+      return;
+    }
+
+    cartEl.dataset.state = "loaded";
+    clearLineItems();
+
+    for (const line of lines) {
+      const clone = itemTemplate.content.cloneNode(true) as DocumentFragment;
+      const cartLineItemElement = clone.querySelector("cart-line-item") as CartLineItemElement;
+      customElements.whenDefined("cart-line-item").then(() => {
+        cartLineItemElement.init(line);
+      });
+
+      lineItemsContainer.appendChild(clone);
+    }
+  }
+
+  $cart.subscribe(renderCart);
+  $cartTotal.subscribe((total: { amount: string; currencyCode: string } | null) => {
+    if (total) {
+      totalPriceDisplay.setAttribute("amount", String(total.amount));
+      totalPriceDisplay.setAttribute("currency", total.currencyCode);
+    } else {
+      totalPriceDisplay.removeAttribute("amount");
+    }
+  });
+  $checkoutUrl.subscribe((url: string | null) => {
+    if (url) {
+      cartEl.setAttribute("data-checkout-valid", "");
+      checkoutButton.disabled = false;
+    } else {
+      cartEl.removeAttribute("data-checkout-valid");
+      checkoutButton.disabled = true;
+    }
+  });
+  cartOpen.subscribe((isOpen: boolean) => {
+    const overlay = overlayElement as unknown as { open?: () => void; close?: () => void };
+    if (isOpen) {
+      overlay?.open?.();
+    } else {
+      overlay?.close?.();
+    }
   });
 
-  for (const cartCountElement of cartCountElements) {
-    document.addEventListener("cart:updated", (e: Event) => {
-      const eventCartUpdated = e as EventCartUpdated;
-      cartCountElement.textContent = `(${eventCartUpdated.detail.count})`;
-    });
-  }
+  checkoutButton.addEventListener("click", handleCheckoutClick);
+  cartEl.addEventListener("quantity-selector:quantity-changed", handleQuantityChange);
+  cartEl.addEventListener("cart-line:remove", handleLineRemove);
+
+  overlayElement.addEventListener("overlay:closed", () => {
+    setCartOpen(false);
+  });
+
+  loadCart();
 </script>
 
 <style>
-  cart-root {
+  .cart {
     height: 100%;
   }
 
@@ -357,16 +226,16 @@ const cartData = cartQueryResult.allCart[0];
     display: none;
   }
 
-  cart-root[state="empty"] .empty-message {
+  [data-cart][data-state="empty"] .empty-message {
     display: block;
   }
 
-  cart-root[state="empty"] .cart-line-items,
-  cart-root[state="empty"] [data-cart-total] {
+  [data-cart][data-state="empty"] .cart-line-items,
+  [data-cart][data-state="empty"] [data-cart-total] {
     display: none;
   }
 
-  cart-root:not([checkout-valid]) [data-cart-checkout-button] {
+  [data-cart]:not([data-checkout-valid]) [data-cart-checkout-button] {
     opacity: 0.5;
     cursor: not-allowed;
   }

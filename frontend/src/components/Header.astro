@@ -32,8 +32,10 @@ const underlineStyles = [
 
   <nav>
     {
-      headerData.navigationItems?.map((navigationItem, index) => {
+      headerData.navigationItems?.map(async (navigationItem, index) => {
         if (!navigationItem?.link) return null;
+        const href = await resolveLinkHref(navigationItem.link);
+        const isActive = Astro.url.pathname === href;
         return (
           <div
             class:list={[
@@ -47,7 +49,7 @@ const underlineStyles = [
           >
             <SanityLink
               class:list={["text-link", underlineStyles[index % underlineStyles.length]]}
-              data-active={Astro.url.pathname === resolveLinkHref(navigationItem.link)}
+              data-active={isActive}
               linkData={navigationItem.link}
             >
               {navigationItem.label}
