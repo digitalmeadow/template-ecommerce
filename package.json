@@ -10,6 +10,6 @@
     "gen": "pnpm --filter cms gen && pnpm --filter sanity gen && pnpm --filter shopify gen"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "6.0.3"
   }
 }

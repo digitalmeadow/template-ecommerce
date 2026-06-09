@@ -1,6 +1,5 @@
 ---
 import PriceDisplay from "@blocks/PriceDisplay.astro";
-import QuantitySelector from "@blocks/QuantitySelector.astro";
 import Overlay from "@layouts/Overlay.astro";
 import CartLineItem from "./CartLineItem.astro";
 import { sanityClient } from "sanity/client";
@@ -17,12 +16,6 @@ const cartData = cartQueryResult.allCart[0];
   </div>
 
   <aside class="cart" data-cart slot="content">
-    <div style="display: none">
-      <QuantitySelector />
-      <PriceDisplay />
-      <CartLineItem />
-    </div>
-
     <template data-cart-line-template>
       <li>
         <CartLineItem />
@@ -52,15 +45,10 @@ const cartData = cartQueryResult.allCart[0];
 </Overlay>
 
 <script>
-  import {
-    $cart,
-    $cartTotal,
-    $checkoutUrl,
-    $cartLines,
-    loadCart,
-  } from "@stores/cart";
+  import { $cart, $cartTotal, $checkoutUrl, $cartLines, loadCart } from "@stores/cart";
   import { cartOpen, setCartOpen } from "@stores/ui";
   import type { CartLineItemElement } from "./CartLineItem.astro.0.mts";
+  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
 
   const cartElement = document.querySelector("[data-cart]") as HTMLElement;
   const lineItemsContainer = cartElement.querySelector(
@@ -133,11 +121,12 @@ const cartData = cartQueryResult.allCart[0];
     }
   });
   cartOpen.subscribe((isOpen: boolean) => {
-    const overlay = overlayElement as unknown as { open?: () => void; close?: () => void };
+    const overlay = overlayElement as OverlayElement;
+    if (!overlay) return;
     if (isOpen) {
-      overlay?.open?.();
+      overlay.open();
     } else {
-      overlay?.close?.();
+      overlay.close();
     }
   });
 

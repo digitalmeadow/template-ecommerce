@@ -6,14 +6,14 @@
     "gen": "tsx --env-file='.env' codegen.ts"
   },
   "dependencies": {
-    "@graphql-codegen/cli": "6.1.2",
-    "@graphql-codegen/client-preset": "5.2.3",
+    "@graphql-codegen/cli": "7.1.2",
+    "@graphql-codegen/client-preset": "6.0.1",
     "@graphql-typed-document-node/core": "3.2.0",
-    "@sanity/client": "7.16.0",
+    "@sanity/client": "7.22.1",
     "@sanity/webhook": "4.0.4",
     "graphql-request": "7.4.0"
   },
   "devDependencies": {
-    "tsx": "4.21.0"
+    "tsx": "4.22.4"
   }
 }
