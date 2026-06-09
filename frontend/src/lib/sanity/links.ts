@@ -38,11 +38,11 @@ async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragmen
   return linkData;
 }
 
-export async function resolveLinkHref(linkData: LinkFragment | any): Promise<string> {
-  if (!linkData) return "";
+export async function resolveLinkHref(linkData: LinkFragment | any): Promise<string | undefined> {
+  if (!linkData) return undefined;
 
   const resolvedLink = await resolveLinkReference(linkData);
-  if (!resolvedLink) return "";
+  if (!resolvedLink) return undefined;
 
   if (resolvedLink.type === "section") return resolvedLink.section ?? "";
   if (resolvedLink.type === "url") return resolvedLink.url ?? "";
@@ -61,7 +61,7 @@ export async function resolveLinkHref(linkData: LinkFragment | any): Promise<str
       return resolvedLink.file.asset.url;
     }
   }
-  return "";
+  return undefined;
 }
 
 export function resolveSanityHref(documentType: string, slug?: string | null): string {
