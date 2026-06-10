@@ -1,12 +1,14 @@
 packages:
   - 'frontend'
+  - 'frontend-nextjs'
   - 'cms'
   - 'sanity'
   - 'shopify'
-  
+
 allowBuilds:
   esbuild: true
   sharp: true
+  unrs-resolver: true
   workerd: true
 
 minimumReleaseAge: 1440

@@ -1,0 +1,6 @@
+# llms.txt
+
+Site: HEADLESS by Digital Meadow
+Description: Digital Meadow is a software studio from Australia specialising in web technology and computer graphics. We build creative portfolios, custom storefronts, and unique digital experiences. HEADLESS is our starter repository for creative, cutting-edge headless ecommerce projects.
+Content: Public, informational, single-page site.
+Usage: Summarisation and factual reference permitted.

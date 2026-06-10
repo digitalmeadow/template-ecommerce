@@ -1,0 +1,41 @@
+:root,
+[data-color-scheme="light"] {
+  --theme-bg: #f6f2e5;
+  --theme-fg: #3e3832;
+  --theme-accent: #b20155;
+  --theme-muted: #9c958c;
+  --theme-surface: #ffffff;
+  --theme-border: #d9d3c5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-color-scheme]) {
+    --theme-bg: #1a1815;
+    --theme-fg: #ede7dc;
+  }
+}
+
+[data-color-scheme="dark"] {
+  --theme-bg: #1a1815;
+  --theme-fg: #ede7dc;
+}
+
+[data-theme="green"] {
+  --theme-bg: #1a332c;
+  --theme-fg: #dceee5;
+  --theme-accent: #4caf50;
+  --theme-muted: #6b8f80;
+  --theme-surface: #243d34;
+  --theme-border: #3a5c4e;
+}
+
+@theme {
+  --*: initial;
+
+  --color-background: var(--theme-bg);
+  --color-foreground: var(--theme-fg);
+  --color-accent: var(--theme-accent);
+  --color-muted: var(--theme-muted);
+  --color-surface: var(--theme-surface);
+  --color-border: var(--theme-border);
+}
