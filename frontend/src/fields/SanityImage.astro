@@ -20,6 +20,7 @@ const {
 
 const altText = imageData?.asset?.altText ?? "";
 const blurhashSrc = imageData?.asset?.metadata?.lqip;
+const sanityImageProps = imageData ? getSanityImageProps({ sanityImage: imageData, sizes }) : [];
 ---
 
 <div class={`sanity-image layout-${layout}`}>
@@ -28,7 +29,7 @@ const blurhashSrc = imageData?.asset?.metadata?.lqip;
   <img
     class={`image layout-${layout}`}
     data-media-id={mediaId}
-    {...getSanityImageProps({ sanityImage: imageData, sizes })}
+    {...sanityImageProps}
     alt={altText}
     loading={loading}
     onload="this.dataset.loaded = ''"

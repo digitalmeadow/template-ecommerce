@@ -1,0 +1,12 @@
+fragment ProductVariant on ProductVariant {
+  __typename
+  _id
+
+  meta {
+    ...Meta
+  }
+
+  shopify {
+    title
+  }
+}

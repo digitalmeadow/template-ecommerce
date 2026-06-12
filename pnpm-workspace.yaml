@@ -3,6 +3,7 @@ packages:
   - 'frontend-nextjs'
   - 'cms'
   - 'sanity'
+  - 'sanity-nextjs'
   - 'shopify'
 
 allowBuilds:

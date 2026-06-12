@@ -4,8 +4,8 @@ import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "frontend/config";
 import { DocumentActionComponent, Slug } from "sanity";
 import { PREVIEW_WEBSITE_URL } from "../../config";
 
-export const ActionPreview: DocumentActionComponent = ({ published, type }) => {
-  const slug = (published?.slug as Slug)?.current;
+export const ActionPreview: DocumentActionComponent = ({ draft, type }) => {
+  const slug = (draft?.slug as Slug)?.current;
 
   let route = SANITY_DOCUMENT_ROUTE_PATTERNS[type] || "/";
   route = route.includes("[slug]") ? route.replace("[slug]", slug) : route;

@@ -1,0 +1,14 @@
+fragment Home on Home {
+  __typename
+  _id
+
+  sections {
+    ...SectionHero
+    ...SectionText
+    ...SectionCollection
+    ...SectionAccordions
+  }
+  meta {
+    ...Meta
+  }
+}

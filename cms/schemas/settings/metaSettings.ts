@@ -14,4 +14,11 @@ export const metaSettings = defineType({
       validation: (Rule) => Rule.required(),
     }),
   ],
+  preview: {
+    prepare() {
+      return {
+        title: "Meta Settings",
+      };
+    },
+  },
 });

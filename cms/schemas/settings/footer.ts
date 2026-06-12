@@ -21,4 +21,11 @@ export const footer = defineType({
       validation: (Rule) => Rule.required(),
     }),
   ],
+  preview: {
+    prepare() {
+      return {
+        title: "Footer",
+      };
+    },
+  },
 });

@@ -1,0 +1,40 @@
+fragment Link on Link {
+  type
+  page {
+    ... on Document {
+      __typename
+      _id
+      _type
+
+      ... on Page {
+        slug {
+          ...Slug
+        }
+      }
+
+      ... on Product {
+        shopify {
+          handle {
+            ...Slug
+          }
+        }
+      }
+
+      ... on Collection {
+        shopify {
+          handle {
+            ...Slug
+          }
+        }
+      }
+    }
+  }
+  url
+  section
+  email
+  phone
+  file {
+    ...SanityFile
+  }
+  newTab
+}

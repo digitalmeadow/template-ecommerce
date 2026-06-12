@@ -1,0 +1,15 @@
+fragment Collection on Collection {
+  __typename
+  _id
+
+  meta {
+    ...Meta
+  }
+
+  shopify {
+    title
+    handle {
+      ...Slug
+    }
+  }
+}

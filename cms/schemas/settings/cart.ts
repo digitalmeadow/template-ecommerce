@@ -16,4 +16,11 @@ export const cart = defineType({
       name: "note",
     }),
   ],
+  preview: {
+    prepare() {
+      return {
+        title: "Cart",
+      };
+    },
+  },
 });

@@ -1,0 +1,10 @@
+fragment SanityFile on File {
+  asset {
+    ...SanityFileAsset
+  }
+}
+
+fragment SanityFileAsset on SanityFileAsset {
+  url
+  originalFilename
+}

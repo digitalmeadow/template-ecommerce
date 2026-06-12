@@ -1,0 +1,5 @@
+fragment SectionText on SectionText {
+  __typename
+
+  textRaw
+}

@@ -1,0 +1,7 @@
+fragment SectionCollection on SectionCollection {
+  __typename
+
+  collection {
+    ...Collection
+  }
+}

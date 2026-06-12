@@ -19,8 +19,10 @@ export const home = defineType({
     }),
   ],
   preview: {
-    select: {
-      title: "Home",
+    prepare() {
+      return {
+        title: "Home",
+      };
     },
   },
 });

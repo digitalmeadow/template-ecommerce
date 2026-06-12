@@ -1,0 +1,3 @@
+fragment Slug on Slug {
+  current
+}
