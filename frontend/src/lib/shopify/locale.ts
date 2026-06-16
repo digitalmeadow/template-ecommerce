@@ -1,24 +1,24 @@
-import { CountryCode, CurrencyCode, LanguageCode } from "shopify/generated/graphql";
+import type { CountryCode, CurrencyCode, LanguageCode } from "shopify/generated/graphql";
 
 export const LOCALE_CONFIG = {
   "en-NZ": {
-    language: LanguageCode.En,
-    country: CountryCode.Nz,
-    currency: CurrencyCode.Nzd,
+    language: "EN" as LanguageCode,
+    country: "NZ" as CountryCode,
+    currency: "NZD" as CurrencyCode,
     label: "New Zealand",
     pathPrefix: null,
   },
   "en-AU": {
-    language: LanguageCode.En,
-    country: CountryCode.Au,
-    currency: CurrencyCode.Aud,
+    language: "EN" as LanguageCode,
+    country: "AU" as CountryCode,
+    currency: "AUD" as CurrencyCode,
     label: "Australia",
     pathPrefix: "/",
   },
   "en-US": {
-    language: LanguageCode.En,
-    country: CountryCode.Us,
-    currency: CurrencyCode.Usd,
+    language: "EN" as LanguageCode,
+    country: "US" as CountryCode,
+    currency: "USD" as CurrencyCode,
     label: "United States",
     pathPrefix: "/",
   },

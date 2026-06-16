@@ -1,0 +1,36 @@
+.text-body,
+body {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+.text-link {
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: 1px;
+  text-underline-offset: -1px;
+  text-decoration: underline;
+  text-decoration-color: var(--color-yellow);
+}
+
+.text-link:hover,
+.text-link[data-active]:not([data-active="false"]) {
+  text-decoration-thickness: 12px;
+  text-underline-offset: -12px;
+}
+
+.text-link.underline-color-yellow {
+  text-decoration-color: var(--color-yellow);
+}
+.text-link.underline-color-orange {
+  text-decoration-color: var(--color-orange);
+}
+.text-link.underline-color-green {
+  text-decoration-color: var(--color-green);
+}
+.text-link.underline-color-blue {
+  text-decoration-color: var(--color-blue);
+}
+.text-link.underline-color-purple {
+  text-decoration-color: var(--color-purple);
+}

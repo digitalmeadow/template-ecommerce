@@ -1,9 +1,12 @@
 // @ts-check
 import { defineConfig, envField } from "astro/config";
 import cloudflare from "@astrojs/cloudflare";
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://headless.digitalmeadow.studio",
+
   i18n: {
     locales: ["en-AU"],
     defaultLocale: "en-AU",
@@ -11,6 +14,7 @@ export default defineConfig({
       prefixDefaultLocale: false,
     },
   },
+
   env: {
     schema: {
       PREVIEW: envField.string({
@@ -59,12 +63,18 @@ export default defineConfig({
       }),
     },
   },
+
   adapter: cloudflare({
     imageService: "passthrough",
   }),
+
   output: process.env.PREVIEW === "true" ? "server" : "static",
+
   prefetch: {
     prefetchAll: true,
     defaultStrategy: "load",
   },
+
+  integrations: [sitemap()],
 });
+

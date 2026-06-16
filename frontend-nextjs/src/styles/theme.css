@@ -39,3 +39,13 @@
   --color-surface: var(--theme-surface);
   --color-border: var(--theme-border);
 }
+
+:root {
+  --color-white: #f6f2e5;
+  --color-black: #3e3832;
+  --color-green: #2c6469;
+  --color-purple: #b20155;
+  --color-orange: #df6536;
+  --color-blue: #3469a1;
+  --color-yellow: #ebb137;
+}

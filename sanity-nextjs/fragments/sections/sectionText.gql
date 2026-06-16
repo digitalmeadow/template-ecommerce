@@ -1,5 +1,6 @@
 fragment SectionText on SectionText {
   __typename
+  _key
 
   textRaw
 }

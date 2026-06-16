@@ -25,6 +25,13 @@ const config: CodegenConfig = {
         nonOptionalTypename: true,
         extractAllFieldsToTypes: true,
         useTypeImports: true,
+        scalars: {
+          Decimal: "string",
+          URL: "string",
+          HTML: "string",
+          JSON: "unknown",
+          DateTime: "string",
+        },
       },
       presetConfig: {
         fragmentMasking: false,

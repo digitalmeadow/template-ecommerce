@@ -1,5 +1,6 @@
 fragment SectionAccordions on SectionAccordions {
   __typename
+  _key
 
   accordions {
     ...Accordion

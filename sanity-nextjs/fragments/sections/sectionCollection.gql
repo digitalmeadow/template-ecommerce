@@ -1,5 +1,6 @@
 fragment SectionCollection on SectionCollection {
   __typename
+  _key
 
   collection {
     ...Collection

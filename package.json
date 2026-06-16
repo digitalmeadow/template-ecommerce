@@ -7,7 +7,7 @@
     "preview": "pnpm run --parallel -r preview",
     "lint": "pnpm run --parallel -r lint",
     "deploy": "pnpm run --parallel -r deploy",
-    "gen": "pnpm --filter cms gen && pnpm --filter sanity gen && pnpm --filter shopify gen"
+    "gen": "pnpm --filter cms gen && pnpm --filter sanity gen && pnpm --filter sanity-nextjs gen && pnpm --filter shopify gen"
   },
   "devDependencies": {
     "typescript": "6.0.3"

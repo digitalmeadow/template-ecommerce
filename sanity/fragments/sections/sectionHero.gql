@@ -1,5 +1,6 @@
 fragment SectionHero on SectionHero {
   __typename
+  _key
 
   backgroundMedia {
     ...Media

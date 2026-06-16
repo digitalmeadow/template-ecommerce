@@ -1,8 +1,8 @@
 import { generate, type CodegenConfig } from "@graphql-codegen/cli";
-import { SANITY_PROJECT_ID } from "./config";
+import { SANITY_PROJECT_ID, SANITY_API_VERSION } from "./config";
 
 const config: CodegenConfig = {
-  schema: `https://${SANITY_PROJECT_ID}.api.sanity.io/v1/graphql/${process.env.SANITY_DATASET}/default`,
+  schema: `https://${SANITY_PROJECT_ID}.api.sanity.io/v${SANITY_API_VERSION}/graphql/${process.env.SANITY_DATASET}/default`,
   documents: ["fragments/**/*.gql", "queries/**/*.ts"],
   ignoreNoDocuments: true,
   generates: {

@@ -1,5 +1,5 @@
 import SectionsRenderer from "@/sections/SectionsRenderer";
-import { sanityClient } from "sanity-nextjs";
+import { sanityClient } from "sanity-nextjs/client.server";
 import { homeQuery } from "sanity-nextjs/queries/home";
 
 export default async function HomePage() {
