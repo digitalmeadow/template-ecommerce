@@ -1,5 +1,5 @@
 import type { ProductThumbnailShopifySanity } from "@/lib/fetches/productShopifySanity";
-import { resolveSanityHref } from "@/lib/sanity/links";
+import { resolveSanityHref } from "@/lib/sanity/resolve";
 import SanityMedia from "@/fields/SanityMedia";
 import ProductPrice from "@/sections/product/ProductPrice";
 import { cn } from "@/lib/utils";
