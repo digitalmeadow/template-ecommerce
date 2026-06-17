@@ -31,6 +31,7 @@ jobs:
         working-directory: frontend
         env:
           PREVIEW: false
+          CLOUDFLARE_ENV: staging
 
           WEBSITE_URL: https://template-ecommerce-staging.digital-meadow.workers.dev
 

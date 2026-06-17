@@ -30,6 +30,9 @@
     "wrangler": "4.98.0"
   },
   "prettier": {
+    "plugins": [
+      "prettier-plugin-astro"
+    ],
     "semi": true,
     "printWidth": 100,
     "bracketSpacing": true,

@@ -31,6 +31,7 @@ jobs:
         working-directory: frontend
         env:
           PREVIEW: true
+          CLOUDFLARE_ENV: production-preview
 
           WEBSITE_URL: https://template-ecommerce-production-preview.digital-meadow.workers.dev
 

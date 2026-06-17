@@ -31,6 +31,7 @@ jobs:
         working-directory: frontend
         env:
           PREVIEW: false
+          CLOUDFLARE_ENV: api
 
           WEBSITE_URL: https://template-ecommerce-api.digital-meadow.workers.dev
 
