@@ -39,7 +39,10 @@ export default function Grid() {
 
   return (
     <div id="grid-visualizer" ref={gridRef} className="hidden">
-      <div className="pointer-events-none fixed top-0 left-1/2 z-100 grid h-screen w-[var(--container-width)] -translate-x-1/2 gap-x-[var(--gutter)]" style={{ gridTemplateColumns: `repeat(var(--columns-count), 1fr)` }}>
+      <div
+        className="pointer-events-none fixed top-0 left-1/2 z-100 grid h-screen w-[var(--container-width)] -translate-x-1/2 gap-x-[var(--gutter)]"
+        style={{ gridTemplateColumns: `repeat(var(--column-count), 1fr)` }}
+      >
         {Array.from({ length: COLUMNS }).map((_, i) => (
           <div key={i} className="h-full w-full bg-black/10" />
         ))}

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-export default function ScriptSpacing() {
+export default function ScriptMeasurements() {
   useEffect(() => {
     const setDimensions = () => {
       const vw = document.documentElement.clientWidth / 100;

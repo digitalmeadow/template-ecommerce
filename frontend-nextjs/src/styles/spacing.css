@@ -18,7 +18,7 @@
   --s300: 300px;
   --s400: 400px;
 
-  --columns-count: 16;
+  --column-count: 16;
   --margin: 20px;
   --gutter: 20px;
 
@@ -29,8 +29,8 @@
   );
 
   --column: calc(
-    (1 / var(--columns-count)) *
-      (var(--container-width) - ((var(--columns-count) - 1) * (var(--gutter))))
+    (1 / var(--column-count)) *
+      (var(--container-width) - ((var(--column-count) - 1) * (var(--gutter))))
   );
   --margin-dynamic: calc((100 * var(--vw) - var(--container-width)) / 2);
 }

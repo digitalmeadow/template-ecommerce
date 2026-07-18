@@ -8,7 +8,7 @@ import Cart from "@/components/cart/Cart";
 import CookiesBanner from "@/components/CookiesBanner";
 import Grid from "@/dev/Grid";
 import Meta from "@/meta/Meta";
-import ScriptSpacing from "@/scripts/ScriptSpacing";
+import ScriptMeasurements from "@/scripts/ScriptMeasurements";
 import ScriptTextFillWidth from "@/scripts/ScriptTextFillWidth";
 import "../styles/globals.css";
 
@@ -32,7 +32,7 @@ export default async function RootLayout({
         <Meta metaSettingsData={metaSettingsData} pathname={pathname} />
       </head>
       <body className="flex min-h-full flex-col">
-        <ScriptSpacing />
+        <ScriptMeasurements />
         <ScriptTextFillWidth />
         <Grid />
         <Header />

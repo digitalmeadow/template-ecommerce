@@ -16,9 +16,9 @@ import Meta from "@meta/Meta.astro";
 import type { MetaFragment } from "sanity/generated/graphql";
 import { getLocaleFromPath, LOCALE_CONFIG } from "@lib/shopify/locale";
 import CookiesBanner from "@components/CookiesBanner.astro";
-import ScriptSpacing from "../scripts/ScriptSpacing.astro";
 import Cart from "@components/cart/Cart.astro";
-import ScriptTextFillWidth from "../scripts/ScriptTextFillWidth.astro";
+import ScriptTextFillWidth from "@scripts/ScriptTextFillWidth.astro";
+import ScriptMeasurements from "@scripts/ScriptMeasurements.astro";
 import { sanityClient } from "sanity/client";
 import { metaSettingsQuery } from "sanity/queries/metaSettings";
 
@@ -67,7 +67,7 @@ const metaSettingsData = metaSettingsQueryResult?.allMetaSettings?.[0];
       crossorigin
     />
 
-    <ScriptSpacing />
+    <ScriptMeasurements />
     <ScriptTextFillWidth />
   </head>
   <body>

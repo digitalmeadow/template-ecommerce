@@ -1,22 +1,56 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"],
+  "include": [
+    ".astro/types.d.ts",
+    "**/*"
+  ],
+  "exclude": [
+    "dist"
+  ],
   "compilerOptions": {
     "paths": {
-      "@config": ["./config"],
-      "@blocks/*": ["./src/blocks/*"],
-      "@components/*": ["./src/components/*"],
-      "@dev/*": ["./src/dev/*"],
-      "@fields/*": ["./src/fields/*"],
-      "@layouts/*": ["./src/layouts/*"],
-      "@lib/*": ["./src/lib/*"],
-      "@meta/*": ["./src/meta/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@sections/*": ["./src/sections/*"],
-      "@stores/*": ["./src/stores/*"],
-      "@styles/*": ["./src/styles/*"],
-      "@svgs/*": ["./src/svgs/*"]
+      "@config": [
+        "./config"
+      ],
+      "@blocks/*": [
+        "./src/blocks/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@dev/*": [
+        "./src/dev/*"
+      ],
+      "@fields/*": [
+        "./src/fields/*"
+      ],
+      "@layouts/*": [
+        "./src/layouts/*"
+      ],
+      "@lib/*": [
+        "./src/lib/*"
+      ],
+      "@meta/*": [
+        "./src/meta/*"
+      ],
+      "@pages/*": [
+        "./src/pages/*"
+      ],
+      "@scripts/*": [
+        "./src/scripts/*"
+      ],
+      "@sections/*": [
+        "./src/sections/*"
+      ],
+      "@stores/*": [
+        "./src/stores/*"
+      ],
+      "@styles/*": [
+        "./src/styles/*"
+      ],
+      "@svgs/*": [
+        "./src/svgs/*"
+      ]
     }
   }
 }
