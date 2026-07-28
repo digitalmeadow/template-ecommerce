@@ -24,9 +24,10 @@ const productData = await fetchProductShopifySanity(slug);
 
 // Meta fallbacks
 const metaData: MetaFragment = {
-  ...productData.sanity?.meta,
   __typename: "Meta",
-  title: productData.sanity?.meta?.title || productData.shopify.title,
+  title: productData.sanity.meta?.title || productData.shopify.title,
+  description: productData.sanity.meta?.description ?? null,
+  image: productData.sanity.meta?.image ?? null,
 };
 ---
 

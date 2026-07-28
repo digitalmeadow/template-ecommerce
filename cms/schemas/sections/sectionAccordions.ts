@@ -1,5 +1,5 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
-import { DoubleChevronDownIcon } from "@sanity/icons";
+import DoubleChevronDownIcon from "@sanity/icons/DoubleChevronDown";
 
 export const sectionAccordions = defineType({
   type: "object",

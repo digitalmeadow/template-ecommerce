@@ -35,15 +35,13 @@
 
     if (!parseResult.success) {
       container.setAttribute("data-state", "error");
-      message.textContent = parseResult.error.errors[0].message;
+      message.textContent = parseResult.error.issues[0].message;
       setTimeout(() => {
         container.removeAttribute("data-state");
         message.textContent = "";
       }, MESSAGE_TIMEOUT);
       return;
     }
-
-    const { email } = parseResult.data;
 
     container.setAttribute("data-state", "loading");
     message.textContent = "";

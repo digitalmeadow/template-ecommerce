@@ -1,4 +1,4 @@
-import { JsonIcon } from "@sanity/icons";
+import JsonIcon from "@sanity/icons/Json";
 import { defineField, defineType } from "sanity";
 
 export const metaSettings = defineType({

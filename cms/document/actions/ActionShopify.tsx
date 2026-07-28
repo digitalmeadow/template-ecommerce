@@ -1,5 +1,5 @@
 // https://www.sanity.io/docs/document-actions
-import { EarthGlobeIcon } from "@sanity/icons";
+import EarthGlobeIcon from "@sanity/icons/EarthGlobe";
 import { DocumentActionComponent } from "sanity";
 import { SHOPIFY_STORE_DOMAIN } from "shopify/config";
 

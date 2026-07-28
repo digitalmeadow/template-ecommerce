@@ -1,5 +1,5 @@
 import { defineType } from "sanity";
-import { LinkIcon } from "@sanity/icons";
+import LinkIcon from "@sanity/icons/Link";
 import { defineField } from "sanity";
 import { LINKABLE_DOCUMENT_TYPES } from "../../config";
 

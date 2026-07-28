@@ -1,4 +1,5 @@
-import { TagIcon, TagsIcon } from "@sanity/icons";
+import TagIcon from "@sanity/icons/Tag";
+import TagsIcon from "@sanity/icons/Tags";
 import { StructureBuilder } from "sanity/structure";
 
 export const products = (S: StructureBuilder) => {

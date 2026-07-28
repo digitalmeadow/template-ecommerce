@@ -11,11 +11,11 @@ interface Props {
 
 const { videoData, layout = "width", loading = "lazy", mediaId }: Props = Astro.props;
 
-const aspectRatio = videoData?.asset?.data?.aspect_ratio!.replace(":", "/");
-const playbackId = videoData?.asset?.playbackId!;
+const aspectRatio = videoData?.asset?.data?.aspect_ratio?.replace(":", "/");
+const playbackId = videoData?.asset?.playbackId;
 const posterURL = `https://image.mux.com/${playbackId}/thumbnail.jpg?fit_mode=crop&time=0`;
 
-const { imageDataURL } = await createBlurUp(playbackId, {});
+const { imageDataURL } = playbackId ? await createBlurUp(playbackId, {}) : { imageDataURL: undefined };
 ---
 
 <script>

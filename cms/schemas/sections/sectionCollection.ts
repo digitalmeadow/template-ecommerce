@@ -1,5 +1,5 @@
 import { defineField, defineType } from "sanity";
-import { BlockElementIcon } from "@sanity/icons";
+import BlockElementIcon from "@sanity/icons/BlockElement";
 
 export const sectionCollection = defineType({
   type: "object",

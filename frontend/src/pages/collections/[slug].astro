@@ -20,9 +20,10 @@ const collectionData = await fetchCollectionShopifySanity(slug);
 
 // Meta fallbacks
 const metaData: MetaFragment = {
-  ...collectionData.sanity?.meta,
   __typename: "Meta",
-  title: collectionData.sanity?.meta?.title || collectionData.shopify.title,
+  title: collectionData.sanity.meta?.title || collectionData.shopify.title,
+  description: collectionData.sanity.meta?.description ?? null,
+  image: collectionData.sanity.meta?.image ?? null,
 };
 ---
 
@@ -30,7 +31,10 @@ const metaData: MetaFragment = {
   <SectionHero
     section={{
       __typename: "SectionHero",
+      _key: null,
       heading: collectionData.shopify.title,
+      textRaw: null,
+      backgroundMedia: null,
     }}
   />
 

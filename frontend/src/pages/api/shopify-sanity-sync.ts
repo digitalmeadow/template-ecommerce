@@ -43,10 +43,10 @@ export const POST: APIRoute = async ({ request }) => {
         "Content-Type": "application/json",
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     return new Response(
       JSON.stringify({
-        error: error.message || String(error),
+        error: error instanceof Error ? error.message : String(error),
       }),
       {
         status: 500,
@@ -127,10 +127,10 @@ async function createOrUpdateProducts(
           }),
         );
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to process product ${product.id}:`, {
         title: product.title,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -174,11 +174,11 @@ async function createOrUpdateCollections(
           }),
         );
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to process collection ${collection.id}:`, {
         title: collection.title,
         handle: collection.handle,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -226,11 +226,11 @@ async function createOrUpdateProductVariants(
           }),
         );
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Failed to process variant ${variant.id}:`, {
         title: variant.title,
         productId: product.id,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }

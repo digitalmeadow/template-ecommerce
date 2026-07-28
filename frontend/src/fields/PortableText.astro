@@ -3,7 +3,7 @@ import { PortableText as AstroPortableText } from "astro-portabletext";
 import Mark from "@fields/portableTextComponents/Mark.astro";
 
 interface Props {
-  value: any;
+  value: unknown;
   class?: string | undefined;
   style?: "default" | "large";
 }
@@ -16,7 +16,14 @@ const components = {
 ---
 
 <div class:list={["portable-text", className, style]}>
-  <AstroPortableText value={value} components={components} />
+  {
+    /* CMS-authored Portable Text blocks: shape is validated by Sanity's schema, not by our
+     types (GraphQL codegen types this field as `unknown`), so a cast is required here. */
+  }
+  <AstroPortableText
+    value={value as Parameters<typeof AstroPortableText>[0]["value"]}
+    components={components}
+  />
 </div>
 
 <style is:global>

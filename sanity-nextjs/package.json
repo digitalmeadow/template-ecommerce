@@ -3,18 +3,25 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "gen": "tsx --env-file='.env' codegen.ts"
+    "gen": "tsx --env-file='.env' codegen.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@graphql-codegen/cli": "7.1.2",
-    "@graphql-codegen/client-preset": "6.0.1",
+    "@graphql-codegen/cli": "7.2.0",
+    "@graphql-codegen/client-preset": "6.1.0",
     "@graphql-typed-document-node/core": "3.2.0",
-    "@sanity/client": "7.22.1",
+    "@sanity/client": "7.25.0",
     "@sanity/webhook": "4.0.4",
     "graphql-request": "7.4.0",
-    "server-only": "^0.0.1"
+    "server-only": "0.0.1"
   },
   "devDependencies": {
-    "tsx": "4.22.4"
+    "@eslint/js": "10.0.1",
+    "@types/node": "25.9.5",
+    "eslint": "10.8.0",
+    "tsx": "4.23.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.65.0"
   }
 }

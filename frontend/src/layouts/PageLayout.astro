@@ -21,6 +21,8 @@ import ScriptTextFillWidth from "@scripts/ScriptTextFillWidth.astro";
 import ScriptMeasurements from "@scripts/ScriptMeasurements.astro";
 import { sanityClient } from "sanity/client";
 import { metaSettingsQuery } from "sanity/queries/metaSettings";
+import { WEBSITE_URL } from "astro:env/client";
+import { PREVIEW } from "astro:env/client";
 
 interface Props {
   metaData: MetaFragment | null | undefined;
@@ -33,6 +35,9 @@ const localeConfig = LOCALE_CONFIG[currentLocale];
 
 const metaSettingsQueryResult = await sanityClient.request(metaSettingsQuery);
 const metaSettingsData = metaSettingsQueryResult?.allMetaSettings?.[0];
+
+const canonicalUrl = new URL(Astro.url.pathname, WEBSITE_URL).href;
+if (PREVIEW === "true") Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
 ---
 
 <html
@@ -66,6 +71,9 @@ const metaSettingsData = metaSettingsQueryResult?.allMetaSettings?.[0];
       type="font/woff2"
       crossorigin
     />
+
+    <link rel="canonical" href={canonicalUrl} />
+    {PREVIEW === "true" && <meta name="robots" content="noindex, nofollow" />}
 
     <ScriptMeasurements />
     <ScriptTextFillWidth />

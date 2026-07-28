@@ -72,6 +72,8 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
 </div>
 
 <script>
+  import type { Variant } from "./ProductVariantSelector.astro";
+
   export type EventDetailProductVariantChange = {
     variantId: string;
     availableForSale: boolean;
@@ -89,7 +91,7 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
 
     const variantsJson = (rootElement as HTMLElement).dataset.variants;
     if (!variantsJson) throw new Error("ProductVariantSelector: missing variants data");
-    const variants = JSON.parse(variantsJson);
+    const variants: Variant[] = JSON.parse(variantsJson);
 
     function getSelectedOptions() {
       // Find the checked input for each option group
@@ -108,11 +110,9 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
       const uniqueOptionNames = new Set(optionInputs.map((i) => i.dataset.optionName));
       if (selectedOptions.length < uniqueOptionNames.size) return null;
 
-      const variant = variants.find((v: any) => {
+      const variant = variants.find((v) => {
         return selectedOptions.every((selected) =>
-          v.selectedOptions.some(
-            (vo: any) => vo.name === selected.name && vo.value === selected.value,
-          ),
+          v.selectedOptions.some((vo) => vo.name === selected.name && vo.value === selected.value),
         );
       });
 

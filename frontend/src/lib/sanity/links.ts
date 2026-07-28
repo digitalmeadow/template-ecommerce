@@ -38,7 +38,7 @@ async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragmen
   return linkData;
 }
 
-export async function resolveLinkHref(linkData: LinkFragment | any): Promise<string | undefined> {
+export async function resolveLinkHref(linkData: LinkFragment): Promise<string | undefined> {
   if (!linkData) return undefined;
 
   const resolvedLink = await resolveLinkReference(linkData);
@@ -50,12 +50,8 @@ export async function resolveLinkHref(linkData: LinkFragment | any): Promise<str
   if (resolvedLink.type === "email") return `mailto:${resolvedLink.email}`;
   if (resolvedLink.type === "phone") return `tel:${resolvedLink.phone}`;
   if (resolvedLink.type === "file") {
-    if (
-      resolvedLink.file?.asset &&
-      "_ref" in resolvedLink.file?.asset &&
-      resolvedLink.file?.asset?._ref
-    ) {
-      return sanityFileUrlFromRef(resolvedLink.file?.asset?._ref as string);
+    if (resolvedLink.file?.asset && "_ref" in resolvedLink.file.asset && resolvedLink.file.asset._ref) {
+      return sanityFileUrlFromRef(resolvedLink.file.asset._ref as string);
     }
     if (resolvedLink.file?.asset?.url) {
       return resolvedLink.file.asset.url;
@@ -104,7 +100,7 @@ function sanityFileUrlFromRef(source: string | undefined): string {
   }
 
   const lastDashIndex = source.lastIndexOf("-");
-  let sourceUrl = source.slice(0, lastDashIndex) + "." + source.slice(lastDashIndex + 1);
+  const sourceUrl = source.slice(0, lastDashIndex) + "." + source.slice(lastDashIndex + 1);
 
   return `https://cdn.sanity.io/files/${SANITY_PROJECT_ID}/production/${sourceUrl}`;
 }

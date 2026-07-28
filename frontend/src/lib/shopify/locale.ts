@@ -38,7 +38,8 @@ export function getLocaleFromPath(pathname: string): LocaleCode {
   for (const [locale, config] of Object.entries(LOCALE_CONFIG)) {
     if (config.pathPrefix && config.pathPrefix !== "/") {
       // Remove leading/trailing slashes for comparison
-      // @ts-expect-error
+      // @ts-expect-error -- every current LOCALE_CONFIG entry has pathPrefix "/" or null, so TS
+      // narrows this branch to `never`; kept for when a future locale has a real path prefix
       const configPath = config.pathPrefix.replace(/^\/|\/$/, "");
       if (firstSegment === configPath) {
         return locale as LocaleCode;

@@ -1,5 +1,5 @@
 import { defineField, defineType } from "sanity";
-import { BlockElementIcon } from "@sanity/icons";
+import BlockElementIcon from "@sanity/icons/BlockElement";
 import { previewPortableText } from "../../utils/preview";
 
 export const sectionText = defineType({

@@ -1,15 +1,23 @@
 ---
-import { type SectionAccordionsOrSectionCollectionOrSectionHeroOrSectionText } from "sanity/generated/graphql";
+import type {
+  SectionAccordionsFragment,
+  SectionCollectionFragment,
+  SectionHeroFragment,
+  SectionTextFragment,
+} from "sanity/generated/graphql";
 import SectionHero from "@sections/SectionHero.astro";
 import SectionText from "@sections/SectionText.astro";
 import SectionCollection from "@sections/SectionCollection.astro";
 import SectionAccordions from "./SectionAccordions.astro";
 
+type Section =
+  | SectionAccordionsFragment
+  | SectionCollectionFragment
+  | SectionHeroFragment
+  | SectionTextFragment;
+
 interface Props {
-  sections:
-    | (SectionAccordionsOrSectionCollectionOrSectionHeroOrSectionText | null)[]
-    | null
-    | undefined;
+  sections: (Section | null)[] | null | undefined;
 }
 
 const { sections }: Props = Astro.props;

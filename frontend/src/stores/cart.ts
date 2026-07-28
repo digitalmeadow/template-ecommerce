@@ -45,7 +45,7 @@ export const $cartTotal = computed($cart, (cart): { amount: string; currencyCode
   };
 });
 
-export const $isCartEmpty = computed($cart, (cart): boolean => {
+export const $isCartEmpty = computed($cart, (_cart): boolean => {
   return !$cartCount.get() || $cartCount.get() === 0;
 });
 

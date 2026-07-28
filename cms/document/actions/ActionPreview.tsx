@@ -1,5 +1,5 @@
 // https://www.sanity.io/docs/document-actions
-import { EyeOpenIcon } from "@sanity/icons";
+import EyeOpenIcon from "@sanity/icons/EyeOpen";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "frontend/config";
 import { DocumentActionComponent, Slug } from "sanity";
 import { PREVIEW_WEBSITE_URL } from "../../config";

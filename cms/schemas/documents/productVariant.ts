@@ -1,4 +1,4 @@
-import { TagsIcon } from "@sanity/icons";
+import TagsIcon from "@sanity/icons/Tags";
 import { defineField, defineType } from "sanity";
 
 export const productVariant = defineType({
