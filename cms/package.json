@@ -10,7 +10,7 @@
     "build": "sanity build",
     "deploy": "sanity deploy",
     "pre-gen": "sanity schema validate",
-    "gen": "pnpm pre-gen && sanity graphql deploy",
+    "gen": "pnpm pre-gen && sanity graphql deploy --force",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

@@ -46,7 +46,7 @@ const { productData }: Props = Astro.props;
     grid-template-columns: 1fr 1fr;
     align-items: start;
   }
-  @media (max-width: 500px) {
+  @media (max-width: 32rem) {
     section {
       display: flex;
       flex-direction: column-reverse;
@@ -64,7 +64,7 @@ const { productData }: Props = Astro.props;
     flex-direction: column;
     row-gap: var(--s40);
   }
-  @media (max-width: 500px) {
+  @media (max-width: 32rem) {
     .product-purchase {
       position: static;
       height: auto;

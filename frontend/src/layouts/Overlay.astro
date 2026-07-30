@@ -190,7 +190,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     opacity: 1;
     pointer-events: auto;
   }
-  @media (max-width: 500px) {
+  @media (max-width: 32rem) {
     .panel.fullscreen {
       padding: var(--margin);
     }
@@ -209,7 +209,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
   overlay-root[data-state]:not([data-state="false"]) .panel.right {
     transform: translateX(0);
   }
-  @media (max-width: 500px) {
+  @media (max-width: 32rem) {
     .panel.right {
       top: auto;
       bottom: 0;

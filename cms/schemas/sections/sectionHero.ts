@@ -1,6 +1,7 @@
 import { defineField, defineType } from "sanity";
 import BlockElementIcon from "@sanity/icons/BlockElement";
 import { previewMedia } from "../../utils/preview";
+import { validateSlugId } from "../../utils/validation";
 
 export const sectionHero = defineType({
   type: "object",
@@ -8,6 +9,12 @@ export const sectionHero = defineType({
   title: "Section: Hero",
   icon: BlockElementIcon,
   fields: [
+    defineField({
+      type: "string",
+      name: "id",
+      title: "Section ID",
+      validation: (Rule) => validateSlugId(Rule),
+    }),
     defineField({
       type: "media",
       name: "backgroundMedia",

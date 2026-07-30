@@ -1,5 +1,6 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 import DoubleChevronDownIcon from "@sanity/icons/DoubleChevronDown";
+import { validateSlugId } from "../../utils/validation";
 
 export const sectionAccordions = defineType({
   type: "object",
@@ -7,6 +8,12 @@ export const sectionAccordions = defineType({
   title: "Section: Accordions",
   icon: DoubleChevronDownIcon,
   fields: [
+    defineField({
+      type: "string",
+      name: "id",
+      title: "Section ID",
+      validation: (Rule) => validateSlugId(Rule),
+    }),
     defineField({
       type: "array",
       name: "accordions",

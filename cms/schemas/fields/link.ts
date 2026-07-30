@@ -2,6 +2,7 @@ import { defineType } from "sanity";
 import LinkIcon from "@sanity/icons/Link";
 import { defineField } from "sanity";
 import { LINKABLE_DOCUMENT_TYPES } from "../../config";
+import { validateSlugId } from "../../utils/validation";
 
 export const link = defineType({
   type: "object",
@@ -25,12 +26,11 @@ export const link = defineType({
       weak: true,
       to: LINKABLE_DOCUMENT_TYPES.map((navigatable) => ({ type: navigatable })),
       validation: (Rule) =>
-        Rule.custom((value, { parent }) => {
-          // @ts-expect-error
-          if (parent.type != "page") return true;
-          if (!value) return "Reference required";
-          return true;
-        }),
+        Rule.custom((value, context) =>
+          (context.parent as { type?: string })?.type === "page" && !value
+            ? "Reference required"
+            : true,
+        ),
       hidden: ({ parent }) => parent?.type != "page",
     }),
 
@@ -40,15 +40,9 @@ export const link = defineType({
       name: "url",
       title: "URL",
       validation: (Rule) =>
-        Rule.uri({
-          scheme: ["http", "https"],
-          allowRelative: true,
-        }).custom((value, { parent }) => {
-          // @ts-expect-error
-          if (parent.type != "url") return true;
-          if (!value) return "HREF required";
-          return true;
-        }),
+        Rule.uri({ scheme: ["http", "https"], allowRelative: true }).custom((value, context) =>
+          (context.parent as { type?: string })?.type === "url" && !value ? "HREF required" : true,
+        ),
       hidden: ({ parent }) => parent?.type != "url",
     }),
 
@@ -57,13 +51,8 @@ export const link = defineType({
       type: "string",
       name: "section",
       title: "Section ID",
-      validation: (Rule) =>
-        Rule.custom((value, { parent }) => {
-          // @ts-expect-error
-          if (parent.type != "section") return true;
-          if (!value) return "Section required";
-          return true;
-        }),
+      description: "Section ID to scroll to",
+      validation: (Rule) => validateSlugId(Rule),
       hidden: ({ parent }) => parent?.type != "section",
     }),
 
@@ -72,12 +61,11 @@ export const link = defineType({
       type: "email",
       name: "email",
       validation: (Rule) =>
-        Rule.custom((value, { parent }) => {
-          // @ts-expect-error
-          if (parent.type != "email") return true;
-          if (!value) return "Email required";
-          return true;
-        }),
+        Rule.custom((value, context) =>
+          (context.parent as { type?: string })?.type === "email" && !value
+            ? "Email required"
+            : true,
+        ),
       hidden: ({ parent }) => parent?.type != "email",
     }),
 
@@ -86,12 +74,11 @@ export const link = defineType({
       type: "string",
       name: "phone",
       validation: (Rule) =>
-        Rule.custom((value, { parent }) => {
-          // @ts-expect-error
-          if (parent.type != "phone") return true;
-          if (!value) return "Phone number required";
-          return true;
-        }),
+        Rule.custom((value, context) =>
+          (context.parent as { type?: string })?.type === "phone" && !value
+            ? "Phone number required"
+            : true,
+        ),
       hidden: ({ parent }) => parent?.type != "phone",
     }),
 
@@ -100,12 +87,9 @@ export const link = defineType({
       type: "file",
       name: "file",
       validation: (Rule) =>
-        Rule.custom((value, { parent }) => {
-          // @ts-expect-error
-          if (parent.type != "file") return true;
-          if (!value) return "File required";
-          return true;
-        }),
+        Rule.custom((value, context) =>
+          (context.parent as { type?: string })?.type === "file" && !value ? "File required" : true,
+        ),
       hidden: ({ parent }) => parent?.type != "file",
     }),
 

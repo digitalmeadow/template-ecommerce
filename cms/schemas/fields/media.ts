@@ -27,7 +27,9 @@ export const media = defineType({
       },
       validation: (Rule) =>
         Rule.custom((fields, context) =>
-          (context.parent as any).type === "image" && !fields?.asset ? "Image required" : true,
+          (context.parent as { type?: string })?.type === "image" && !fields?.asset
+            ? "Image required"
+            : true,
         ),
     }),
     defineField({
@@ -36,8 +38,14 @@ export const media = defineType({
       hidden: ({ parent }) => parent?.type !== "video",
       validation: (Rule) =>
         Rule.custom((video, context) =>
-          (context.parent as any).type === "video" && !video ? "Video Required" : true,
+          (context.parent as { type?: string })?.type === "video" && !video
+            ? "Video Required"
+            : true,
         ),
     }),
   ],
+  options: {
+    collapsible: true,
+    collapsed: false,
+  },
 });
