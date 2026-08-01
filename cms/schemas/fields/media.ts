@@ -16,7 +16,7 @@ export const media = defineType({
         layout: "dropdown",
       },
       initialValue: "image",
-      validation: (Rule) => Rule.required(),
+      validation: (Rule, context) => (context?.hidden ? Rule.skip() : Rule.required()),
     }),
     defineField({
       type: "image",
@@ -27,7 +27,7 @@ export const media = defineType({
       },
       validation: (Rule) =>
         Rule.custom((fields, context) =>
-          (context.parent as { type?: string })?.type === "image" && !fields?.asset
+          !context.hidden && (context.parent as { type?: string })?.type === "image" && !fields?.asset
             ? "Image required"
             : true,
         ),
@@ -38,7 +38,7 @@ export const media = defineType({
       hidden: ({ parent }) => parent?.type !== "video",
       validation: (Rule) =>
         Rule.custom((video, context) =>
-          (context.parent as { type?: string })?.type === "video" && !video
+          !context.hidden && (context.parent as { type?: string })?.type === "video" && !video
             ? "Video Required"
             : true,
         ),

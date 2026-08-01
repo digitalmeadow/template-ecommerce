@@ -20,14 +20,26 @@ const {
 
 const altText = imageData?.asset?.altText ?? "";
 const blurhashSrc = imageData?.asset?.metadata?.lqip;
+const aspectRatio = imageData?.asset?.metadata?.dimensions?.aspectRatio;
 const sanityImageProps = imageData ? getSanityImageProps({ sanityImage: imageData, sizes }) : [];
 ---
 
-<div class={`sanity-image layout-${layout}`}>
-  <img class="blurhash" src={blurhashSrc} alt="" loading="eager" />
+<div
+  class:list={["sanity-image", `layout-${layout}`]}
+  style={aspectRatio && (layout === "width" || layout === "height")
+    ? `aspect-ratio: ${aspectRatio}`
+    : undefined}
+>
+  <img
+    class:list={["blurhash", `layout-${layout}`]}
+    src={blurhashSrc}
+    alt=""
+    loading="eager"
+    aria-hidden="true"
+  />
 
   <img
-    class={`image layout-${layout}`}
+    class:list={["image", `layout-${layout}`]}
     data-media-id={mediaId}
     {...sanityImageProps}
     alt={altText}
@@ -39,20 +51,37 @@ const sanityImageProps = imageData ? getSanityImageProps({ sanityImage: imageDat
 <style>
   .sanity-image {
     position: relative;
+    display: grid;
     overflow: hidden;
   }
 
+  .sanity-image > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
   .blurhash {
+    opacity: 1;
+    transition: opacity var(--transition-media-load);
+    pointer-events: none;
+    filter: blur(100px);
+  }
+
+  .sanity-image:has(.image[data-loaded]) .blurhash {
+    opacity: 0;
+  }
+
+  .layout-width .blurhash,
+  .layout-height .blurhash {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
   .image {
-    position: relative;
     opacity: 0;
     transition: opacity var(--transition-media-load);
   }

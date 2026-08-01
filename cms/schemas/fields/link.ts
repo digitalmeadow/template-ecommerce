@@ -16,7 +16,7 @@ export const link = defineType({
         list: ["page", "url", "section", "email", "phone", "file"],
       },
       initialValue: "page",
-      validation: (R) => R.required(),
+      validation: (Rule, context) => (context?.hidden ? Rule.skip() : Rule.required()),
     }),
 
     // Page
@@ -27,7 +27,7 @@ export const link = defineType({
       to: LINKABLE_DOCUMENT_TYPES.map((navigatable) => ({ type: navigatable })),
       validation: (Rule) =>
         Rule.custom((value, context) =>
-          (context.parent as { type?: string })?.type === "page" && !value
+          !context.hidden && (context.parent as { type?: string })?.type === "page" && !value
             ? "Reference required"
             : true,
         ),
@@ -41,7 +41,9 @@ export const link = defineType({
       title: "URL",
       validation: (Rule) =>
         Rule.uri({ scheme: ["http", "https"], allowRelative: true }).custom((value, context) =>
-          (context.parent as { type?: string })?.type === "url" && !value ? "HREF required" : true,
+          !context.hidden && (context.parent as { type?: string })?.type === "url" && !value
+            ? "HREF required"
+            : true,
         ),
       hidden: ({ parent }) => parent?.type != "url",
     }),
@@ -62,7 +64,7 @@ export const link = defineType({
       name: "email",
       validation: (Rule) =>
         Rule.custom((value, context) =>
-          (context.parent as { type?: string })?.type === "email" && !value
+          !context.hidden && (context.parent as { type?: string })?.type === "email" && !value
             ? "Email required"
             : true,
         ),
@@ -75,7 +77,7 @@ export const link = defineType({
       name: "phone",
       validation: (Rule) =>
         Rule.custom((value, context) =>
-          (context.parent as { type?: string })?.type === "phone" && !value
+          !context.hidden && (context.parent as { type?: string })?.type === "phone" && !value
             ? "Phone number required"
             : true,
         ),
@@ -88,7 +90,9 @@ export const link = defineType({
       name: "file",
       validation: (Rule) =>
         Rule.custom((value, context) =>
-          (context.parent as { type?: string })?.type === "file" && !value ? "File required" : true,
+          !context.hidden && (context.parent as { type?: string })?.type === "file" && !value
+            ? "File required"
+            : true,
         ),
       hidden: ({ parent }) => parent?.type != "file",
     }),

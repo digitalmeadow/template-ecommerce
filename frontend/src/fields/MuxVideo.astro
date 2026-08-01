@@ -15,14 +15,16 @@ const aspectRatio = videoData?.asset?.data?.aspect_ratio?.replace(":", "/");
 const playbackId = videoData?.asset?.playbackId;
 const posterURL = `https://image.mux.com/${playbackId}/thumbnail.jpg?fit_mode=crop&time=0`;
 
-const { imageDataURL } = playbackId ? await createBlurUp(playbackId, {}) : { imageDataURL: undefined };
+const { imageDataURL } = playbackId
+  ? await createBlurUp(playbackId, {})
+  : { imageDataURL: undefined };
 ---
 
 <script>
   import "@mux/mux-player";
 </script>
 
-<div class={`mux-video layout-${layout}`} style=`aspect-ratio: ${aspectRatio};`>
+<div class:list={["mux-video", `layout-${layout}`]} style=`aspect-ratio: ${aspectRatio};`>
   <img class="mux-video-placeholder" src={imageDataURL} alt="" />
 
   <mux-player
