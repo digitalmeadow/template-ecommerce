@@ -1,35 +1,26 @@
 import type { FooterFragment } from "sanity-nextjs/generated/graphql";
-import { sanityClient } from "sanity-nextjs/client.server";
-import { footerQuery } from "sanity-nextjs/queries/footer";
 import SanityLink from "@/fields/SanityLink";
 import SanityMedia from "@/fields/SanityMedia";
 import PortableText from "@/fields/PortableText";
 
 interface Props {
-  footerData?: FooterFragment | null;
+  footerData: FooterFragment | null | undefined;
 }
 
-export default async function Footer({ footerData }: Props) {
-  const data =
-    footerData ??
-    (await sanityClient.request(footerQuery).then((r) => r.allFooter[0]));
-
-  if (!data) return null;
+export default function Footer({ footerData }: Props) {
+  if (!footerData) return null;
 
   return (
     <>
       <footer>
         <div className="footer-content flex flex-col text-center">
-          <PortableText value={data.textRaw} />
+          <PortableText value={footerData.textRaw} />
 
           <div className="nav flex flex-wrap gap-[var(--s8)]">
-            {data.navigationItems?.map((navigationItem, index) => {
+            {footerData.navigationItems?.map((navigationItem, index) => {
               if (!navigationItem?.link) return null;
               return (
-                <SanityLink
-                  key={index}
-                  linkData={navigationItem.link}
-                >
+                <SanityLink key={index} linkData={navigationItem.link}>
                   {navigationItem.label}
                 </SanityLink>
               );
@@ -38,9 +29,9 @@ export default async function Footer({ footerData }: Props) {
         </div>
       </footer>
 
-      <div className="footer-media w-full h-auto overflow-hidden flex justify-center">
+      <div className="footer-media flex h-auto w-full justify-center overflow-hidden">
         <div className="footer-media-inner w-[120%]">
-          <SanityMedia mediaData={data.mediaBackground} layout="width" />
+          <SanityMedia mediaData={footerData.mediaBackground} layout="width" />
         </div>
       </div>
     </>

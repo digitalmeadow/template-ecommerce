@@ -25,14 +25,12 @@ const shopifyCollection = await shopifyClient.request(collectionByHandleQuery, {
 const productHandles =
   shopifyCollection.collectionByHandle?.products.edges.map((edge) => edge?.node?.handle) || [];
 
-let productsData: ProductThumbnailShopifySanity[] = [];
-for (const handle of productHandles || []) {
-  const productData = await fetchProductThumbnailShopifySanity(handle);
-  productsData.push(productData);
-}
+const productsData: ProductThumbnailShopifySanity[] = await Promise.all(
+  productHandles.map(fetchProductThumbnailShopifySanity),
+);
 ---
 
-<section>
+<section class="u-container">
   <h2>
     Collection: {section.collection?.shopify?.title}<sup
       >({shopifyCollection.collectionByHandle?.products.edges.length})</sup
@@ -44,9 +42,6 @@ for (const handle of productHandles || []) {
 
 <style>
   section {
-    width: var(--container-width);
-    margin: 0 auto;
-
     display: flex;
     flex-direction: column;
     align-items: center;

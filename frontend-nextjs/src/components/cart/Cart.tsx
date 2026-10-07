@@ -1,10 +1,18 @@
-import { sanityClient } from "sanity-nextjs/client.server";
-import { cartQuery } from "sanity-nextjs/queries/cart";
+import type { CartFragment } from "sanity-nextjs/generated/graphql";
+import PortableText from "@/fields/PortableText";
 import CartClient from "./CartClient";
 
-export default async function Cart() {
-  const cartQueryResult = await sanityClient.request(cartQuery);
-  const cartData = cartQueryResult.allCart[0] ?? null;
+interface Props {
+  cartData: CartFragment | null | undefined;
+}
 
-  return <CartClient cartData={cartData} />;
+export default function Cart({ cartData }: Props) {
+  return (
+    <CartClient
+      emptyMessage={<PortableText value={cartData?.emptyMessageRaw} />}
+      note={
+        cartData?.noteRaw ? <PortableText value={cartData.noteRaw} /> : null
+      }
+    />
+  );
 }

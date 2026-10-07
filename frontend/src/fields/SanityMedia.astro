@@ -2,6 +2,7 @@
 import type { MediaFragment } from "sanity/generated/graphql";
 import MuxVideo from "@fields/MuxVideo.astro";
 import SanityImage from "@fields/SanityImage.astro";
+import VimeoVideo from "@fields/VimeoVideo.astro";
 
 interface Props {
   mediaData: MediaFragment | null | undefined;
@@ -37,6 +38,17 @@ const {
     if (mediaData?.type === "video") {
       return (
         <MuxVideo videoData={mediaData.video} layout={layout} loading={loading} mediaId={mediaId} />
+      );
+    }
+
+    if (mediaData?.type === "vimeo") {
+      return (
+        <VimeoVideo
+          videoData={mediaData.vimeo}
+          layout={layout}
+          loading={loading}
+          mediaId={mediaId}
+        />
       );
     }
   }

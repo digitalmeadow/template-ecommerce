@@ -3,7 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { SanityImageFragment } from "sanity-nextjs/generated/graphql";
-import { sanityImageLoader, getSizesAttr } from "@/lib/sanity/images";
+import {
+  sanityImageLoader,
+  getSizesAttr,
+  getSanityImageProps,
+  getSanityImageFocalPoint,
+} from "@/lib/sanity/images";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -11,6 +16,8 @@ interface Props {
   layout?: "width" | "height" | "cover" | "contain";
   sizes?: [number, number, number];
   loading?: "lazy" | "eager";
+  /* Above-the-fold images: preloads, skips lazy loading and raises fetch priority for LCP. */
+  priority?: boolean;
   mediaId?: string | null;
 }
 
@@ -19,41 +26,36 @@ export default function SanityImage({
   layout = "width",
   sizes = [100, 100, 100],
   loading = "lazy",
+  priority = false,
   mediaId,
 }: Props) {
   const [loaded, setLoaded] = useState(false);
-  if (!imageData?.asset?.url) return null;
+  const imageProps = getSanityImageProps(imageData);
+  if (!imageProps) return null;
 
-  const { url, altText, metadata } = imageData.asset;
-  const dimensions = metadata?.dimensions;
-  const lqip = metadata?.lqip;
-  const alt = altText ?? "";
-  const sizesAttr = getSizesAttr(sizes);
+  const alt = imageData?.asset?.altText ?? "";
+  const lqip = imageData?.asset?.metadata?.lqip;
+  const focalPoint = getSanityImageFocalPoint(imageData);
 
   const isFill = layout === "cover" || layout === "contain";
-  const objectFit = layout === "contain" ? "contain" : "cover";
-  const hasDimensions = !!dimensions?.width && !!dimensions?.height;
-  const dimW: number | undefined = hasDimensions
-    ? dimensions.width!
-    : undefined;
-  const dimH: number | undefined = hasDimensions
-    ? dimensions.height!
-    : undefined;
+  const hasDimensions = !!imageProps.width && !!imageProps.height;
+
+  // Cover/contain keep intrinsic dimensions like the Astro version: they fill a sized parent and
+  // fall back to the image's own aspect ratio otherwise. `fill` only when dimensions are unknown.
+  const useFill = !hasDimensions;
 
   const imgClasses = cn(
     "relative transition-opacity duration-300 ease-in-out",
     loaded ? "opacity-100" : "opacity-0",
     isFill
-      ? objectFit === "contain"
-        ? "object-contain"
-        : "object-cover"
+      ? cn("w-full h-full", layout === "contain" ? "object-contain" : "object-cover")
       : layout === "height"
         ? "h-full w-auto"
         : "w-full h-auto",
   );
 
   return (
-    <div className="sanity-image relative overflow-hidden">
+    <div className={cn("sanity-image relative grid overflow-hidden", isFill && "w-full h-full")}>
       {lqip && (
         <img
           src={lqip}
@@ -64,16 +66,19 @@ export default function SanityImage({
         />
       )}
       <Image
-        src={url}
+        src={imageProps.src}
         alt={alt}
-        fill={isFill || !hasDimensions}
-        width={!isFill ? dimW : undefined}
-        height={!isFill ? dimH : undefined}
-        sizes={sizesAttr}
-        loading={loading}
+        fill={useFill}
+        width={useFill ? undefined : imageProps.width!}
+        height={useFill ? undefined : imageProps.height!}
+        sizes={getSizesAttr(sizes)}
+        loading={priority ? "eager" : loading}
+        preload={priority}
+        fetchPriority={priority ? "high" : undefined}
         loader={sanityImageLoader}
         onLoad={() => setLoaded(true)}
         className={imgClasses}
+        style={focalPoint ? { objectPosition: focalPoint } : undefined}
         data-media-id={mediaId ?? undefined}
       />
     </div>

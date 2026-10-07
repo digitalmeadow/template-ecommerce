@@ -1,0 +1,7 @@
+fragment FormGroup on FormGroup {
+  _key
+  heading
+  fields {
+    ...FormField
+  }
+}

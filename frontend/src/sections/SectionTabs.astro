@@ -1,0 +1,116 @@
+---
+import type { SectionTabsFragment } from "sanity/generated/graphql";
+import Tabs from "@layouts/Tabs.astro";
+import PortableText from "@fields/PortableText.astro";
+import SanityMedia from "@fields/SanityMedia.astro";
+
+interface Props {
+  section: SectionTabsFragment;
+}
+
+const { section }: Props = Astro.props;
+
+const tabItems = section.tabItems ?? [];
+---
+
+<section class="section-tabs" id={section.id ?? undefined}>
+  <Tabs id={section._key ?? undefined} class="u-container">
+    {
+      tabItems.map(
+        (item, index) =>
+          item && (
+            <button
+              slot="triggers"
+              type="button"
+              role="tab"
+              data-tab-trigger
+              id={`tab-${section._key}-trigger-${index}`}
+              aria-controls={`tab-${section._key}-panel-${index}`}
+            >
+              {item.title}
+            </button>
+          ),
+      )
+    }
+    {
+      tabItems.map(
+        (item, index) =>
+          item && (
+            <div
+              slot="panels"
+              role="tabpanel"
+              data-tab-panel
+              id={`tab-${section._key}-panel-${index}`}
+              aria-labelledby={`tab-${section._key}-trigger-${index}`}
+              class="panel"
+            >
+              <PortableText value={item.contentRaw} />
+              {item.media && <SanityMedia mediaData={item.media} sizes={[50, 100, 100]} />}
+            </div>
+          ),
+      )
+    }
+  </Tabs>
+</section>
+
+<style>
+  .section-tabs {
+    margin-top: var(--s120);
+    margin-bottom: var(--s120);
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--s32);
+  }
+</style>
+
+<style is:global>
+  .section-tabs tabs-root {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gutter);
+    align-items: start;
+  }
+  @media (max-width: 64rem) {
+    .section-tabs tabs-root {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .section-tabs [data-tabs-triggers] {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--color-shape-stroke);
+  }
+
+  .section-tabs [data-tabs-panels] {
+    padding-left: calc(var(--column) + var(--gutter));
+  }
+  @media (max-width: 64rem) {
+    .section-tabs [data-tabs-panels] {
+      margin-top: var(--s40);
+      padding-left: 0;
+    }
+  }
+
+  .section-tabs [data-tab-trigger] {
+    padding: var(--s16) 0;
+    border-top: 1px solid var(--color-shape-stroke);
+    text-align: left;
+    opacity: 0.4;
+    cursor: pointer;
+    transition: opacity var(--transition-default);
+  }
+
+  .section-tabs [data-tab-trigger][data-state="active"] {
+    opacity: 1;
+  }
+
+  @media (hover: hover) {
+    .section-tabs [data-tab-trigger]:hover {
+      opacity: 1;
+    }
+  }
+</style>

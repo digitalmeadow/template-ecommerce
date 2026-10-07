@@ -30,7 +30,7 @@ function resolveAnchorRel(linkData: LinkFragment): string {
 ---
 
 {
-  linkData ? (
+  linkData && href !== undefined ? (
     <a
       class={className}
       href={href}

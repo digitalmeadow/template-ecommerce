@@ -8,13 +8,6 @@
   --theme-border: #d9d3c5;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-color-scheme]) {
-    --theme-bg: #1a1815;
-    --theme-fg: #ede7dc;
-  }
-}
-
 [data-color-scheme="dark"] {
   --theme-bg: #1a1815;
   --theme-fg: #ede7dc;
@@ -30,7 +23,13 @@
 }
 
 @theme {
-  --*: initial;
+  /* Only colours are reset; wiping everything (--*) also removes spacing, breakpoints and easings. */
+  --color-*: initial;
+  --color-black: #3e3832;
+  --color-white: #f6f2e5;
+
+  --breakpoint-sm: 32rem;
+  --breakpoint-lg: 64rem;
 
   --color-background: var(--theme-bg);
   --color-foreground: var(--theme-fg);
@@ -41,8 +40,6 @@
 }
 
 :root {
-  --color-white: #f6f2e5;
-  --color-black: #3e3832;
   --color-green: #2c6469;
   --color-purple: #b20155;
   --color-orange: #df6536;

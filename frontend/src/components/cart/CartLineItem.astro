@@ -11,7 +11,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 
     <div class="info">
       <a data-link class="text-link-wrapper">
-        <div>
+        <div class="titles">
           <span class="product-title" data-title></span>
           <span class="variant-title" data-variant-title></span>
         </div>
@@ -40,7 +40,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 </cart-line-item>
 
 <script>
-  import { resolveSanityHref } from "@lib/sanity/links";
+  import { resolveSanityHref } from "@lib/sanity/resolve";
   import { getCurrency } from "@lib/shopify/locale";
   import { updateLineQuantity, removeLine } from "@stores/cart";
   import type { QuantitySelectorElement } from "@blocks/QuantitySelector.astro.0.mts";
@@ -237,5 +237,11 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
   cart-line-item[data-state="removing"] {
     opacity: 0.5;
     pointer-events: none;
+  }
+
+  .titles {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 1ch;
   }
 </style>

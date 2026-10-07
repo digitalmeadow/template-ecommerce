@@ -1,0 +1,58 @@
+---
+interface Props {
+  name: string;
+  type: string;
+  width?: string;
+  errorId?: string;
+}
+
+const { name, type, width = "full", errorId }: Props = Astro.props;
+
+// Group types lay out their own label, so forms.css's single-line styling would fight them.
+const isControl = !["checkboxGroup", "radioGroup", "consent"].includes(type);
+---
+
+<div class="field" data-width={width} data-type={type}>
+  <div class:list={["control", { "form-field": isControl }]}>
+    <slot />
+  </div>
+
+  <p class="error" id={errorId} data-error-for={name} aria-live="polite"></p>
+</div>
+
+<style>
+  .field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Rule above each field; rows sit flush so the borders read as dividers. */
+  .control {
+    border-top: 1px solid currentColor;
+  }
+
+  .field[data-type="consent"] .control {
+    border-top: none;
+  }
+
+  /* Reads as a button, so a full border box instead of the divider rule. */
+  .field[data-type="file"] .control,
+  .field[data-type="files"] .control {
+    border: 1px solid currentColor;
+  }
+
+  .field[data-type="file"],
+  .field[data-type="files"] {
+    margin-bottom: var(--gutter);
+  }
+
+  .error {
+    color: var(--color-error);
+    margin-top: var(--s4);
+    margin-bottom: var(--s8);
+    font-size: 0.75rem;
+  }
+  .error:empty {
+    display: none;
+  }
+</style>

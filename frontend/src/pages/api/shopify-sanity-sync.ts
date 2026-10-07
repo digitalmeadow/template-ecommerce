@@ -4,7 +4,8 @@ export const prerender = false;
 
 import type { APIRoute } from "astro";
 import { createClient } from "sanity";
-import { SANITY_PROJECT_ID } from "sanity/config";
+import { SANITY_PROJECT_ID, SANITY_DATASET } from "astro:env/client";
+import { SANITY_EDITOR_API_TOKEN } from "astro:env/server";
 
 const PRODUCT_DOCUMENT_TYPE = "product";
 const PRODUCT_VARIANT_DOCUMENT_TYPE = "productVariant";
@@ -16,10 +17,10 @@ const SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX = "collection-";
 
 const sanityClient = createClient({
   projectId: SANITY_PROJECT_ID,
-  dataset: import.meta.env.SANITY_DATASET,
+  dataset: SANITY_DATASET,
   apiVersion: "2026-01-01",
   useCdn: false,
-  token: import.meta.env.SANITY_EDITOR_API_TOKEN,
+  token: SANITY_EDITOR_API_TOKEN,
 });
 
 export const POST: APIRoute = async ({ request }) => {

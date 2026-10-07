@@ -1,0 +1,101 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  required: boolean;
+  options: string[];
+  errorId?: string;
+}
+
+const { id, name, label, required, options, errorId }: Props = Astro.props;
+
+const labelId = `${id}-label`;
+---
+
+<div
+  class="radio-group"
+  role="radiogroup"
+  aria-labelledby={labelId}
+  aria-describedby={errorId}
+  aria-required={required || undefined}
+>
+  <span class="question" id={labelId}>{label}</span>
+
+  {
+    options.map((option, index) => {
+      const optionId = `${id}-${index}`;
+      return (
+        <span class="option">
+          <input type="radio" id={optionId} name={name} value={option} required={required} />
+          <label for={optionId}>
+            {option}
+            <span class="box" aria-hidden="true" />
+          </label>
+        </span>
+      );
+    })
+  }
+</div>
+
+<style>
+  .radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--s20);
+    row-gap: var(--s8);
+    padding: var(--s20) 0;
+  }
+
+  .question {
+    margin-right: auto;
+  }
+
+  input[type="radio"] {
+    position: absolute;
+    appearance: none;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s8);
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity var(--transition-default);
+  }
+
+  .box {
+    flex-shrink: 0;
+    width: 1.5em;
+    height: 1.5em;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background-clip: content-box;
+    padding: 0.25em;
+    transition: background-color var(--transition-default);
+  }
+
+  @media (hover: hover) {
+    label:hover {
+      opacity: 1;
+    }
+  }
+
+  input:checked + label {
+    opacity: 1;
+  }
+
+  input:checked + label .box {
+    background-color: currentColor;
+  }
+
+  input:focus-visible + label {
+    outline: 1px solid currentColor;
+    outline-offset: var(--s4);
+  }
+</style>

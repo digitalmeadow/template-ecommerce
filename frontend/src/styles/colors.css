@@ -12,4 +12,5 @@
   --color-text: var(--color-black);
 
   --color-shape-stroke: var(--color-text);
+  --color-error: var(--color-orange);
 }

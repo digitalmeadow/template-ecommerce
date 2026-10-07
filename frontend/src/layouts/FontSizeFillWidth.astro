@@ -1,0 +1,83 @@
+<div data-text-fill-width>
+  <slot />
+</div>
+
+<style is:inline>
+  /* The scaled text must never size its container, or the fit feeds back into the grid/flex track. */
+  [data-text-fill-width] {
+    width: 100%;
+    contain: inline-size;
+  }
+
+  [data-text-fill-width] > * {
+    display: inline-block;
+    font-size: 1px;
+    line-height: 0.8;
+    white-space: nowrap;
+    max-width: none;
+  }
+</style>
+
+<script>
+  // Fits to the glyphs, not the text box: side bearings and the heading's negative tracking
+  // otherwise leave the first character short of one edge and the last one hanging past it.
+  const REFERENCE_FONT_SIZE = 100;
+
+  // Canvas ignores CSS text-transform, so measure the text as it's actually rendered.
+  function transformText(text: string, transform: string) {
+    if (transform === "uppercase") return text.toUpperCase();
+    if (transform === "lowercase") return text.toLowerCase();
+    return text;
+  }
+
+  function measureInk(textElement: HTMLElement) {
+    const context = document.createElement("canvas").getContext("2d");
+    const style = getComputedStyle(textElement);
+    const text = transformText(textElement.textContent?.trim() ?? "", style.textTransform);
+    if (!text || !context) return null;
+
+    context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const metrics = context.measureText(text);
+
+    // Canvas ignores CSS letter-spacing, which displaces every glyph after the first.
+    const tracking = (parseFloat(style.letterSpacing) || 0) * ([...text].length - 1);
+
+    return {
+      left: -metrics.actualBoundingBoxLeft,
+      right: metrics.actualBoundingBoxRight + tracking,
+      advance: textElement.getBoundingClientRect().width,
+    };
+  }
+
+  function adjustFontSizeForElement(textElement: HTMLElement) {
+    const section = textElement.parentElement;
+    if (!section) return;
+
+    textElement.style.marginLeft = "0px";
+    textElement.style.marginRight = "0px";
+    textElement.style.fontSize = `${REFERENCE_FONT_SIZE}px`;
+
+    const ink = measureInk(textElement);
+    if (!ink || ink.right <= ink.left) return;
+
+    // getBoundingClientRect on both, so an ancestor scale transform cancels out of the ratio.
+    const sectionWidth = section.getBoundingClientRect().width;
+    const scale = sectionWidth / (ink.right - ink.left);
+
+    textElement.style.fontSize = `${REFERENCE_FONT_SIZE * scale}px`;
+    // Negative margins pull the bearings out; the right one reserves the tracking overhang.
+    textElement.style.marginLeft = `${-ink.left * scale}px`;
+    textElement.style.marginRight = `${(ink.right - ink.advance) * scale}px`;
+  }
+
+  function adjustFontSize() {
+    document.querySelectorAll("[data-text-fill-width]").forEach((wrapper) => {
+      const textElement = wrapper.firstElementChild;
+      if (textElement instanceof HTMLElement) adjustFontSizeForElement(textElement);
+    });
+  }
+
+  window.addEventListener("resize", adjustFontSize);
+  document.fonts.ready.then(adjustFontSize);
+  document.addEventListener("astro:page-load", adjustFontSize);
+</script>

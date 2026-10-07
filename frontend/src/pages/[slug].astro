@@ -1,23 +1,31 @@
 ---
-import { sanityClient } from "sanity/client";
 import PageLayout from "@layouts/PageLayout.astro";
 import SectionsRenderer from "@sections/SectionsRenderer.astro";
-
-import { pageQuery, pagesQuery } from "sanity/queries/page";
+import { propsForSlug } from "@lib/sanity/staticPaths";
+import { buildPagePaths } from "@lib/sanity/paths";
+import { resolveMeta } from "@lib/sanity/meta";
+import { buildBreadcrumbSchema } from "@lib/sanity/structuredData";
 
 export async function getStaticPaths() {
-  const pagesQueryResult = await sanityClient.request(pagesQuery);
-  const slugs = pagesQueryResult.allPage.map((page) => page.slug?.current);
-  return slugs.map((slug) => (slug ? { params: { slug } } : null));
+  return buildPagePaths();
 }
 
-let { slug } = Astro.params;
-const pageDataQuery = await sanityClient.request(pageQuery, {
-  slug,
-});
-const pageData = pageDataQuery.allPage[0];
+// Empty in server output (the preview site), where Astro skips getStaticPaths.
+const resolved = await propsForSlug(Astro.props, Astro.params.slug, buildPagePaths);
+if (!resolved) return Astro.rewrite("/404");
+
+const { pageData } = resolved;
+
+// Every page needs an h1; the hero section provides one when present.
+const hasHeroHeading = pageData.sections?.some(
+  (section) => section?.__typename === "SectionHero" && section.heading,
+);
 ---
 
-<PageLayout metaData={pageData?.meta}>
-  <SectionsRenderer sections={pageData?.sections} />
+<PageLayout
+  metaData={resolveMeta(pageData)}
+  jsonLd={[buildBreadcrumbSchema(Astro.url.pathname, pageData.title, Astro.site)]}
+>
+  {!hasHeroHeading && pageData.title && <h1 class="visually-hidden">{pageData.title}</h1>}
+  <SectionsRenderer sections={pageData.sections} />
 </PageLayout>

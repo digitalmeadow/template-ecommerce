@@ -1,0 +1,20 @@
+fragment OrganisationSettings on OrganisationSettings {
+  __typename
+  _id
+  type
+  name
+  description
+  logo {
+    ...SanityImage
+  }
+  foundingDate
+  founders
+  numberOfEmployees
+  telephone
+  areaServed
+  knowsAbout
+  sameAs
+  address {
+    ...PostalAddress
+  }
+}

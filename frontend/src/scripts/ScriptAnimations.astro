@@ -1,0 +1,28 @@
+---
+---
+
+{/* Sync flag (before paint) so reveal only hides content once JS is confirmed present. */}
+<script is:inline>
+  document.documentElement.dataset.js = "";
+  // The router replaces <html> attributes on swap and never reruns this inline script.
+  document.addEventListener("astro:after-swap", () => {
+    document.documentElement.dataset.js = "";
+  });
+</script>
+
+<script>
+  import { initReveal } from "@scripts/reveal";
+  import { initParallax } from "@scripts/parallax";
+  import { initWordsReveal } from "@scripts/wordsReveal";
+
+  let cleanups: (() => void)[] = [];
+
+  document.addEventListener("astro:page-load", () => {
+    cleanups = [initReveal(), initParallax(), initWordsReveal()];
+  });
+
+  document.addEventListener("astro:before-swap", () => {
+    cleanups.forEach((cleanup) => cleanup());
+    cleanups = [];
+  });
+</script>

@@ -1,0 +1,156 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, staging, api]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        type: choice
+        required: true
+        options:
+          - all
+          - production
+          - production-preview
+          - staging
+          - api
+
+jobs:
+  targets:
+    runs-on: ubuntu-latest
+    name: Resolve targets
+    outputs:
+      list: ${{ steps.resolve.outputs.list }}
+    steps:
+      - name: Resolve
+        id: resolve
+        env:
+          SELECTOR: ${{ inputs.environment || github.ref_name }}
+        run: |
+          TABLE='{
+            "production": {
+              "preview":            "false",
+              "website_url":        "https://template-ecommerce-production.digital-meadow.workers.dev",
+              "source_branch":      "main",
+              "git_branch":         "main",
+              "deploy_environment": "production"
+            },
+            "production-preview": {
+              "preview":            "true",
+              "website_url":        "https://template-ecommerce-production-preview.digital-meadow.workers.dev",
+              "source_branch":      "main",
+              "git_branch":         "main",
+              "deploy_environment": "production-preview"
+            },
+            "staging": {
+              "preview":            "false",
+              "website_url":        "https://template-ecommerce-staging.digital-meadow.workers.dev",
+              "source_branch":      "staging",
+              "git_branch":         "staging",
+              "deploy_environment": "staging"
+            },
+            "api": {
+              "preview":            "false",
+              "website_url":        "https://template-ecommerce-api.digital-meadow.workers.dev",
+              "source_branch":      "api",
+              "git_branch":         "main",
+              "deploy_environment": "all"
+            }
+          }'
+
+          # `all` is what the api worker's /api/deploy dispatches on a Sanity publish: it refreshes
+          # every content-bearing environment. A push to main deploys production and its preview.
+          case "$SELECTOR" in
+            all)  NAMES='["production","production-preview","staging"]' ;;
+            main) NAMES='["production","production-preview"]' ;;
+            *)    NAMES="[\"$SELECTOR\"]" ;;
+          esac
+
+          # Fold each table key in as `name`, so the matrix carries whole objects.
+          LIST=$(jq -ce --argjson n "$NAMES" \
+            '[ $n[] as $k | select(has($k)) | {name:$k} + .[$k] ]' <<<"$TABLE")
+
+          # An unknown name yields [], which otherwise fails opaquely at matrix setup.
+          if [ "$LIST" = "[]" ]; then
+            echo "::error::No deploy target for '$SELECTOR'"
+            exit 1
+          fi
+
+          echo "list=$LIST" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: targets
+    runs-on: ubuntu-latest
+    name: Deploy ${{ matrix.target.name }}
+    # Wrangler refuses to write secrets while a version is uploaded but not yet deployed
+    # (error 10215), so overlapping runs of the same environment fail. One at a time.
+    concurrency:
+      group: deploy-${{ matrix.target.name }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.targets.outputs.list) }}
+    steps:
+      # `all` fans out to environments built from different branches, so each job checks out its own.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.target.source_branch }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25.2.1
+
+      # Filtered so the Studio and Next.js packages aren't installed for an Astro deploy.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter frontend...
+
+      - name: Lint & typecheck
+        run: pnpm lint && pnpm typecheck
+        working-directory: frontend
+
+      - name: Build
+        run: pnpm build
+        working-directory: frontend
+        env:
+          PREVIEW: ${{ matrix.target.preview }}
+          CLOUDFLARE_ENV: ${{ matrix.target.name }}
+
+          WEBSITE_URL: ${{ matrix.target.website_url }}
+
+          SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+          SANITY_DATASET: production
+          SANITY_VIEWER_API_TOKEN: ${{ secrets.SANITY_VIEWER_API_TOKEN }}
+          SANITY_EDITOR_API_TOKEN: ${{ secrets.SANITY_EDITOR_API_TOKEN }}
+          SANITY_WEBHOOK_SECRET: ${{ secrets.SANITY_WEBHOOK_SECRET }}
+
+          GIT_API_TOKEN: ${{ secrets.GIT_API_TOKEN }}
+          GIT_BRANCH: ${{ matrix.target.git_branch }}
+          DEPLOY_ENVIRONMENT: ${{ matrix.target.deploy_environment }}
+
+          SHOPIFY_PRIVATE_API_TOKEN: ${{ secrets.SHOPIFY_PRIVATE_API_TOKEN }}
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: frontend
+          environment: ${{ matrix.target.name }}
+          wranglerVersion: "4.147.0"
+          secrets: |
+            SANITY_WEBHOOK_SECRET
+            SANITY_VIEWER_API_TOKEN
+            SANITY_EDITOR_API_TOKEN
+            GIT_API_TOKEN
+            SHOPIFY_PRIVATE_API_TOKEN
+        env:
+          SANITY_WEBHOOK_SECRET: ${{ secrets.SANITY_WEBHOOK_SECRET }}
+          SANITY_VIEWER_API_TOKEN: ${{ secrets.SANITY_VIEWER_API_TOKEN }}
+          SANITY_EDITOR_API_TOKEN: ${{ secrets.SANITY_EDITOR_API_TOKEN }}
+          GIT_API_TOKEN: ${{ secrets.GIT_API_TOKEN }}
+          SHOPIFY_PRIVATE_API_TOKEN: ${{ secrets.SHOPIFY_PRIVATE_API_TOKEN }}

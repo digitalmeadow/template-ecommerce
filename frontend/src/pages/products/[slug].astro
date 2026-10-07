@@ -1,37 +1,34 @@
 ---
-import { sanityClient } from "sanity/client";
 import PageLayout from "@layouts/PageLayout.astro";
 import { fetchProductShopifySanity } from "@lib/fetches/productShopifySanity";
-import { productsQuery } from "sanity/queries/product";
 import ProductSection from "@sections/product/ProductSection.astro";
 import RelatedProductsSection from "@sections/product/RelatedProductsSection.astro";
-import type { MetaFragment } from "sanity/generated/graphql";
+import { propsForSlug } from "@lib/sanity/staticPaths";
+import { buildProductPaths } from "@lib/sanity/paths";
+import { resolveMeta } from "@lib/sanity/meta";
+import { buildBreadcrumbSchema, buildProductSchema } from "@lib/sanity/structuredData";
 
 export async function getStaticPaths() {
-  const productsQueryResult = await sanityClient.request(productsQuery);
-  const paths = productsQueryResult.allProduct
-    .filter((product) => product.shopify!.status === "active")
-    .map((product) => {
-      return {
-        params: { slug: product.shopify!.handle!.current! },
-      };
-    });
-  return paths;
+  return buildProductPaths();
 }
 
-let { slug } = Astro.params;
-const productData = await fetchProductShopifySanity(slug);
+// Empty in server output (the preview site), where Astro skips getStaticPaths.
+const resolved = await propsForSlug(Astro.props, Astro.params.slug, buildProductPaths);
+if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
-// Meta fallbacks
-const metaData: MetaFragment = {
-  __typename: "Meta",
-  title: productData.sanity.meta?.title || productData.shopify.title,
-  description: productData.sanity.meta?.description ?? null,
-  image: productData.sanity.meta?.image ?? null,
-};
+const productData = await fetchProductShopifySanity(Astro.params.slug, resolved.sanityProductData);
+
+const metaData = resolveMeta(productData.sanity, { title: productData.shopify.title });
 ---
 
-<PageLayout metaData={metaData}>
+<PageLayout
+  metaData={metaData}
+  ogType="product"
+  jsonLd={[
+    buildProductSchema(productData, metaData.description, Astro.site),
+    buildBreadcrumbSchema(Astro.url.pathname, productData.shopify.title, Astro.site),
+  ]}
+>
   <ProductSection productData={productData} />
   <RelatedProductsSection productsData={productData.relatedProducts} />
 </PageLayout>

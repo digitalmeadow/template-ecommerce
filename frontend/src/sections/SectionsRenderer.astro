@@ -2,18 +2,24 @@
 import type {
   SectionAccordionsFragment,
   SectionCollectionFragment,
+  SectionFormFragment,
   SectionHeroFragment,
+  SectionTabsFragment,
   SectionTextFragment,
 } from "sanity/generated/graphql";
 import SectionHero from "@sections/SectionHero.astro";
 import SectionText from "@sections/SectionText.astro";
 import SectionCollection from "@sections/SectionCollection.astro";
-import SectionAccordions from "./SectionAccordions.astro";
+import SectionAccordions from "@sections/SectionAccordions.astro";
+import SectionTabs from "@sections/SectionTabs.astro";
+import SectionForm from "@sections/SectionForm.astro";
 
 type Section =
   | SectionAccordionsFragment
   | SectionCollectionFragment
+  | SectionFormFragment
   | SectionHeroFragment
+  | SectionTabsFragment
   | SectionTextFragment;
 
 interface Props {
@@ -41,6 +47,14 @@ const { sections }: Props = Astro.props;
 
     if (section.__typename === "SectionAccordions") {
       return <SectionAccordions section={section} />;
+    }
+
+    if (section.__typename === "SectionTabs") {
+      return <SectionTabs section={section} />;
+    }
+
+    if (section.__typename === "SectionForm") {
+      return <SectionForm section={section} />;
     }
 
     return null;

@@ -1,8 +1,27 @@
 .text-body,
 body {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 0.875rem;
+  line-height: 1.25;
   font-weight: 400;
+}
+
+/* Tailwind's preflight flattens headings to inherit; restore the browser scale the Astro site uses. */
+@layer base {
+  h1 {
+    font-size: 2em;
+  }
+  h2 {
+    font-size: 1.5em;
+  }
+  h3 {
+    font-size: 1.17em;
+  }
+  sup {
+    position: static;
+    font-size: smaller;
+    line-height: normal;
+    vertical-align: super;
+  }
 }
 
 .text-link {
@@ -33,4 +52,10 @@ body {
 }
 .text-link.underline-color-purple {
   text-decoration-color: var(--color-purple);
+}
+
+.text-inherit {
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
 }

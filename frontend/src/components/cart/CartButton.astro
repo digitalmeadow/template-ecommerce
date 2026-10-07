@@ -1,26 +1,41 @@
-<button class="cart-button" data-cart-button aria-label="Toggle cart">
-  Cart<span data-cart-count></span>
-</button>
+<cart-button>
+  <button class="cart-button" aria-label="Toggle cart">
+    Cart<span data-cart-count></span>
+  </button>
+</cart-button>
 
 <script>
   import { $cartCount, loadCart } from "@stores/cart";
   import { setCartOpen } from "@stores/ui";
 
-  const button = document.querySelector("[data-cart-button]") as HTMLButtonElement;
-  const cartCountElement = document.querySelector("[data-cart-count]") as HTMLElement;
+  class CartButton extends HTMLElement {
+    private unsubscribe?: () => void;
 
-  $cartCount.subscribe((count: number) => {
-    cartCountElement.textContent = `(${count})`;
-  });
+    private handleClick = () => setCartOpen(true);
 
-  button.addEventListener("click", () => {
-    setCartOpen(true);
-  });
+    connectedCallback() {
+      const count = this.querySelector<HTMLElement>("[data-cart-count]");
+      this.unsubscribe = $cartCount.subscribe((value: number) => {
+        if (count) count.textContent = `(${value})`;
+      });
+      this.querySelector("button")?.addEventListener("click", this.handleClick);
+      loadCart();
+    }
 
-  loadCart();
+    disconnectedCallback() {
+      this.unsubscribe?.();
+      this.querySelector("button")?.removeEventListener("click", this.handleClick);
+    }
+  }
+
+  customElements.define("cart-button", CartButton);
 </script>
 
 <style>
+  cart-button {
+    display: contents;
+  }
+
   .cart-button {
     display: inline-flex;
     align-items: center;

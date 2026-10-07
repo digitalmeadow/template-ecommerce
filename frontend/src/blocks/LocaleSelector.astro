@@ -1,11 +1,10 @@
 ---
-import { shopifyClient } from "shopify/client";
-import { localizationsQuery } from "shopify/queries/localization";
 import { LOCALE_CONFIG, getLocaleFromPath } from "@lib/shopify/locale";
+import { getLocalization } from "@lib/shopify/localization";
 
 const currentLocale = getLocaleFromPath(Astro.url.pathname);
 
-const { localization } = await shopifyClient.request(localizationsQuery);
+const localization = await getLocalization();
 const availableCountries = localization.availableCountries;
 
 const localeOptions = Object.entries(LOCALE_CONFIG)
@@ -44,22 +43,27 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
   const LOCALE_STORAGE_KEY = "preferred-locale";
 
   export class LocaleSelectorElement extends HTMLElement {
+    private select!: HTMLSelectElement;
+
     connectedCallback() {
-      const select = this.querySelector("select") as HTMLSelectElement;
+      this.select = this.querySelector("select") as HTMLSelectElement;
 
       const storedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
       if (storedLocale && isValidLocale(storedLocale)) {
-        select.value = storedLocale;
+        this.select.value = storedLocale;
       }
 
-      select.addEventListener("change", (e) => {
-        const target = e.target as HTMLSelectElement;
-        const newLocale = target.value;
-
-        localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
-        window.location.reload();
-      });
+      this.select.addEventListener("change", this.handleChange);
     }
+
+    disconnectedCallback() {
+      this.select.removeEventListener("change", this.handleChange);
+    }
+
+    private handleChange = () => {
+      localStorage.setItem(LOCALE_STORAGE_KEY, this.select.value);
+      window.location.reload();
+    };
   }
 
   customElements.define("locale-selector", LocaleSelectorElement);

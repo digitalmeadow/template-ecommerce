@@ -8,11 +8,12 @@ import { media } from "sanity-plugin-media";
 import resolveNewDocumentOptions from "./document/resolveNewDocumentOptions";
 import resolveDocumentActions from "./document/resolveDocumentActions";
 
+// From the root .env, symlinked in as cms/.env.
 export default defineConfig({
   name: "default",
-  title: "template-ecommerce",
+  title: process.env.SANITY_STUDIO_TITLE ?? "template-ecommerce",
 
-  projectId: "iqfm6q7t",
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID!,
   dataset: "production",
 
   plugins: [

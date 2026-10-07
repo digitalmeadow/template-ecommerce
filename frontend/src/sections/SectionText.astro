@@ -9,19 +9,20 @@ interface Props {
 const { section }: Props = Astro.props;
 ---
 
-<section>
+<section class="u-container">
   <PortableText value={section.textRaw} />
 </section>
 
 <style>
   section {
-    width: var(--container-width);
-    margin: var(--s40) auto var(--s64);
+    margin-top: var(--s40);
+    margin-bottom: var(--s64);
     text-align: center;
   }
   @media (max-width: 32rem) {
     section {
-      margin: 0 auto var(--s80);
+      margin-top: 0;
+      margin-bottom: var(--s80);
     }
   }
 </style>

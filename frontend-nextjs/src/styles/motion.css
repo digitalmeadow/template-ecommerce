@@ -1,0 +1,85 @@
+/* Shared timing tokens (--ease-out-cubic, --transition-default|media-load|page) live in animations.css. */
+:root {
+  --ease-sweep: cubic-bezier(0.83, 0, 0.17, 1);
+
+  --transition-slow-duration: 0.5s;
+  --transition-slow: var(--transition-slow-duration) var(--ease-out-cubic);
+
+  --transition-reveal-duration: 0.6s;
+  --transition-reveal: var(--transition-reveal-duration) var(--ease-out-cubic);
+
+  --parallax-scale: 1.12;
+  --parallax-travel: 2%;
+  --parallax-travel-wrapper: 1%;
+
+  --media-hover-scale: 1.02;
+}
+
+/* An animation, not a transition: the shorthand would clobber an element's own transition. */
+html[data-js] [data-animate-reveal] {
+  opacity: 0;
+}
+
+html[data-js] [data-animate-reveal].is-revealed {
+  opacity: 1;
+  animation: reveal-fade var(--transition-reveal);
+}
+
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* PageTransition's sentinel is empty; it only exists to trigger the view transition. */
+::view-transition-old(.page-transition),
+::view-transition-new(.page-transition) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-js] [data-animate-reveal] {
+    opacity: 1;
+    animation: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Hero heading colour cycle, staggered per character. */
+@keyframes hero-char-colors {
+  0%,
+  100% {
+    color: var(--color-foreground);
+  }
+  16% {
+    color: var(--color-green);
+  }
+  33% {
+    color: var(--color-blue);
+  }
+  50% {
+    color: var(--color-purple);
+  }
+  66% {
+    color: var(--color-yellow);
+  }
+  83% {
+    color: var(--color-orange);
+  }
+}
+
+.hero-char {
+  animation: hero-char-colors 2000ms linear both;
+  animation-delay: calc(500ms + var(--char-index) * 50ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-char {
+    animation: none;
+  }
+}

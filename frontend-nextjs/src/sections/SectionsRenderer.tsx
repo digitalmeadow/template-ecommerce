@@ -3,17 +3,23 @@ import type {
   SectionTextFragment,
   SectionCollectionFragment,
   SectionAccordionsFragment,
+  SectionTabsFragment,
+  SectionFormFragment,
 } from "sanity-nextjs/generated/graphql";
 import SectionHero from "./SectionHero";
 import SectionText from "./SectionText";
 import SectionCollection from "./SectionCollection";
 import SectionAccordions from "./SectionAccordions";
+import SectionTabs from "./SectionTabs";
+import SectionForm from "./SectionForm";
 
 type SectionUnion =
   | SectionHeroFragment
   | SectionTextFragment
   | SectionCollectionFragment
-  | SectionAccordionsFragment;
+  | SectionAccordionsFragment
+  | SectionTabsFragment
+  | SectionFormFragment;
 
 interface Props {
   sections: (SectionUnion | null)[] | null | undefined;
@@ -26,7 +32,6 @@ export default function SectionsRenderer({ sections }: Props) {
     <>
       {sections.map((section) => {
         if (!section) return null;
-        console.log("Rendering section:", section);
 
         switch (section.__typename) {
           case "SectionHero":
@@ -41,6 +46,10 @@ export default function SectionsRenderer({ sections }: Props) {
             return (
               <SectionAccordions key={section._key} sectionData={section} />
             );
+          case "SectionTabs":
+            return <SectionTabs key={section._key} sectionData={section} />;
+          case "SectionForm":
+            return <SectionForm key={section._key} sectionData={section} />;
           default:
             return null;
         }

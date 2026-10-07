@@ -1,12 +1,14 @@
 ---
 import type { SanityImageFragment } from "sanity/generated/graphql";
-import { getSanityImageProps } from "@lib/sanity/images";
+import { getSanityImageFocalPoint, getSanityImageProps } from "@lib/sanity/images";
 
 interface Props {
   imageData: SanityImageFragment | null | undefined;
   layout?: "width" | "height" | "cover" | "contain";
   sizes?: [number, number, number];
   loading?: "lazy" | "eager";
+  /* Above-the-fold images: skips lazy loading and raises fetch priority for LCP. */
+  priority?: boolean;
   mediaId?: string | null;
 }
 
@@ -15,13 +17,18 @@ const {
   layout = "width",
   sizes = [100, 100, 100],
   loading = "lazy",
+  priority = false,
   mediaId,
 }: Props = Astro.props;
 
 const altText = imageData?.asset?.altText ?? "";
 const blurhashSrc = imageData?.asset?.metadata?.lqip;
-const aspectRatio = imageData?.asset?.metadata?.dimensions?.aspectRatio;
-const sanityImageProps = imageData ? getSanityImageProps({ sanityImage: imageData, sizes }) : [];
+const sanityImageProps = getSanityImageProps({ sanityImage: imageData, sizes });
+const aspectRatio =
+  sanityImageProps?.width && sanityImageProps?.height
+    ? sanityImageProps.width / sanityImageProps.height
+    : undefined;
+const focalPoint = getSanityImageFocalPoint(imageData);
 ---
 
 <div
@@ -38,14 +45,21 @@ const sanityImageProps = imageData ? getSanityImageProps({ sanityImage: imageDat
     aria-hidden="true"
   />
 
-  <img
-    class:list={["image", `layout-${layout}`]}
-    data-media-id={mediaId}
-    {...sanityImageProps}
-    alt={altText}
-    loading={loading}
-    onload="this.dataset.loaded = ''"
-  />
+  {
+    sanityImageProps && (
+      <img
+        class:list={["image", `layout-${layout}`]}
+        data-media-id={mediaId}
+        {...sanityImageProps}
+        style={focalPoint ? `object-position: ${focalPoint}` : undefined}
+        alt={altText}
+        loading={priority ? "eager" : loading}
+        fetchpriority={priority ? "high" : undefined}
+        decoding="async"
+        onload="this.dataset.loaded = ''"
+      />
+    )
+  }
 </div>
 
 <style>
@@ -96,6 +110,13 @@ const sanityImageProps = imageData ? getSanityImageProps({ sanityImage: imageDat
 
   .layout-height {
     height: 100%;
+  }
+
+  .image.layout-width {
+    height: auto;
+  }
+  .image.layout-height {
+    width: auto;
   }
 
   .layout-cover {

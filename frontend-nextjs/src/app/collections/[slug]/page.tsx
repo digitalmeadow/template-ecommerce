@@ -1,49 +1,67 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import SectionHero from "@/sections/SectionHero";
 import ProductThumbnailsGrid from "@/sections/product/ProductThumbnailsGrid";
-import Meta from "@/meta/Meta";
-import { sanityClient } from "sanity-nextjs/client.server";
-import { collectionsQuery } from "sanity-nextjs/queries/collection";
+import JsonLd from "@/meta/JsonLd";
+import { buildMetadata, SITE_URL } from "@/meta/metadata";
+import { getCollection, getCollections } from "@/lib/sanity/paths";
+import { resolveMeta } from "@/lib/sanity/meta";
+import { resolveSanityHref } from "@/lib/sanity/resolve";
+import { buildBreadcrumbSchema } from "@/lib/sanity/structuredData";
 import { fetchCollectionShopifySanity } from "@/lib/fetches/collectionShopifySanity";
-import type {
-  MetaFragment,
-  SectionHeroFragment,
-} from "sanity-nextjs/generated/graphql";
 
-export async function generateStaticParams() {
-  const result = await sanityClient.request(collectionsQuery);
-  return result.allCollection
-    .map((collection) => collection.shopify?.handle?.current)
-    .filter(Boolean)
-    .map((slug) => ({ slug }));
+interface Props {
+  params: Promise<{ slug: string }>;
 }
 
-export default async function CollectionPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export async function generateStaticParams() {
+  const collections = await getCollections();
+  return collections.map((collection) => ({
+    slug: collection.shopify!.handle!.current!,
+  }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const collectionData = await fetchCollectionShopifySanity(slug);
+  const sanityCollection = await getCollection(slug);
+  if (!sanityCollection) return {};
 
-  const metaData: MetaFragment = {
-    __typename: "Meta",
-    title: collectionData.sanity?.meta?.title || collectionData.shopify.title,
-    description: collectionData.sanity?.meta?.description ?? null,
-    image: collectionData.sanity?.meta?.image ?? null,
-  };
+  return buildMetadata({
+    metaData: resolveMeta(sanityCollection, {
+      title: sanityCollection.shopify?.title,
+    }),
+    pathname: resolveSanityHref("collection", slug),
+  });
+}
 
-  const heroSection: SectionHeroFragment = {
-    __typename: "SectionHero",
-    _key: null,
-    heading: collectionData.shopify.title,
-    textRaw: null,
-    backgroundMedia: null,
-  };
+export default async function CollectionPage({ params }: Props) {
+  const { slug } = await params;
+  const sanityCollection = await getCollection(slug);
+  if (!sanityCollection) notFound();
+
+  const collectionData = await fetchCollectionShopifySanity(
+    slug,
+    sanityCollection,
+  );
 
   return (
     <>
-      <Meta metaData={metaData} />
-      <SectionHero sectionData={heroSection} />
+      <JsonLd
+        schema={buildBreadcrumbSchema(
+          resolveSanityHref("collection", slug),
+          collectionData.shopify.title,
+          SITE_URL,
+        )}
+      />
+      <SectionHero
+        sectionData={{
+          __typename: "SectionHero",
+          _key: null,
+          heading: collectionData.shopify.title,
+          textRaw: null,
+          backgroundMedia: null,
+        }}
+      />
       <ProductThumbnailsGrid productsData={collectionData.productThumbnails} />
     </>
   );

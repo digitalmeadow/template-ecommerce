@@ -1,8 +1,9 @@
 import { defineCliConfig } from "sanity/cli";
 
+// From the root .env, symlinked in as cms/.env.
 export default defineCliConfig({
   api: {
-    projectId: "iqfm6q7t",
+    projectId: process.env.SANITY_STUDIO_PROJECT_ID,
     dataset: "production",
   },
   graphql: [
@@ -11,4 +12,7 @@ export default defineCliConfig({
       tag: "default",
     },
   ],
+  deployment: {
+    appId: process.env.SANITY_STUDIO_APP_ID,
+  },
 });

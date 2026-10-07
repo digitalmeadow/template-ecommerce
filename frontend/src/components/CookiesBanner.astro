@@ -27,14 +27,7 @@ const {
 </cookie-banner>
 
 <script>
-  export const COOKIE_CONSENT_STORAGE_KEY = "cookie-consent";
-  export const EXPIRY_DAYS = 30;
-
-  export function hasAnalyticsConsent(): boolean {
-    return localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === "accepted";
-  }
-
-  export type ConsentStatus = "accepted" | "declined" | null;
+  import { getConsent, setConsent } from "@lib/consent/consent";
 
   class CookieBannerElement extends HTMLElement {
     private banner!: HTMLElement;
@@ -49,53 +42,16 @@ const {
       this.acceptButton.addEventListener("click", this.handleAccept);
       this.declineButton.addEventListener("click", this.handleDecline);
 
-      const consent = this.getConsent();
-
-      if (consent === null) {
+      if (getConsent() === null) {
         this.show();
       } else {
         this.hide();
-        if (consent === "accepted") {
-          this.initializeAnalytics();
-        }
       }
     }
 
     disconnectedCallback() {
       this.acceptButton.removeEventListener("click", this.handleAccept);
       this.declineButton.removeEventListener("click", this.handleDecline);
-    }
-
-    getConsent(): ConsentStatus {
-      const stored = localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
-      if (!stored) return null;
-
-      try {
-        const data = JSON.parse(stored);
-        const expiryDate = new Date(data.timestamp);
-        expiryDate.setDate(expiryDate.getDate() + EXPIRY_DAYS);
-
-        if (new Date() > expiryDate) {
-          localStorage.removeItem(COOKIE_CONSENT_STORAGE_KEY);
-          return null;
-        }
-
-        if (data.status === "accepted" || data.status === "declined") {
-          return data.status;
-        }
-      } catch {
-        localStorage.removeItem(COOKIE_CONSENT_STORAGE_KEY);
-      }
-
-      return null;
-    }
-
-    setConsent(status: "accepted" | "declined") {
-      const data = {
-        status,
-        timestamp: new Date().toISOString(),
-      };
-      localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(data));
     }
 
     show() {
@@ -109,28 +65,14 @@ const {
     }
 
     handleAccept = () => {
-      this.setConsent("accepted");
+      setConsent("accepted");
       this.hide();
-      this.initializeAnalytics();
     };
 
     handleDecline = () => {
-      this.setConsent("declined");
+      setConsent("declined");
       this.hide();
     };
-
-    initializeAnalytics() {
-      // Pseudocode for analytics initialization
-      // Replace with actual analytics implementation
-      // Example: Google Analytics
-      // window.gtag?.('consent', 'update', {
-      //   'analytics_storage': 'granted'
-      // });
-      // Example: Custom analytics
-      // if (typeof window.analytics !== 'undefined') {
-      //   window.analytics.load('YOUR_WRITE_KEY');
-      // }
-    }
   }
 
   customElements.define("cookie-banner", CookieBannerElement);

@@ -1,297 +1,106 @@
 # AGENTS.md — template-ecommerce
 
-Monorepo guidelines for AI agents implementing the Next.js ecommerce frontend.
+Shared rules for every package. This repo is a starter: it gets copied into new projects, so keep the patterns identical across projects.
+
+**Also read the file for the area you're working in:**
+
+| Working in | Read |
+| --- | --- |
+| `frontend/` (Astro) | `AGENTS_ASTRO.md` |
+| `frontend-nextjs/` (Next.js) | `AGENTS_NEXTJS.md` |
+| Anything touching Shopify, cart, products, collections, locales | `AGENTS_ECOMMERCE.md` |
 
 ## Workspace layout
 
 ```
-sanity/          — Typed GraphQL queries + codegen for Astro frontend
-sanity-nextjs/   — Same as sanity/ but for Next.js (process.env, no astro:env)
-shopify/         — Shopify Storefront API queries + client
-frontend/        — Reference implementation: Astro frontend (read-only, do not edit)
-frontend-nextjs/ — Target: Next.js frontend (what you build here)
-cms/             — Sanity Studio config (schemas, structure)
+frontend/        Astro site (primary, deployed to Cloudflare Workers)
+frontend-nextjs/ Next.js mirror of the Astro site
+cms/             Sanity Studio (schemas, structure, document actions)
+sanity/          Typed GraphQL fragments/queries + codegen + clients for Astro (astro:env)
+sanity-nextjs/   Same fragments/queries for Next.js (process.env, server-only client)
+shopify/         Shopify Storefront API fragments/queries + client
 ```
+
+`sanity/` and `sanity-nextjs/` hold identical `fragments/` and `queries/` — change both together.
+
+## Commands (repo root)
+
+```
+pnpm dev | build | lint | typecheck   # fan out to every package
+pnpm gen                              # cms graphql deploy → sanity, sanity-nextjs, shopify codegen
+pnpm --filter cms validate-documents [id]   # run Studio validation over the dataset, with full paths
+```
+
+Run `pnpm gen` after changing `cms/schemas/**`, `sanity*/fragments/**` or `sanity*/queries/**`. Codegen introspects the **deployed** GraphQL schema, so a new schema field can't be typed until `sanity graphql deploy` lands (needs a Sanity login with deploy rights on the project). Never edit `generated/` by hand.
 
 ## Philosophy
 
-- **No comments** unless the code itself is not self-explanatory
-- **Read the Astro source** in `frontend/src/` as the spec — every component, pattern, and data flow exists there
-- **Files are short.** Components do one thing
-- **Flat naming** over nested abstractions — `ProductPrice` not `PriceWidgetController`
-- **Standard patterns everywhere** — copy the conventions, not just the logic
+- **Comments are rare.** One line, *why* not *what*. No banners or decoration.
+- **Files are short and do one thing.** Split by responsibility.
+- **Flat, literal naming** — `SectionText`, not `TextSectionRenderer`.
+- **Copy the conventions, not just the logic.** Match the nearest existing file.
+- **Never assume data presence.** Fragment props are `| null | undefined` and guarded.
 
-## Conventions
+## Env
 
-### Component structure
+One real file, the root `.env` (gitignored; copy `.env.example`). Every package symlinks its own `.env` to it (`frontend/.env -> ../.env`, etc.); the symlinks are committed. In CI nothing is read from files — values come from `.github/workflows/deploy.yml`.
 
-Every component follows this shape:
+- The Sanity dataset is **private**: `SANITY_VIEWER_API_TOKEN` and other tokens are server-only. Never expose them as Astro `context: "client"` or `NEXT_PUBLIC_*`.
+- `SANITY_PROJECT_ID` is duplicated as `SANITY_STUDIO_PROJECT_ID` because the Studio bundle only sees the `SANITY_STUDIO_` prefix.
+- `WEBSITE_URL` drives canonicals, sitemap, robots and JSON-LD `@id`s.
+- Adding a runtime secret: `frontend/astro.config.mjs` env schema, `.env.example`, `deploy.yml` (build env + wrangler `secrets`), and `frontend/wrangler.jsonc` `secrets.required` per environment.
 
-```tsx
-import type { SomeFragment } from "sanity-nextjs/generated/graphql";
-import { cn } from "@/lib/utils";
+## Data fetching (READ BEFORE ADDING A QUERY)
 
-interface Props {
-  someData: SomeFragment;
-  className?: string;
-}
+A static build renders every page in one process, so **a query in the wrong place multiplies by the page count**. The dataset is metered.
 
-export default function ComponentName({ someData, className }: Props) {
-  if (!someData) return null;
-  return <div className={cn("component-name", className)}>...</div>;
-}
+- **Site-wide data goes in one query.** `queries/globals.ts` fetches header, footer, cart, meta, organisation and analytics settings in one request via `getGlobals()`. Layout passes results down as props; components never fetch for themselves.
+- **Route-wide data is fetched once per route**, then handed to each page (Astro: `getStaticPaths` props; Next: cached bulk query looked up by slug). Detail pages make no per-page Sanity request for their own document.
+- **Build-wide values are memoised** by `buildScoped` / `buildScopedByKey` (`lib/sanity/cache.ts` in each frontend). They cache the *promise* so concurrent renders share one request, and are inert in dev and on the preview (drafts) site so content stays live.
+- **Links** resolve against one cached `_id → {_type, slug}` map — never a query per link. Unpublished/unknown targets warn and render without a link instead of failing the build.
+- If a bulk query grows too large, paginate (`limit`/`offset`) rather than reverting to per-page queries.
+
+## SEO / structured data
+
+- Meta resolves CMS meta → document's own fields (`resolveMeta`) → `metaSettings` → organisation description. No copy is authored in code.
+- Canonicals/OG URLs come from the site URL (`Astro.site` / `metadataBase`), never a per-page env read.
+- JSON-LD: Organisation + WebSite on every page (Organisation has a stable `@id` other schemas reference), Breadcrumb on detail pages, Product on product pages. `compact()` strips empty branches; `<` is escaped when serialised.
+- Preview builds are `noindex` (meta + `X-Robots-Tag`) and robots disallows all.
+
+## Analytics + consent
+
+GTM only. `analyticsSettings.gtmId` in the CMS; the script loads only after the cookie banner records consent (`lib/consent/consent.ts` fires `cookie-consent:change`). Configure GA4 etc. inside GTM. Client-side navigations are `pushState`, so use GTM's History Change trigger for page views.
+
+## CMS (`cms/`)
+
+- `schemas/` organised `documents/`, `fields/`, `sections/`, `settings/`.
+- **Rich text** is the `richText({ headings, lists, italic, strong, link, images })` field factory, not a named type: each field opts into only what it renders, and the stored shape is always a block array so changing options needs no migration.
+- **Nested objects must be named types** in `schemas/fields/` (e.g. `postalAddress`) — Sanity's GraphQL deploy rejects anonymous inline objects.
+- **Optional object validation**: use the helpers in `utils/validation.ts` (`isEmptyLink`, `isEmptyButton`, `isEmptyMedia`, `requireMetaFields`) so untouched optional fields don't demand inner required values.
+- **A new singleton** must be registered in: `schemas/index.ts`, `structure/`, `SINGLETON_DOCUMENT_TYPES` in `cms/config.ts`, and (if it has a route) `SANITY_DOCUMENT_ROUTE_PATTERNS` in both frontends' config. Types with no route go in `UNPREVIEWABLE_DOCUMENT_TYPES`.
+- **Media**: `media.type` is `image` | `video` (Mux, looping image replacement) | `vimeo` (Vimeo URL, alternative provider).
+- **Forms**: `form` documents (groups of `formField`, `formConsent` terms) rendered by `sectionForm`. Submissions POST multipart `FormData` (+ `formId`) to the frontend's `FORM_ENDPOINT`; no endpoint ships with the template.
+
+## Deployment (Cloudflare Workers)
+
+One workflow, `.github/workflows/deploy.yml`, with a matrix of targets:
+
+```
+production          main     static, published
+production-preview  main     SSR, drafts, noindex
+staging             staging  static, published
+api                 api      hosts /api/deploy + /api/shopify-sanity-sync
 ```
 
-- Props interface at top, named `Props`
-- Destructure in function signature
-- Guard clause: `if (!data) return null` when data is nullable
-- Default export, function declaration (not arrow)
-- All imports at the top of the file — no inline `import()`, no inline `await import(...)`
-- `cn()` used for conditional Tailwind classes
-- Root element gets component's semantic class name (kebab-case, matching component name)
-
-### Path aliases (`@/*` = `src/*`)
-
-Directory map mirrors the Astro frontend:
-```
-src/
-  blocks/       — Reusable UI blocks (PriceDisplay, QuantitySelector, LocaleSelector)
-  components/   — Page-level chrome (Header, Footer, CookiesBanner)
-  fields/       — Field renderers (SanityImage, SanityMedia, SanityLink, PortableText, MuxVideo)
-  layouts/      — Composite layout primitives (Accordion, Carousel, Overlay, PageLayout)
-  lib/          — Utility functions (fetches, Sanity image helpers, link resolution, Shopify helpers)
-  meta/         — SEO/meta components
-  sections/     — Section renderers + SectionsRenderer discriminator
-  styles/       — Global CSS (reset, theme, fonts)
-```
-
-### Sections pattern
-
-Pages are composed of sections discriminated by `__typename`. The `SectionsRenderer` maps typename → component:
-
-```tsx
-switch (section.__typename) {
-  case "SectionHero":     return <SectionHero key={section._key} sectionData={section} />;
-  case "SectionText":     return <SectionText key={section._key} sectionData={section} />;
-  case "SectionCollection": return <SectionCollection key={section._key} sectionData={section} />;
-  case "SectionAccordions": return <SectionAccordions key={section._key} sectionData={section} />;
-}
-```
-
-### Data fetching
-
-Two patterns, both server-side:
-
-1. **Sanity-only** (pages, home, header, footer): call `sanityClient.request(query)` directly in the server component
-2. **Shopify + Sanity merge** (products, collections): fetch from both APIs, merge into a typed composite object
-
-Queries are imported from `sanity-nextjs/queries/*` (typed GraphQL documents). The client is `sanityClient` from `sanity-nextjs`.
-
-Use `fetchProductShopifySanity(handle)` and `fetchCollectionShopifySanity(handle)` patterns from `frontend/src/lib/fetches/` — port these to `frontend-nextjs/src/lib/fetches/`.
-
-### Styles
-
-- **Tailwind v4** (`@import "tailwindcss"` + `@theme` block in `theme.css`)
-- Design tokens via CSS custom properties mapped to Tailwind's `@theme`:
-  - `--color-background` → `bg-background`
-  - `--color-foreground` → `text-foreground`
-  - `--color-accent` → `text-accent` / `bg-accent`
-  - `--color-muted` → `text-muted`
-  - `--color-surface` → `bg-surface`
-  - `--color-border` → `border-border`
-- **Color scheme** controlled via `data-color-scheme="light|dark"` on `<html>` — uses CSS `@media (prefers-color-scheme: dark)` as fallback
-- **Responsive breakpoints**: 500px (mobile), 1000px (tablet-ish) — use Tailwind's `max-sm:` and `max-lg:` equivalents or custom
-- **Spacing scale** from Astro: `--s4` through `--s400` (4px → 400px) — prefer Tailwind spacing utilities but keep custom values via `theme.css` `@theme` if needed
-- Grid system: 16-column, container-max-width: 1400px, gutter 20px (16px mobile)
-
-### Images
-
-- `SanityImage` is a client component (`"use client"`) — uses Next.js `<Image>` with a custom loader
-- LQIP blur-up: show base64 placeholder then fade to full image on load
-- Layout modes: `width` (fill width), `height` (fill height), `cover`, `contain`
-- Image loader constructs Sanity CDN URLs: `{url}?w={width}&fit=max&auto=format&q={quality}`
-
-### Interactive components
-
-Lean into React — use React-native primitives and packages, not web components. Each interactive component is a `"use client"` file. Keep them minimal — no compound component patterns, no render props.
-
-**Carousel** — `"use client"`. Wraps `embla-carousel-react` (already installed) matching the Astro carousel API: `align`, `dragFree`, `loop`, `skipSnaps`, `slidesToScroll`. Expose `api` ref for external prev/next buttons. Accept children as slides.
-
-**Overlay** — `"use client"`. State via `useState` (open/close). Expose `open()`/`close()`/`toggle()` methods via `useImperativeHandle` or lift state to parent. Lock scroll: set `overflow: hidden` on `document.scrollingElement`, store `window.scrollY`, restore on close. Close on Escape key + backdrop click. Layout modes: `fullscreen`, `right`. The cart overlay uses the `right` layout.
-
-**Accordion** — `"use client"`. State via `useState`. Accept `group` prop — on open, dispatch `CustomEvent` so siblings close. Animate expand/collapse via CSS `grid-template-rows: 0fr / 1fr` transition. Slots: summary (header), content (expandable body).
-
-**CookieBanner** — `"use client"`. Read localStorage for consent. Show banner if no consent stored. Accept/Decline write to localStorage with 30-day expiry. Uses `data-visible` attribute for show/hide.
-
-**QuantitySelector** — `"use client"`. Controlled or uncontrolled input with min/max validation. Emit change event. Buttons disabled at bounds. Loading state via `data-state="updating"`.
-
-**PriceDisplay** — `"use client"` or server component. Format amount using `Intl.NumberFormat` with currency code. Variants: `standard`, `compare-at` (line-through). Optional `prefix` ("from" for price ranges).
-
-**Cart (full drawer)** — `"use client"`. Renders inside an Overlay. Subscribes to `$cart`, `$cartTotal`, `$cartLines`, `$checkoutUrl` from cart store. Renders line items, total, checkout button. Empty state message from Sanity `cartQuery`. Checkout redirects to Shopify `checkoutUrl`.
-
-**CartButton** — `"use client"`. Subscribes to `$cartCount`. On click, sets `cartOpen` store to `true`.
-
-**CartLineItem** — `"use client"`. Renders single cart line: image thumbnail, product title, variant title (hidden if single default variant), QuantitySelector, remove button, price with optional compare-at.
-
-**ProductVariantSelector** — `"use client"`. Radio buttons for each product option. On change, finds matching variant by selected options, updates hidden `data-variant-id` input, dispatches `product:variant-change` event on parent `[data-product-root]`. Exposes variant data via `data-variants` JSON attribute.
-
-**ProductAddToCart** — `"use client"`. Reads variant ID from hidden input + quantity from QuantitySelector. Calls `addToCart()` from cart store. Sets `cartOpen` to `true` on success. Shows loading state. Reads `availableForSale` from variant-change events.
-
-**ProductPrice** — `"use client"`. Reads `data-prices` JSON from closest `[data-product-root]`. Renders price for current locale (lowest variant, "from" prefix for ranges). Listens to `product:variant-change` for variant-specific pricing. Shows compare-at price when present.
-
-**LocaleSelector** — `"use client"`. Dropdown of available countries from Shopify `localizationsQuery`. On change, stores preference in `localStorage` and reloads page.
-
-**MuxVideo** — `"use client"`. Renders `<MuxPlayer>` from `@mux/mux-player-react`. Blur-up placeholder via `@mux/blurup`. Aspect ratio from Mux asset data. Layout modes: `width`, `height`, `cover`, `contain`.
-
-### State management (NanoStores)
-
-Use NanoStores with `@nanostores/react`. Port store definitions from `frontend/src/stores/` as-is (framework-agnostic atom definitions). Use `useStore()` from `@nanostores/react` to subscribe.
-
-**`stores/cart.ts`** — port verbatim. Defines `$cart` (persistent atom with JSON encode/decode), computed atoms (`$cartCount`, `$cartTotal`, `$checkoutUrl`, `$cartLines`, `$isCartEmpty`), and action functions (`loadCart`, `createCart`, `addToCart`, `updateLineQuantity`, `removeLine`). State is synced to localStorage and re-fetched from Shopify on load.
-
-**`stores/ui.ts`** — simple `atom<boolean>`:
-```ts
-import { atom } from "nanostores";
-export const cartOpen = atom(false);
-export const setCartOpen = (open: boolean) => cartOpen.set(open);
-```
-
-Usage in React:
-```tsx
-import { useStore } from "@nanostores/react";
-import { $cartCount, loadCart } from "@/stores/cart";
-
-export default function CartButton() {
-  const count = useStore($cartCount);
-  useEffect(() => { loadCart(); }, []);
-  return <button onClick={() => setCartOpen(true)}>Cart ({count})</button>;
-}
-```
-
-### Cross-component communication
-
-Some product components use custom DOM events on a shared `[data-product-root]` ancestor:
-- `product:variant-change` — emitted when variant selection changes (detail: `{ variantId, availableForSale }`)
-- `product:request-variant-update` — requests re-emission of current variant state
-
-Use `useEffect` + `addEventListener` on the shared container ref. This pattern preserves the decoupled Astro-style communication without web components.
-
-### Links
-
-- `SanityLink` resolves any link type (page, URL, email, phone, file, section) to an `href`
-- Page references need GROQ resolution to get `_type` + `slug` (GraphQL doesn't resolve references in Portable Text)
-- Route patterns defined in `config.ts`: `SANITY_DOCUMENT_ROUTE_PATTERNS`
-
-### Portable Text
-
-Astro uses `astro-portabletext`. For Next.js, use `@portabletext/react` with a minimal component map:
-- `block` → Tailwind-styled paragraphs/headings
-- `marks` → link/italic renderers
-
-### Font
-
-Loaded via `next/font/local`: `BIZUDMincho-Regular.woff2` from `public/fonts/`.
-
-### Inline scripts
-
-**Spacing** — sets `--vw` and `--scrollbar` CSS custom properties on `<html>` at page load and on resize. Port as a `"use client"` component with a `ResizeObserver` or `useEffect`.
-
-**Text fill width** — scales headings with `data-text-fill-width` attribute to exactly fit their parent container width. Used by `SectionHero` headings. Port as a `"use client"` component that runs on mount + resize.
-
-### Next.js config
-
-```ts
-const nextConfig: NextConfig = {
-  reactCompiler: true,
-};
-```
-
-## Pages to implement (in order)
-
-1. **`/`** — Home page: fetch `homeQuery`, render `SectionsRenderer`
-2. **`/products/[slug]`** — Product page: `fetchProductShopifySanity(slug)`, render product sections
-3. **`/collections/[slug]`** — Collection page: `fetchCollectionShopifySanity(slug)`, render product grid + hero
-4. **`/[slug]`** — Generic pages: fetch `pageQuery`, render `SectionsRenderer`
-5. **404** — Not found page
-
-## Sections to implement
-
-- `SectionHero` — Done. Reference for the pattern. Heading uses `data-text-fill-width` + animated color cycling
-- `SectionText` — Portable Text block, centered
-- `SectionCollection` — Fetch Shopify collection by handle from the section's collection reference, render product grid
-- `SectionAccordions` — Accordion group with Portable Text content
-
-## Fields to implement
-
-- `SanityImage` — Done
-- `SanityMedia` — Discriminate `image` vs `video`, delegate
-- `SanityLink` — Resolve href, render `<a>` or `<Link>` with target/rel
-- `PortableText` — `@portabletext/react` wrapper
-- `MuxVideo` — `<mux-player>` web component
-
-## Product sections to implement
-
-- `ProductSection` — Main product layout (gallery + purchase sidebar)
-- `ProductGallery` — Thumbnail + gallery images as vertical stack
-- `ProductPurchase` — Title, price, variant selector, add-to-cart, quantity
-- `ProductPrice` — Localized price display (compare-at, prefix "from")
-- `ProductVariantSelector` — Option buttons, dispatches variant-change events
-- `ProductAddToCart` — Cart integration button
-- `ProductThumbnail` — Thumbnail card for grids
-- `ProductThumbnailsGrid` — Mosaic grid (every 6th item spans 2 cols)
-- `RelatedProductsSection` — Related products grid
-- `QuantitySelector` — +/- quantity control
-- `PriceDisplay` — Formatted price display with currency symbol
-
-## Shopify integration
-
-### Package structure
-
-The `shopify/` workspace mirrors `sanity/`:  typed GraphQL queries/mutations via codegen, a `shopifyClient` (`GraphQLClient` with `X-Shopify-Storefront-Access-Token`), and config with store domain + API version.
-
-### Client usage
-
-```ts
-import { shopifyClient } from "shopify/client";
-import { productByHandleQuery } from "shopify/queries/product";
-
-const { productByHandle } = await shopifyClient.request(productByHandleQuery, { handle });
-```
-
-Country-specific pricing uses `@inContext(country: $countryCode)` on queries.
-
-### Shopify utility (`shopify/utils/ids`)
-
-- `shopifyIdFromGid(gid: string): string` — extract numeric ID from `gid://shopify/Product/123`
-- `shopifyGidFromId(resource, id): string` — reverse
-
-### Locale system (`frontend/src/lib/shopify/locale.ts`)
-
-`LOCALE_CONFIG` maps locale codes (`en-AU`, `en-NZ`, `en-US`) to Shopify country/currency/language codes. `getStoredLocale()` reads from `localStorage`, `getCountryCode()` / `getCurrency()` derive from it. Port this file as-is (no framework deps).
-
-### Cart API (`frontend/src/lib/shopify/cart.ts`)
-
-Just two helpers:
-- `getStorageKey(suffix)` — scoped cart localStorage key (`shopify_${locale}_${currency}_${suffix}`)
-- Constants `CART_ID_STORAGE_KEY_SUFFIX`, `CART_DATA_STORAGE_KEY_SUFFIX`
-
-### Data fetching pattern (Shopify + Sanity merge)
-
-Port `frontend/src/lib/fetches/productShopifySanity.ts` and `collectionShopifySanity.ts`. These fetch from both APIs in parallel, merge into typed composites (`ProductShopifySanity`, `CollectionShopifySanity`). Product fetches also resolve `pricesPerLocale` (one price query per locale) and `relatedProducts` (recursive thumbnail fetches). Collection fetches resolve its product thumbnails the same way.
+- Push to `main` deploys production + production-preview; `staging`/`api` deploy themselves; manual dispatch picks one or `all`.
+- Sanity publish webhook → api worker `/api/deploy` → dispatches `deploy.yml` with `environment: all`. Dispatches within 30s of a queued/running run are coalesced.
+- Each environment deploys one at a time (concurrency group) because Wrangler can't write secrets while a version is pending.
+- To add an environment: add it to the `TABLE` in `deploy.yml`, the `options` list, and `env` in `wrangler.jsonc`.
 
 ## What NOT to do
 
-- No shadcn/ui or component libraries
-- No `useEffect` for things that should be events
-- No over-abstraction — don't create wrappers around `<a>` or `<img>`
-- No CSS-in-JS — Tailwind only
-- No server actions for data fetching — use server components with direct async data fetching
-- No loading.tsx / error.tsx boilerplate unless spec'd
-
-## Reference chain
-
-When implementing any component:
-1. Read the equivalent in `../frontend/src/` first
-2. Note the data types from `sanity-nextjs/generated/graphql`
-3. Follow the conventions above
-4. Port logic exactly, adapt rendering to React/JSX
+- No `sanityClient.request()` in a component that renders on more than one page, or in a detail page for its own document.
+- No secrets in client bundles.
+- No `@sanity/image-url` — image URLs are built in `lib/sanity/images.ts`. No hand-rolled `<img>`/`<a>` for Sanity data — use `SanityImage`/`SanityLink`.
+- No component libraries, no CSS-in-JS.
+- No decorative or obvious comments.

@@ -1,21 +1,23 @@
 ---
+import type { FooterFragment } from "sanity/generated/graphql";
 import PortableText from "@fields/PortableText.astro";
 import SanityLink from "@fields/SanityLink.astro";
 import SanityMedia from "@fields/SanityMedia.astro";
-import { sanityClient } from "sanity/client";
-import { footerQuery } from "sanity/queries/footer";
 
-const footerQueryResult = await sanityClient.request(footerQuery);
-const footerData = footerQueryResult.allFooter[0];
+interface Props {
+  footerData: FooterFragment | null | undefined;
+}
+
+const { footerData }: Props = Astro.props;
 ---
 
-<footer>
+<footer class="u-container">
   <div class="footer-content">
-    <PortableText value={footerData.textRaw} />
+    <PortableText value={footerData?.textRaw} />
 
     <div class="nav">
       {
-        footerData.navigationItems?.map((navigationItem) => {
+        footerData?.navigationItems?.map((navigationItem) => {
           if (!navigationItem?.link) return null;
           return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
         })
@@ -28,7 +30,7 @@ const footerData = footerQueryResult.allFooter[0];
 
 <div class="media">
   <div class="media-inner">
-    <SanityMedia mediaData={footerData.mediaBackground} layout="width" />
+    <SanityMedia mediaData={footerData?.mediaBackground} layout="width" />
   </div>
 </div>
 
@@ -36,8 +38,6 @@ const footerData = footerQueryResult.allFooter[0];
   footer {
     position: relative;
 
-    margin: 0 auto;
-    width: var(--container-width);
     padding: var(--s200) 0 0;
   }
 

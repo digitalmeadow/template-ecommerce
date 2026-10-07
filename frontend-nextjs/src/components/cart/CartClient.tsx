@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, type ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import Overlay from "@/layouts/Overlay";
 import CartLineItem from "./CartLineItem";
 import PriceDisplay from "@/blocks/PriceDisplay";
-import PortableText from "@/fields/PortableText";
 import {
   $cartCount,
   $cartTotal,
@@ -14,13 +13,14 @@ import {
   loadCart,
 } from "@/stores/cart";
 import { cn } from "@/lib/utils";
-import type { CartFragment } from "sanity-nextjs/generated/graphql";
 
 interface Props {
-  cartData: CartFragment | null;
+  emptyMessage: ReactNode;
+  note: ReactNode;
 }
 
-export default function CartClient({ cartData }: Props) {
+// Portable Text resolves links server-side, so it arrives pre-rendered.
+export default function CartClient({ emptyMessage, note }: Props) {
   const count = useStore($cartCount);
   const total = useStore($cartTotal);
   const checkoutUrl = useStore($checkoutUrl);
@@ -47,10 +47,7 @@ export default function CartClient({ cartData }: Props) {
 
       <div className="cart h-full" data-state={isEmpty ? "empty" : "loaded"}>
         <div className="cart-content flex h-full w-full flex-col gap-[var(--s40)]">
-          <div className={isEmpty ? "block" : "hidden"}>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <PortableText value={cartData?.emptyMessageRaw as any} />
-          </div>
+          <div className={isEmpty ? "block" : "hidden"}>{emptyMessage}</div>
 
           <ul
             className={cn(
@@ -76,12 +73,7 @@ export default function CartClient({ cartData }: Props) {
           </div>
 
           <div className="footer mt-auto">
-            {!!cartData?.noteRaw && (
-              <div data-cart-note>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                <PortableText value={cartData.noteRaw as any} />
-              </div>
-            )}
+            {note && <div data-cart-note>{note}</div>}
 
             <button
               type="button"

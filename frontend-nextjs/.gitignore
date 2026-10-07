@@ -30,8 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env lives at the repo root; .env here is a committed symlink to it
+.env.*
 
 # vercel
 .vercel

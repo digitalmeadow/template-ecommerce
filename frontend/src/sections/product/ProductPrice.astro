@@ -12,7 +12,7 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
   import { getStoredLocale } from "@lib/shopify/locale";
   import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
 
-  function initialiseProductPrice(rootElement: HTMLElement) {
+  function initialiseProductPrice(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
     if (!productRoot) throw new Error("ProductPrice: missing [data-product-root]");
 
@@ -78,10 +78,26 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
 
     productRoot.addEventListener("product:variant-change", handleVariantChange as EventListener);
     productRoot.dispatchEvent(new CustomEvent("product:request-variant-update", { bubbles: true }));
+
+    return () => {
+      productRoot.removeEventListener(
+        "product:variant-change",
+        handleVariantChange as EventListener,
+      );
+    };
   }
 
-  const rootElements = document.querySelectorAll("[data-product-price]");
-  for (const rootElement of rootElements) {
-    initialiseProductPrice(rootElement as HTMLElement);
-  }
+  let cleanups: (() => void)[] = [];
+
+  document.addEventListener("astro:page-load", () => {
+    cleanups = [];
+    document.querySelectorAll<HTMLElement>("[data-product-price]").forEach((rootElement) => {
+      cleanups.push(initialiseProductPrice(rootElement));
+    });
+  });
+
+  document.addEventListener("astro:before-swap", () => {
+    cleanups.forEach((cleanup) => cleanup());
+    cleanups = [];
+  });
 </script>

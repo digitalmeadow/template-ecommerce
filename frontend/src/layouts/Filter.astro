@@ -1,0 +1,175 @@
+---
+// Controls: radios with [data-filter-option] (name = facet, value "" = all), optional [data-filter-search].
+// Cards: [data-filter-card] with data-{facet}="space-separated values" and data-search="lowercased text".
+// Empty state: [data-filter-empty] in the "empty" slot. Emits bubbling "filter:change"; state syncs to the URL query.
+---
+
+<filter-root>
+  <slot name="controls" />
+  <div data-filter-fade>
+    <slot name="empty" />
+    <slot name="grid" />
+  </div>
+</filter-root>
+
+<style is:global>
+  [data-filter-card][hidden] {
+    display: none !important;
+  }
+</style>
+
+<script>
+  import { animate } from "motion";
+  import { easeOutCubic } from "@styles/animations";
+
+  class FilterElement extends HTMLElement {
+    private optionInputs: HTMLInputElement[] = [];
+    private searchInput: HTMLInputElement | null = null;
+    private cards: HTMLElement[] = [];
+    private emptyElement: HTMLElement | null = null;
+    private fadeElement: HTMLElement | null = null;
+    private facetValues = new Map<string, string>();
+    private searchQuery = "";
+    private reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    private initialised = false;
+    // Latest-wins guard so rapid changes don't leave the grid stuck faded out.
+    private fadeToken = 0;
+
+    connectedCallback() {
+      this.optionInputs = Array.from(
+        this.querySelectorAll<HTMLInputElement>("[data-filter-option]"),
+      );
+      this.searchInput = this.querySelector<HTMLInputElement>("[data-filter-search]");
+      this.cards = Array.from(this.querySelectorAll<HTMLElement>("[data-filter-card]"));
+      this.emptyElement = this.querySelector<HTMLElement>("[data-filter-empty]");
+      this.fadeElement = this.querySelector<HTMLElement>("[data-filter-fade]");
+
+      this.addEventListener("change", this.handleChange);
+      this.searchInput?.addEventListener("input", this.handleSearchInput);
+      window.addEventListener("popstate", this.handlePopState);
+      document.addEventListener("astro:after-swap", this.handleAfterSwap);
+
+      this.hydrateFromUrl();
+      this.filter(false); // initial paint — no crossfade
+      this.initialised = true;
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener("change", this.handleChange);
+      this.searchInput?.removeEventListener("input", this.handleSearchInput);
+      this.fadeToken++;
+      this.initialised = false;
+      window.removeEventListener("popstate", this.handlePopState);
+      document.removeEventListener("astro:after-swap", this.handleAfterSwap);
+    }
+
+    private handleChange = (event: Event) => {
+      const input = event.target;
+      if (!(input instanceof HTMLInputElement) || !input.matches("[data-filter-option]")) return;
+      this.setFacet(input.name, input.value);
+    };
+
+    private handleSearchInput = () => {
+      this.searchQuery = (this.searchInput?.value ?? "").trim().toLowerCase();
+      // Instant while typing
+      this.filter(false);
+      this.syncUrl();
+    };
+
+    private handlePopState = () => {
+      this.hydrateFromUrl();
+      this.filter(true);
+    };
+
+    // The router swaps the DOM before it updates the URL, so the hydrate in connectedCallback read
+    // the previous page's query. Re-read now that the address bar has caught up.
+    private handleAfterSwap = () => {
+      this.hydrateFromUrl();
+      this.filter(false);
+    };
+
+    private hydrateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+
+      const facetKeys = new Set(this.optionInputs.map((input) => input.name));
+
+      facetKeys.forEach((facet) => {
+        this.applyFacetState(facet, params.get(facet) ?? "");
+      });
+
+      const query = params.get("q") ?? "";
+      this.searchQuery = query.toLowerCase();
+      if (this.searchInput) this.searchInput.value = query;
+    }
+
+    private setFacet(facet: string, value: string) {
+      this.applyFacetState(facet, value);
+      this.filter(true);
+      this.syncUrl();
+    }
+
+    private applyFacetState(facet: string, value: string) {
+      this.facetValues.set(facet, value);
+
+      this.optionInputs
+        .filter((input) => input.name === facet)
+        .forEach((input) => {
+          input.checked = input.value === value;
+        });
+    }
+
+    // Crossfade the grid on discrete filter changes: fade out then mutate the DOM
+    private filter(animated: boolean) {
+      const fade = this.fadeElement;
+      if (!animated || !this.initialised || this.reduceMotion || !fade) {
+        this.applyMatches();
+        return;
+      }
+
+      const token = ++this.fadeToken;
+      animate(fade, { opacity: 0 }, { duration: 0.15, ease: easeOutCubic }).finished.then(() => {
+        if (token !== this.fadeToken) return; // superseded by a newer change
+        this.applyMatches();
+        animate(fade, { opacity: 1 }, { duration: 0.25, ease: easeOutCubic });
+      });
+    }
+
+    private applyMatches() {
+      this.cards.forEach((card) => {
+        let matches = true;
+
+        this.facetValues.forEach((value, facet) => {
+          if (!value) return;
+          const cardValues = (card.dataset[facet] ?? "").split(" ");
+          if (!cardValues.includes(value)) matches = false;
+        });
+
+        if (matches && this.searchQuery) {
+          const cardSearch = card.dataset.search ?? "";
+          if (!cardSearch.includes(this.searchQuery)) matches = false;
+        }
+
+        card.hidden = !matches;
+      });
+
+      const anyVisible = this.cards.some((card) => !card.hidden);
+      if (this.emptyElement) this.emptyElement.hidden = anyVisible;
+
+      this.dispatchEvent(new CustomEvent("filter:change", { bubbles: true }));
+    }
+
+    private syncUrl() {
+      const params = new URLSearchParams();
+      this.facetValues.forEach((value, facet) => {
+        if (value) params.set(facet, value);
+      });
+      if (this.searchQuery) params.set("q", this.searchQuery);
+
+      const query = params.toString();
+      const url = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+      window.history.replaceState(null, "", url);
+    }
+  }
+
+  customElements.define("filter-root", FilterElement);
+</script>

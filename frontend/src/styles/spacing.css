@@ -49,3 +49,11 @@
     --gutter: 16px;
   }
 }
+
+/* Centres content at container width — use on the element itself rather than nesting a wrapper. */
+.u-container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin-left: auto;
+  margin-right: auto;
+}

@@ -1,8 +1,5 @@
-"use client";
-
-import { useRef } from "react";
 import type { ProductThumbnailShopifySanity } from "@/lib/fetches/productShopifySanity";
-import Carousel, { type CarouselApi } from "@/layouts/Carousel";
+import RelatedProductsCarousel from "@/sections/product/RelatedProductsCarousel";
 import ProductThumbnail from "@/sections/product/ProductThumbnail";
 import { cn } from "@/lib/utils";
 
@@ -11,43 +8,13 @@ interface Props {
   className?: string;
 }
 
-export default function RelatedProductsSection({
-  productsData,
-  className,
-}: Props) {
-  const carouselRef = useRef<CarouselApi>(null);
-
+// Server component: thumbnails render server-side (SanityMedia is async) and slot into the client carousel.
+export default function RelatedProductsSection({ productsData, className }: Props) {
   if (!productsData?.length) return null;
 
   return (
-    <section
-      className={cn(
-        "w-[var(--container-width)] mx-auto mt-[var(--s80)]",
-        className,
-      )}
-    >
-      <div className="top flex justify-between items-center mb-[var(--s16)] gap-x-[var(--s4)]">
-        <h2>Related Products</h2>
-
-        <div className="carousel-controls flex gap-[var(--s4)]">
-          <button
-            type="button"
-            aria-label="Previous related products"
-            onClick={() => carouselRef.current?.scrollPrev()}
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            aria-label="Next related products"
-            onClick={() => carouselRef.current?.scrollNext()}
-          >
-            →
-          </button>
-        </div>
-      </div>
-
-      <Carousel ref={carouselRef} id="related-products-carousel">
+    <section className={cn("u-container mt-[var(--s80)]", className)}>
+      <RelatedProductsCarousel>
         {productsData.map((productData) => (
           <div
             key={productData.shopify.id}
@@ -60,7 +27,7 @@ export default function RelatedProductsSection({
             <ProductThumbnail productData={productData} />
           </div>
         ))}
-      </Carousel>
+      </RelatedProductsCarousel>
     </section>
   );
 }

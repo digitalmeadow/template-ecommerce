@@ -7,7 +7,6 @@ import { button } from "./fields/button";
 import { page } from "./documents/page";
 import { media } from "./fields/media";
 import { sectionHero } from "./sections/sectionHero";
-import { textRich } from "./fields/textRich";
 import { product } from "./documents/product";
 import { productVariant } from "./documents/productVariant";
 import { collection } from "./documents/collection";
@@ -20,11 +19,21 @@ import { accordion } from "./fields/accordion";
 import { sectionAccordions } from "./sections/sectionAccordions";
 import { cart } from "./settings/cart";
 import { metaSettings } from "./settings/metaSettings";
+import { organisationSettings } from "./settings/organisationSettings";
+import { analyticsSettings } from "./settings/analyticsSettings";
+import { postalAddress } from "./fields/postalAddress";
+import { vimeoVideo } from "./fields/vimeoVideo";
+import { tabItem } from "./fields/tabItem";
+import { formField } from "./fields/formField";
+import { formGroup } from "./fields/formGroup";
+import { formConsent } from "./fields/formConsent";
+import { sectionTabs } from "./sections/sectionTabs";
+import { sectionForm } from "./sections/sectionForm";
+import { form } from "./documents/form";
 
 export const schemaTypes = [
   // Fields
   link,
-  textRich,
   meta,
   media,
   accordion,
@@ -32,12 +41,20 @@ export const schemaTypes = [
   shopifyProductVariant,
   shopifyCollection,
   button,
+  postalAddress,
+  vimeoVideo,
+  tabItem,
+  formField,
+  formGroup,
+  formConsent,
 
   // Sections
   sectionHero,
   sectionText,
   sectionCollection,
   sectionAccordions,
+  sectionTabs,
+  sectionForm,
 
   // Documents
   home,
@@ -45,9 +62,12 @@ export const schemaTypes = [
   product,
   productVariant,
   collection,
+  form,
 
   // Settings
   metaSettings,
+  organisationSettings,
+  analyticsSettings,
   header,
   footer,
   cart,

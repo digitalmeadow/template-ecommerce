@@ -3,6 +3,7 @@ import ProductVariantSelector from "@/sections/product/ProductVariantSelector";
 import ProductPrice from "@/sections/product/ProductPrice";
 import ProductAddToCart from "@/sections/product/ProductAddToCart";
 import QuantitySelector from "@/blocks/QuantitySelector";
+import FontSizeFillWidth from "@/layouts/FontSizeFillWidth";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -21,9 +22,9 @@ export default function ProductPurchase({ productData, className }: Props) {
         className,
       )}
     >
-      <h1 data-text-fill-width className="mb-[var(--s20)]">
-        {productData.shopify?.title}
-      </h1>
+      <FontSizeFillWidth className="mb-[var(--s20)]">
+        <h1 className="uppercase">{productData.shopify?.title}</h1>
+      </FontSizeFillWidth>
       <ProductPrice />
 
       <div className="variant-selector mt-[var(--s40)]">

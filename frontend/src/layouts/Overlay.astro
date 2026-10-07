@@ -48,6 +48,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 
     disconnectedCallback() {
       this.backdrop.removeEventListener("click", this.handleCloseClick);
+      if (this.isOpen) this.dismiss();
     }
 
     lockScroll() {
@@ -62,7 +63,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
       }
     }
 
-    unlockScroll() {
+    unlockScroll(restoreScroll = true) {
       const scrollingElement = document.scrollingElement as HTMLElement | null;
       if (scrollingElement) {
         scrollingElement.style.overflow = "";
@@ -70,6 +71,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
         scrollingElement.style.position = "";
         scrollingElement.style.width = "";
         scrollingElement.style.paddingRight = "";
+        if (!restoreScroll) return;
         const previousScrollBehavior = document.documentElement.style.scrollBehavior;
         document.documentElement.style.scrollBehavior = "auto";
         window.scrollTo(0, this.previousScrollY);
@@ -78,10 +80,12 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     }
 
     open() {
+      if (this.isOpen) return;
       this.isOpen = true;
       this.previouslyFocused = document.activeElement as HTMLElement;
 
       document.addEventListener("keydown", this.handleCloseKeydown);
+      document.addEventListener("astro:before-swap", this.dismiss);
 
       requestAnimationFrame(() => {
         this.panel?.focus();
@@ -106,9 +110,11 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     };
 
     close() {
+      if (!this.isOpen) return;
       this.isOpen = false;
 
       document.removeEventListener("keydown", this.handleCloseKeydown);
+      document.removeEventListener("astro:before-swap", this.dismiss);
 
       if (this.previouslyFocused) {
         this.previouslyFocused.focus();
@@ -118,6 +124,20 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
       this.render();
       this.unlockScroll();
     }
+
+    // Navigating away: the new page owns scroll and focus, so close without restoring either.
+    dismiss = () => {
+      if (!this.isOpen) return;
+      this.isOpen = false;
+
+      document.removeEventListener("keydown", this.handleCloseKeydown);
+      document.removeEventListener("astro:before-swap", this.dismiss);
+      this.previouslyFocused = null;
+
+      this.dispatchEvent(new CustomEvent("overlay:closed"));
+      this.render();
+      this.unlockScroll(false);
+    };
 
     toggle() {
       if (this.isOpen) {
@@ -137,6 +157,37 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
   }
 
   customElements.define("overlay-root", OverlayElement);
+</script>
+
+<script>
+  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
+
+  const TRIGGERS = {
+    "data-trigger-overlay-open": "open",
+    "data-trigger-overlay-close": "close",
+    "data-trigger-overlay-toggle": "toggle",
+  } as const;
+
+  const triggerSelector = Object.keys(TRIGGERS)
+    .map((attribute) => `[${attribute}]`)
+    .join(",");
+
+  // Delegated so triggers rendered on later client-router pages work without rebinding.
+  document.addEventListener("click", (event) => {
+    const trigger = (event.target as Element | null)?.closest<HTMLElement>(triggerSelector);
+    if (!trigger) return;
+
+    for (const [attribute, action] of Object.entries(TRIGGERS)) {
+      const overlayId = trigger.getAttribute(attribute);
+      if (!overlayId) continue;
+
+      const overlayRootElement = document.querySelector(
+        `overlay-root[id="${overlayId}"]`,
+      ) as OverlayElement | null;
+      overlayRootElement?.[action]();
+      return;
+    }
+  });
 </script>
 
 <style>

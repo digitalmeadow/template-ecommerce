@@ -1,0 +1,76 @@
+---
+interface Props {
+  label: string;
+  labelSubmitting?: string;
+  labelSuccess?: string;
+  variant?: "outline" | "filled";
+  mutedUntilReady?: boolean;
+}
+
+const {
+  label,
+  labelSubmitting = "Submitting",
+  labelSuccess = "Submitted",
+  variant = "outline",
+  mutedUntilReady,
+}: Props = Astro.props;
+---
+
+<button
+  class:list={["button-submit", variant]}
+  type="submit"
+  data-button-submit
+  data-muted-until-ready={mutedUntilReady ? "" : undefined}
+>
+  <span class="label">{label}</span>
+  <span class="label-submitting">{labelSubmitting}</span>
+  <span class="label-success">{labelSuccess}</span>
+  <span class="arrow" aria-hidden="true">→</span>
+</button>
+
+<style>
+  .button-submit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s16);
+    padding: var(--s16) var(--s20);
+    border: 1px solid currentColor;
+    transition: opacity var(--transition-default);
+  }
+
+  /* Border kept so the box still measures the same as a file control. */
+  .button-submit.filled {
+    background-color: var(--color-text);
+    border-color: var(--color-text);
+    color: var(--color-background);
+  }
+
+  .button-submit[data-state="submitting"] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* The owning form sets [data-ready] once every required field is filled. */
+  .button-submit[data-muted-until-ready]:not([data-ready]) {
+    opacity: 0.5;
+  }
+
+  .label-submitting,
+  .label-success {
+    display: none;
+  }
+
+  .button-submit[data-state="submitting"] .label,
+  .button-submit[data-state="success"] .label {
+    display: none;
+  }
+  .button-submit[data-state="submitting"] .label-submitting,
+  .button-submit[data-state="success"] .label-success {
+    display: inline;
+  }
+
+  .arrow {
+    flex-shrink: 0;
+  }
+</style>

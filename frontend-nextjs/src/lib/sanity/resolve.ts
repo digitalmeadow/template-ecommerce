@@ -1,4 +1,3 @@
-import { SANITY_PROJECT_ID } from "sanity-nextjs/config";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@/config";
 
 export function resolveSanityHref(
@@ -34,5 +33,5 @@ export function sanityFileUrlFromRef(source: string | undefined): string {
   const sourceUrl =
     id.slice(0, lastDashIndex) + "." + id.slice(lastDashIndex + 1);
 
-  return `https://cdn.sanity.io/files/${SANITY_PROJECT_ID}/production/${sourceUrl}`;
+  return `https://cdn.sanity.io/files/${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}/${process.env.NEXT_PUBLIC_SANITY_DATASET}/${sourceUrl}`;
 }

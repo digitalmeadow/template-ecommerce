@@ -1,0 +1,7 @@
+fragment FormConsent on FormConsent {
+  _key
+  name
+  label
+  statementRaw
+  required
+}

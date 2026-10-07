@@ -1,57 +1,33 @@
 import { DocumentActionComponent, DocumentActionsContext } from "sanity";
 import { ActionShopifyLink } from "./actions/ActionShopify";
-import { SINGLETON_DOCUMENT_TYPES } from "../config";
+import { SINGLETON_DOCUMENT_TYPES, UNPREVIEWABLE_DOCUMENT_TYPES } from "../config";
 import { ActionPreview } from "./actions/ActionPreview";
 
 export default function resolveDocumentActions(
   previous: DocumentActionComponent[],
   context: DocumentActionsContext,
 ): DocumentActionComponent[] {
-  // Actions to be returned
-  let actions: DocumentActionComponent[] = [];
+  const { schemaType } = context;
 
-  // Filter out actions based on document type and id
-  actions = previous.filter((action) => {
-    // Prevent creation & deletion on certain document types
-    if (SINGLETON_DOCUMENT_TYPES.includes(context.schemaType)) {
-      if (
-        action.action === "delete" ||
-        action.action === "duplicate" ||
-        action.action === "unpublish"
-      ) {
-        return false;
-      }
+  const actions = previous.filter((action) => {
+    if (SINGLETON_DOCUMENT_TYPES.includes(schemaType)) {
+      return !["delete", "duplicate", "unpublish"].includes(action.action ?? "");
     }
 
-    // Collections:
-    // - Disable creation and duplication
-    if (context.schemaType === "collection") {
-      if (action.action === "duplicate") {
-        return false;
-      }
+    if (schemaType === "collection" || schemaType === "product") {
+      return action.action !== "duplicate";
     }
 
-    // Products:
-    // - Disable creation and duplication
-    if (context.schemaType === "product") {
-      if (action.action === "duplicate") {
-        return false;
-      }
-    }
-
-    // Product variants:
-    // - Disable creation, duplication and unpublishing
-    if (context.schemaType === "productVariant") {
-      if (action.action === "duplicate" || action.action === "unpublish") {
-        return false;
-      }
+    if (schemaType === "productVariant") {
+      return action.action !== "duplicate" && action.action !== "unpublish";
     }
 
     return true;
   });
 
-  // Add custom actions
-  actions = [...actions, ActionShopifyLink, ActionPreview];
+  if (UNPREVIEWABLE_DOCUMENT_TYPES.includes(schemaType)) {
+    return [...actions, ActionShopifyLink];
+  }
 
-  return actions;
+  return [...actions, ActionShopifyLink, ActionPreview];
 }

@@ -1,2 +1,7 @@
 node_modules/
 .DS_Store
+
+# Real env lives at the root; per-package .env symlinks to it are committed.
+/.env
+/.env.*
+!/.env.example

@@ -80,7 +80,7 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
   };
   export type EventProductVariantChange = CustomEvent<EventDetailProductVariantChange>;
 
-  function initialiseVariantSelector(rootElement: Element) {
+  function initialiseVariantSelector(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
     if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
 
@@ -89,7 +89,7 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
     ) as HTMLInputElement[];
     const variantIdInput = rootElement.querySelector("[data-variant-id]") as HTMLInputElement;
 
-    const variantsJson = (rootElement as HTMLElement).dataset.variants;
+    const variantsJson = rootElement.dataset.variants;
     if (!variantsJson) throw new Error("ProductVariantSelector: missing variants data");
     const variants: Variant[] = JSON.parse(variantsJson);
 
@@ -150,27 +150,37 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
       });
     }
 
-    optionInputs.forEach((input) => {
-      input.addEventListener("change", () => {
-        updateUI();
-        updateVariantId();
-      });
-    });
-
-    productRoot.addEventListener("product:request-variant-update", () => {
-      // When requested, re-emit current state
+    function handleOptionChange() {
+      updateUI();
       updateVariantId();
-    });
+    }
+
+    optionInputs.forEach((input) => input.addEventListener("change", handleOptionChange));
+    productRoot.addEventListener("product:request-variant-update", updateVariantId);
 
     // Initial sync
     updateUI();
     updateVariantId();
+
+    return () => {
+      optionInputs.forEach((input) => input.removeEventListener("change", handleOptionChange));
+      productRoot.removeEventListener("product:request-variant-update", updateVariantId);
+    };
   }
 
-  const rootElements = document.querySelectorAll("[data-variant-selector]");
-  for (const rootElement of rootElements) {
-    initialiseVariantSelector(rootElement);
-  }
+  let cleanups: (() => void)[] = [];
+
+  document.addEventListener("astro:page-load", () => {
+    cleanups = [];
+    document.querySelectorAll<HTMLElement>("[data-variant-selector]").forEach((rootElement) => {
+      cleanups.push(initialiseVariantSelector(rootElement));
+    });
+  });
+
+  document.addEventListener("astro:before-swap", () => {
+    cleanups.forEach((cleanup) => cleanup());
+    cleanups = [];
+  });
 </script>
 
 <style>

@@ -9,7 +9,7 @@
   import type { Variant } from "@sections/product/ProductVariantSelector.astro";
   import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
 
-  async function initialiseProductAddToCart(rootElement: HTMLElement) {
+  function initialiseProductAddToCart(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
     if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
@@ -85,14 +85,27 @@
     handleVariantAvailability(selectedVariantAvailableForSale);
 
     productRoot.addEventListener("product:variant-change", handleVariantChange);
-
     button.addEventListener("click", handleAddToCart);
+
+    return () => {
+      productRoot.removeEventListener("product:variant-change", handleVariantChange);
+      button.removeEventListener("click", handleAddToCart);
+    };
   }
 
-  const rootElements = document.querySelectorAll("[data-product-add-to-cart]");
-  for (const rootElement of rootElements) {
-    initialiseProductAddToCart(rootElement as HTMLElement);
-  }
+  let cleanups: (() => void)[] = [];
+
+  document.addEventListener("astro:page-load", () => {
+    cleanups = [];
+    document.querySelectorAll<HTMLElement>("[data-product-add-to-cart]").forEach((rootElement) => {
+      cleanups.push(initialiseProductAddToCart(rootElement));
+    });
+  });
+
+  document.addEventListener("astro:before-swap", () => {
+    cleanups.forEach((cleanup) => cleanup());
+    cleanups = [];
+  });
 </script>
 
 <style>

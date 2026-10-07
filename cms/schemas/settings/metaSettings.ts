@@ -1,5 +1,6 @@
 import JsonIcon from "@sanity/icons/Json";
 import { defineField, defineType } from "sanity";
+import { requireMetaFields } from "../../utils/validation";
 
 export const metaSettings = defineType({
   type: "document",
@@ -11,7 +12,8 @@ export const metaSettings = defineType({
       name: "meta",
       description:
         "Default meta tags for the website. These can be overridden on a per-page basis.",
-      validation: (Rule) => Rule.required(),
+      // Description falls back to the organisation description; title has no fallback.
+      validation: (Rule) => [Rule.required(), requireMetaFields(Rule, ["title"])],
     }),
   ],
   preview: {

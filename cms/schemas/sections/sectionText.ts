@@ -2,6 +2,7 @@ import { defineField, defineType } from "sanity";
 import BlockElementIcon from "@sanity/icons/BlockElement";
 import { previewPortableText } from "../../utils/preview";
 import { validateSlugId } from "../../utils/validation";
+import { richText } from "../fields/richText";
 
 export const sectionText = defineType({
   type: "object",
@@ -16,7 +17,7 @@ export const sectionText = defineType({
       validation: (Rule) => validateSlugId(Rule),
     }),
     defineField({
-      type: "textRich",
+      ...richText({ headings: true, lists: true, italic: true, strong: true, link: true, images: true }),
       name: "text",
       validation: (Rule) => Rule.required(),
     }),

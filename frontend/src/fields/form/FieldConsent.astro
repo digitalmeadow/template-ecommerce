@@ -1,0 +1,96 @@
+---
+import PortableText from "@fields/PortableText.astro";
+import { CONSENT_VALUE } from "@lib/forms/constants";
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  required: boolean;
+  statement: unknown;
+  errorId?: string;
+}
+
+const { id, name, label, required, statement, errorId }: Props = Astro.props;
+
+const statementId = `${id}-statement`;
+// The statement is what the user agrees to, so it must reach AT; its links must stay clickable, hence describedby not label.
+const describedBy = [statementId, errorId].filter(Boolean).join(" ");
+---
+
+<div class="consent">
+  <div class="statement" id={statementId}>
+    <PortableText value={statement} />
+  </div>
+
+  <input
+    type="checkbox"
+    id={id}
+    name={name}
+    value={CONSENT_VALUE}
+    required={required}
+    aria-describedby={describedBy}
+  />
+  <label for={id} aria-label={label}>
+    <span class="box" aria-hidden="true">
+      <svg class="tick" viewBox="0 0 20 15" fill="none">
+        <path d="M1 7.5L7 13.5L19 1.5" stroke="currentColor" stroke-width="1.5"></path>
+      </svg>
+    </span>
+  </label>
+</div>
+
+<style>
+  .consent {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--s20);
+    padding: var(--s12) 0;
+  }
+
+  .statement {
+    min-width: 0;
+    opacity: 0.5;
+    transition: opacity var(--transition-default);
+  }
+
+  input[type="checkbox"] {
+    position: absolute;
+    appearance: none;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  label {
+    cursor: pointer;
+  }
+
+  .box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5em;
+    height: 1.5em;
+    border: 1px solid currentColor;
+  }
+
+  .tick {
+    width: 60%;
+    opacity: 0;
+    transition: opacity var(--transition-default);
+  }
+
+  input:checked + label .tick {
+    opacity: 1;
+  }
+
+  .consent:has(input:checked) .statement {
+    opacity: 1;
+  }
+
+  input:focus-visible + label .box {
+    outline: 1px solid currentColor;
+    outline-offset: var(--s4);
+  }
+</style>

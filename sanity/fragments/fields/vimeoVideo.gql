@@ -1,0 +1,3 @@
+fragment VimeoVideo on VimeoVideo {
+  url
+}

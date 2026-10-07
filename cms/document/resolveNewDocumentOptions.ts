@@ -1,5 +1,5 @@
 import { NewDocumentOptionsContext, TemplateItem } from "sanity";
-import { SHOPIFY_DOCUMENT_TYPES, SINGLETON_DOCUMENT_TYPES } from "../config";
+import { HIDDEN_DOCUMENT_TYPES, SHOPIFY_DOCUMENT_TYPES, SINGLETON_DOCUMENT_TYPES } from "../config";
 
 export default function resolveNewDocumentOptions(
   previous: TemplateItem[],
@@ -12,6 +12,10 @@ export default function resolveNewDocumentOptions(
     type === "structure" &&
     [...SINGLETON_DOCUMENT_TYPES, ...SHOPIFY_DOCUMENT_TYPES].includes(schemaType)
   ) {
+    return [];
+  }
+
+  if (schemaType && HIDDEN_DOCUMENT_TYPES.includes(schemaType)) {
     return [];
   }
 

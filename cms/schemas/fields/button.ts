@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { isEmptyButton, isEmptyLink } from "../../utils/validation";
 
 export const button = defineType({
   type: "object",
@@ -8,12 +9,20 @@ export const button = defineType({
     defineField({
       type: "string",
       name: "label",
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.custom((value, context) =>
+          context.hidden || isEmptyButton(context.parent) || value ? true : "Required",
+        ),
     }),
     defineField({
       type: "link",
       name: "link",
-      validation: (Rule) => Rule.required(),
+      // Hidden until there's a label, so an unused button never demands a link.
+      hidden: ({ parent }) => !parent?.label,
+      validation: (Rule) =>
+        Rule.custom((value, context) =>
+          context.hidden || isEmptyButton(context.parent) || !isEmptyLink(value) ? true : "Required",
+        ),
     }),
   ],
 });

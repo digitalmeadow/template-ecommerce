@@ -1,7 +1,31 @@
-import { SANITY_PROJECT_ID } from "sanity/config";
+import { SANITY_PROJECT_ID, SANITY_DATASET } from "astro:env/client";
 import type { LinkFragment } from "sanity/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
 import { sanityClientGroq } from "sanity/client";
+import { resolveSanityHref } from "./resolve";
+import { buildScoped } from "./cache";
+
+export { resolveSanityHref };
+
+interface ReferenceTarget {
+  _id: string;
+  _type: string;
+  slug: string | null;
+}
+
+// One lookup table beats a query per link: the same handful of targets recur across every page.
+const getReferenceMap = buildScoped(async () => {
+  const documents = await sanityClientGroq.fetch<ReferenceTarget[]>(
+    `*[_type in $types]{
+      _type,
+      _id,
+      "slug": coalesce(slug.current, shopify.handle.current)
+    }`,
+    { types: Object.keys(SANITY_DOCUMENT_ROUTE_PATTERNS) },
+  );
+
+  return new Map(documents.map((document) => [document._id, document]));
+});
 
 // This is only required because GraphQL doesn't resolve references in Portable Text
 async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragment | null> {
@@ -10,16 +34,8 @@ async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragmen
       throw new Error("Page reference is missing _ref");
     }
 
-    const refId = linkData.page._ref;
-
-    const resolved = await sanityClientGroq.fetch(
-      `*[_id == $refId][0]{
-        _type,
-        _id,
-        "slug": slug.current
-      }`,
-      { refId },
-    );
+    const referenceMap = await getReferenceMap();
+    const resolved = referenceMap.get(linkData.page._ref as string);
 
     if (resolved) {
       return {
@@ -44,13 +60,22 @@ export async function resolveLinkHref(linkData: LinkFragment): Promise<string | 
   const resolvedLink = await resolveLinkReference(linkData);
   if (!resolvedLink) return undefined;
 
-  if (resolvedLink.type === "section") return resolvedLink.section ?? "";
+  if (resolvedLink.type === "section")
+    return resolvedLink.section ? `#${resolvedLink.section}` : "";
   if (resolvedLink.type === "url") return resolvedLink.url ?? "";
-  if (resolvedLink.type === "page") return resolveReferenceHref(resolvedLink.page) ?? "";
+  if (resolvedLink.type === "page") {
+    const href = resolveReferenceHref(resolvedLink.page);
+    if (href === undefined) return undefined;
+    return resolvedLink.section ? `${href}#${resolvedLink.section}` : href;
+  }
   if (resolvedLink.type === "email") return `mailto:${resolvedLink.email}`;
   if (resolvedLink.type === "phone") return `tel:${resolvedLink.phone}`;
   if (resolvedLink.type === "file") {
-    if (resolvedLink.file?.asset && "_ref" in resolvedLink.file.asset && resolvedLink.file.asset._ref) {
+    if (
+      resolvedLink.file?.asset &&
+      "_ref" in resolvedLink.file.asset &&
+      resolvedLink.file.asset._ref
+    ) {
       return sanityFileUrlFromRef(resolvedLink.file.asset._ref as string);
     }
     if (resolvedLink.file?.asset?.url) {
@@ -60,34 +85,27 @@ export async function resolveLinkHref(linkData: LinkFragment): Promise<string | 
   return undefined;
 }
 
-export function resolveSanityHref(documentType: string, slug?: string | null): string {
-  if (!(documentType in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
-    throw new Error("Invalid document type");
-  }
-
-  const pattern = SANITY_DOCUMENT_ROUTE_PATTERNS[documentType]!;
-
-  if (!pattern.includes("[slug]")) {
-    return pattern;
-  }
-
-  if (slug) {
-    return pattern.replace("[slug]", slug);
-  }
-
-  return pattern.replace("[slug]", "");
-}
-
-function resolveReferenceHref(reference: LinkFragment["page"]): string {
+// Unresolvable targets (unpublished or deleted documents) must degrade to no link, not fail the build.
+function resolveReferenceHref(reference: LinkFragment["page"]): string | undefined {
   if (!reference?._type) {
-    throw new Error("Reference is missing _type");
+    console.warn("Link target is unpublished or deleted; rendering without a link.");
+    return undefined;
   }
 
-  if (reference?._type && !(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
-    throw new Error(`_type: ${reference?._type} not found in SANITY_DOCUMENT_ROUTE_PATTERNS`);
+  if (!(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
+    console.warn(
+      `Link target _type "${reference._type}" has no route pattern; rendering without a link.`,
+    );
+    return undefined;
   }
 
-  const slug = "slug" in reference && reference.slug ? reference.slug.current : undefined;
+  // Products and collections route by their Shopify handle rather than a slug.
+  const slug =
+    "slug" in reference && reference.slug
+      ? reference.slug.current
+      : "shopify" in reference
+        ? reference.shopify?.handle?.current
+        : undefined;
 
   return resolveSanityHref(reference._type, slug);
 }
@@ -102,5 +120,5 @@ function sanityFileUrlFromRef(source: string | undefined): string {
   const lastDashIndex = source.lastIndexOf("-");
   const sourceUrl = source.slice(0, lastDashIndex) + "." + source.slice(lastDashIndex + 1);
 
-  return `https://cdn.sanity.io/files/${SANITY_PROJECT_ID}/production/${sourceUrl}`;
+  return `https://cdn.sanity.io/files/${SANITY_PROJECT_ID}/${SANITY_DATASET}/${sourceUrl}`;
 }

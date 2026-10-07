@@ -1,0 +1,5 @@
+fragment AnalyticsSettings on AnalyticsSettings {
+  __typename
+  _id
+  gtmId
+}

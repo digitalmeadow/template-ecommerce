@@ -15,30 +15,31 @@ export type CollectionShopifySanity = {
   productThumbnails: ProductThumbnailShopifySanity[];
 };
 
+/** Pass `sanityCollection` when the caller already holds it (getStaticPaths) to skip a Sanity request. */
 export async function fetchCollectionShopifySanity(
   handle: string,
+  sanityCollectionData?: SanityCollectionFragment,
 ): Promise<CollectionShopifySanity> {
-  const shopifyCollectionQuery = await shopifyClient.request(shopifyCollectionByHandleQuery, {
-    handle,
-  });
+  const [shopifyCollectionQuery, sanityCollection] = await Promise.all([
+    shopifyClient.request(shopifyCollectionByHandleQuery, { handle }),
+    sanityCollectionData ??
+      sanityClient
+        .request(sanityCollectionByHandleQuery, { handle })
+        .then((result) => result.allCollection[0]),
+  ]);
   const shopifyCollection = shopifyCollectionQuery.collectionByHandle;
 
-  const sanityCollectionQuery = await sanityClient.request(sanityCollectionByHandleQuery, {
-    handle,
-  });
-  const sanityCollection = sanityCollectionQuery.allCollection[0];
-
-  // Fetch combined product thumbnails for the collection's products
   const productHandles = shopifyCollection?.products?.edges.map((edge) => edge.node.handle) || [];
-  const productThumbnails: ProductThumbnailShopifySanity[] = [];
-  for (const productHandle of productHandles) {
-    try {
-      const productThumbnail = await fetchProductThumbnailShopifySanity(productHandle);
-      productThumbnails.push(productThumbnail);
-    } catch (error) {
-      console.error(`Error fetching product thumbnail for handle "${productHandle}":`, error);
-    }
-  }
+  const productThumbnails = (
+    await Promise.all(
+      productHandles.map((productHandle) =>
+        fetchProductThumbnailShopifySanity(productHandle).catch((error) => {
+          console.error(`Error fetching product thumbnail for handle "${productHandle}":`, error);
+          return null;
+        }),
+      ),
+    )
+  ).filter((thumbnail): thumbnail is ProductThumbnailShopifySanity => Boolean(thumbnail));
 
   if (!shopifyCollection || !sanityCollection)
     throw new Error(`Collection with handle "${handle}" not found in Shopify or Sanity`);

@@ -93,7 +93,7 @@ export default function CartLineItem({ line, className }: Props) {
 
       <div className="info flex flex-col gap-[var(--s4)]">
         <Link href={productHref} className="text-link-wrapper">
-          <div>
+          <div className="titles flex flex-wrap gap-x-[1ch]">
             <span className="product-title">{product.title}</span>
             <span
               className={cn(
@@ -101,7 +101,6 @@ export default function CartLineItem({ line, className }: Props) {
                 isSingleDefaultVariant && "hidden",
               )}
             >
-              {" "}
               {variantTitle}
             </span>
           </div>

@@ -1,0 +1,143 @@
+---
+// "trigger" slot must contain a [data-dropdown-trigger] button. Emits "dropdown:toggle"; open()/close()/toggle() are public.
+interface Props {
+  id: string;
+  class?: string;
+}
+
+const { id, class: className } = Astro.props;
+---
+
+<dropdown-root id={id} class={className}>
+  <slot name="trigger" />
+  <div class="panel-anchor">
+    <div class="panel" data-dropdown-panel id={`${id}-panel`}>
+      <slot name="panel" />
+    </div>
+  </div>
+</dropdown-root>
+
+<script>
+  export type EventDropdownToggleDetail = { open: boolean };
+  export type EventDropdownToggle = CustomEvent<EventDropdownToggleDetail>;
+
+  export class DropdownElement extends HTMLElement {
+    private trigger: HTMLElement | null = null;
+    private panel: HTMLElement | null = null;
+    private isOpen = false;
+
+    connectedCallback() {
+      this.trigger = this.querySelector<HTMLElement>("[data-dropdown-trigger]");
+      this.panel = this.querySelector<HTMLElement>("[data-dropdown-panel]");
+      if (!this.trigger || !this.panel) return;
+
+      this.trigger.setAttribute("aria-expanded", "false");
+      this.trigger.setAttribute("aria-controls", this.panel.id);
+      this.panel.setAttribute("inert", "");
+
+      this.trigger.addEventListener("click", this.handleTriggerClick);
+      this.trigger.addEventListener("keydown", this.handleTriggerKeydown);
+      document.addEventListener("click", this.handleOutsideClick);
+      document.addEventListener("keydown", this.handleKeydown);
+    }
+
+    disconnectedCallback() {
+      this.trigger?.removeEventListener("click", this.handleTriggerClick);
+      this.trigger?.removeEventListener("keydown", this.handleTriggerKeydown);
+      document.removeEventListener("click", this.handleOutsideClick);
+      document.removeEventListener("keydown", this.handleKeydown);
+    }
+
+    private handleTriggerClick = () => {
+      this.toggle();
+    };
+
+    // A <button> never receives ArrowDown/ArrowUp, so without this there is no keyboard way to open.
+    private handleTriggerKeydown = (event: KeyboardEvent) => {
+      if (this.isOpen) return;
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      event.preventDefault();
+      this.open();
+      const current = this.panel?.querySelector<HTMLElement>("input:checked");
+      const fallback = this.panel?.querySelector<HTMLElement>("input, button, [href], [tabindex]");
+      (current ?? fallback)?.focus();
+    };
+
+    private handleOutsideClick = (event: MouseEvent) => {
+      if (!this.isOpen) return;
+      if (this.contains(event.target as Node)) return;
+      this.close();
+    };
+
+    private handleKeydown = (event: KeyboardEvent) => {
+      if (!this.isOpen) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        this.close();
+        this.trigger?.focus();
+      }
+    };
+
+    open() {
+      if (!this.trigger || !this.panel) return;
+      this.isOpen = true;
+      this.panel.dataset.state = "open";
+      this.panel.removeAttribute("inert");
+      this.trigger.setAttribute("aria-expanded", "true");
+      this.emitToggle();
+    }
+
+    close() {
+      if (!this.trigger || !this.panel) return;
+      this.isOpen = false;
+      delete this.panel.dataset.state;
+      this.panel.setAttribute("inert", "");
+      this.trigger.setAttribute("aria-expanded", "false");
+      this.emitToggle();
+    }
+
+    private emitToggle() {
+      const detail: EventDropdownToggleDetail = { open: this.isOpen };
+      this.dispatchEvent(new CustomEvent("dropdown:toggle", { detail }));
+    }
+
+    toggle() {
+      if (this.isOpen) {
+        this.close();
+      } else {
+        this.open();
+      }
+    }
+  }
+
+  customElements.define("dropdown-root", DropdownElement);
+</script>
+
+<style>
+  /* 0fr -> 1fr keeps the panel in flow, so opening animates following content down. */
+  .panel-anchor {
+    display: grid;
+    grid-template-rows: 0fr;
+    justify-items: start;
+    transition: grid-template-rows var(--transition-default);
+  }
+
+  .panel-anchor:has([data-dropdown-panel][data-state="open"]) {
+    grid-template-rows: 1fr;
+  }
+
+  [data-dropdown-panel] {
+    position: relative;
+    z-index: 5;
+    overflow: hidden;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-default);
+  }
+
+  [data-dropdown-panel][data-state="open"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+</style>

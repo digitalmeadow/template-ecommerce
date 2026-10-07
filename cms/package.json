@@ -12,29 +12,31 @@
     "pre-gen": "sanity schema validate",
     "gen": "pnpm pre-gen && sanity graphql deploy --force",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate-documents": "tsx --env-file=.env scripts/validateDocuments.mts"
   },
   "keywords": [
     "sanity"
   ],
   "dependencies": {
-    "@sanity/icons": "5.2.1",
-    "@sanity/ui": "3.4.5",
-    "@sanity/vision": "6.6.0",
+    "@sanity/icons": "5.2.3",
+    "@sanity/ui": "4.3.0",
+    "@sanity/vision": "6.17.0",
     "frontend": "workspace:*",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "sanity": "6.6.0",
-    "sanity-plugin-media": "6.0.7",
-    "sanity-plugin-mux-input": "5.0.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sanity": "6.17.0",
+    "sanity-plugin-media": "6.3.2",
+    "sanity-plugin-mux-input": "5.1.0",
     "shopify": "workspace:*",
-    "styled-components": "6.4.4"
+    "styled-components": "6.5.3"
   },
   "devDependencies": {
-    "@sanity/eslint-config-studio": "6.0.0",
-    "@types/react": "19.2.17",
-    "eslint": "9.39.5",
-    "prettier": "3.9.6",
+    "@sanity/eslint-config-studio": "7.0.0",
+    "@types/react": "19.3.0",
+    "eslint": "10.12.0",
+    "prettier": "3.9.9",
+    "tsx": "4.23.15",
     "typescript": "6.0.3"
   },
   "prettier": {

@@ -1,26 +1,62 @@
 ---
-import { WEBSITE_URL } from "astro:env/client";
-import type { MetaFragment, MetaSettingsFragment } from "sanity/generated/graphql";
+import type { MetaSettingsFragment } from "sanity/generated/graphql";
+import { truncate, type ResolvedMeta } from "@lib/sanity/meta";
 
 interface Props {
-  metaData: MetaFragment | null | undefined;
+  metaData: ResolvedMeta | null | undefined;
   metaSettingsData: MetaSettingsFragment | null | undefined;
+  locale: string;
+  siteName?: string | null;
+  /* Last-resort description, so no page ever ships without one. */
+  organisationDescription?: string | null;
+  ogType?: "website" | "article" | "product";
+  noindex?: boolean;
 }
 
-const { metaData, metaSettingsData }: Props = Astro.props;
+const {
+  metaData,
+  metaSettingsData,
+  locale,
+  siteName,
+  organisationDescription,
+  ogType = "website",
+  noindex = false,
+}: Props = Astro.props;
 
 const title = metaData?.title || metaSettingsData?.meta?.title || "";
-const description = metaData?.description || metaSettingsData?.meta?.description || "";
+
+// The organisation description is written for structured data, not search results, so it's the
+// only link in this chain that needs trimming to length.
+const description =
+  metaData?.description ||
+  metaSettingsData?.meta?.description ||
+  truncate(organisationDescription ?? "");
 const image = metaData?.image || metaSettingsData?.meta?.image;
 
-const canonicalUrl = new URL(Astro.url.pathname, WEBSITE_URL).href;
+// Astro.site (not an env var) so canonicals can never drift from the sitemap.
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+// Sanity asset URLs are already absolute; the static fallback is not.
+const imageUrl = image?.asset?.url ?? new URL("/og.jpg", Astro.site).href;
+const imageAlt = image?.asset?.altText || title;
 ---
 
 <title>{title}</title>
 <meta name="description" content={description} />
 
+<meta property="og:type" content={ogType} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={image?.asset?.url} />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:alt" content={imageAlt} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:locale" content={locale.replace("-", "_")} />
+{siteName && <meta property="og:site_name" content={siteName} />}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />
 
 <link rel="canonical" href={canonicalUrl} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}

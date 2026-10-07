@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { PortableText as PortableTextReact } from "@portabletext/react";
 import type { PortableTextComponents } from "@portabletext/react";
 import type { LinkFragment } from "sanity-nextjs/generated/graphql";
-import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@/config";
+import SanityLink from "@/fields/SanityLink";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -11,47 +10,7 @@ interface Props {
   style?: "default" | "large";
 }
 
-function computeLinkHref(linkData: LinkFragment): string | undefined {
-  if (linkData.type === "section") return linkData.section ?? undefined;
-  if (linkData.type === "url") return linkData.url ?? undefined;
-  if (linkData.type === "email")
-    return linkData.email ? `mailto:${linkData.email}` : undefined;
-  if (linkData.type === "phone")
-    return linkData.phone ? `tel:${linkData.phone}` : undefined;
-
-  if (linkData.type === "page") {
-    const page = linkData.page;
-    if (!page?._type) return undefined;
-    const pattern = SANITY_DOCUMENT_ROUTE_PATTERNS[page._type];
-    if (!pattern) return undefined;
-
-    let slug: string | undefined;
-    if ("slug" in page && page.slug) slug = page.slug.current ?? undefined;
-    else if ("shopify" in page && page.shopify?.handle)
-      slug = page.shopify.handle.current ?? undefined;
-
-    return slug
-      ? pattern.replace("[slug]", slug)
-      : pattern.replace("[slug]", "");
-  }
-
-  if (linkData.type === "file") {
-    if (linkData.file?.asset?.url) return linkData.file.asset.url;
-    return undefined;
-  }
-
-  return undefined;
-}
-
-function linkIsInternal(href: string): boolean {
-  return (
-    !href.startsWith("http") &&
-    !href.startsWith("mailto:") &&
-    !href.startsWith("tel:") &&
-    !href.startsWith("#")
-  );
-}
-
+// Server-only: link marks resolve references through SanityLink.
 const components: PortableTextComponents = {
   block: {
     h1: ({ children }) => (
@@ -99,31 +58,11 @@ const components: PortableTextComponents = {
     <li className="portable-text-li mb-[0.5em] last:mb-0">{children}</li>
   ),
   marks: {
-    link: ({ children, value }) => {
-      const linkData = value as unknown as LinkFragment;
-      if (!linkData) return <span>{children}</span>;
-
-      const href = computeLinkHref(linkData);
-      if (!href) return <span>{children}</span>;
-
-      const target =
-        linkData.type === "url" && linkData.newTab ? "_blank" : undefined;
-      const rel = target ? "noopener noreferrer" : undefined;
-
-      if (linkIsInternal(href)) {
-        return (
-          <Link href={href} className="text-link" target={target} rel={rel}>
-            {children}
-          </Link>
-        );
-      }
-
-      return (
-        <a href={href} className="text-link" target={target} rel={rel}>
-          {children}
-        </a>
-      );
-    },
+    link: ({ children, value }) => (
+      <SanityLink className="text-link" linkData={value as LinkFragment}>
+        {children}
+      </SanityLink>
+    ),
   },
 };
 

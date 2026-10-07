@@ -18,6 +18,9 @@
       "@components/*": [
         "./src/components/*"
       ],
+      "@decorations/*": [
+        "./src/decorations/*"
+      ],
       "@dev/*": [
         "./src/dev/*"
       ],
@@ -50,6 +53,9 @@
       ],
       "@svgs/*": [
         "./src/svgs/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
       ]
     }
   }

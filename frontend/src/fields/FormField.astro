@@ -1,0 +1,74 @@
+---
+import type { FormFieldFragment } from "sanity/generated/graphql";
+import FieldWrapper from "@fields/form/FieldWrapper.astro";
+import FieldText from "@fields/form/FieldText.astro";
+import FieldTextarea from "@fields/form/FieldTextarea.astro";
+import FieldSelect from "@fields/form/FieldSelect.astro";
+import FieldFile from "@fields/form/FieldFile.astro";
+import FieldCheckboxGroup from "@fields/form/FieldCheckboxGroup.astro";
+import FieldRadioGroup from "@fields/form/FieldRadioGroup.astro";
+
+interface Props {
+  field: FormFieldFragment;
+  prefix: string;
+}
+
+const { field, prefix }: Props = Astro.props;
+
+const name = field.name ?? "";
+const label = field.label ?? "";
+const type = field.type ?? "text";
+const required = field.required ?? false;
+const placeholder = field.placeholder || label;
+const options = (field.options ?? []).filter((option): option is string => Boolean(option));
+const inputType = type === "email" || type === "tel" ? type : "text";
+
+const errorId = `${prefix}-${name}-error`;
+
+// Lets browsers and password managers fill known fields (WCAG 1.3.5).
+function resolveAutocomplete(): string | undefined {
+  if (type === "email") return "email";
+  if (type === "tel") return "tel";
+
+  const normalised = name.toLowerCase();
+  if (normalised.includes("company") || normalised.includes("organisation")) return "organization";
+  if (normalised.includes("name")) return "name";
+  return undefined;
+}
+
+const shared = {
+  id: `${prefix}-${name}`,
+  name,
+  label,
+  required,
+  errorId,
+};
+const autocomplete = resolveAutocomplete();
+---
+
+<FieldWrapper name={name} type={type} width={field.width ?? "full"} errorId={errorId}>
+  {type === "textarea" && <FieldTextarea {...shared} placeholder={placeholder} />}
+
+  {type === "select" && <FieldSelect {...shared} placeholder={placeholder} options={options} />}
+
+  {
+    (type === "file" || type === "files") && (
+      <FieldFile {...shared} placeholder={placeholder} multiple={type === "files"} />
+    )
+  }
+
+  {type === "checkboxGroup" && <FieldCheckboxGroup {...shared} options={options} />}
+
+  {type === "radioGroup" && <FieldRadioGroup {...shared} options={options} />}
+
+  {
+    !["textarea", "select", "file", "files", "checkboxGroup", "radioGroup"].includes(type) && (
+      <FieldText
+        {...shared}
+        type={inputType}
+        placeholder={placeholder}
+        autocomplete={autocomplete}
+      />
+    )
+  }
+</FieldWrapper>

@@ -1,10 +1,7 @@
 import { GraphQLClient } from "graphql-request";
-import { SANITY_PROJECT_ID, SANITY_API_VERSION } from "./config";
-import {
-  SANITY_DATASET,
-  SANITY_VIEWER_API_TOKEN,
-  PREVIEW,
-} from "astro:env/client";
+import { SANITY_API_VERSION } from "./config";
+import { SANITY_PROJECT_ID, SANITY_DATASET, PREVIEW } from "astro:env/client";
+import { SANITY_VIEWER_API_TOKEN } from "astro:env/server";
 import { createClient } from "@sanity/client";
 
 export const sanityClient = new GraphQLClient(
@@ -22,4 +19,5 @@ export const sanityClientGroq = createClient({
   apiVersion: SANITY_API_VERSION,
   useCdn: false,
   token: SANITY_VIEWER_API_TOKEN,
+  perspective: PREVIEW === "true" ? "drafts" : "published",
 });

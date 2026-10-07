@@ -4,6 +4,7 @@ import ProductAddToCart from "@sections/product/ProductAddToCart.astro";
 import ProductVariantSelector from "@sections/product/ProductVariantSelector.astro";
 import ProductPrice from "@sections/product/ProductPrice.astro";
 import QuantitySelector from "@blocks/QuantitySelector.astro";
+import FontSizeFillWidth from "@layouts/FontSizeFillWidth.astro";
 
 interface Props {
   productData: ProductShopifySanity;
@@ -13,7 +14,9 @@ const { productData }: Props = Astro.props;
 ---
 
 <div class="product-purchase">
-  <h1 data-text-fill-width>{productData.shopify?.title}</h1>
+  <FontSizeFillWidth>
+    <h1>{productData.shopify?.title}</h1>
+  </FontSizeFillWidth>
   <ProductPrice />
 
   <div class="variant-selector">
@@ -29,6 +32,7 @@ const { productData }: Props = Astro.props;
 <style>
   h1 {
     margin-bottom: var(--s20);
+    text-transform: uppercase;
   }
 
   .variant-selector {

@@ -5,39 +5,61 @@ import "@styles/colors.css";
 import "@styles/spacing.css";
 import "@styles/text.css";
 import "@styles/elements.css";
+import "@styles/forms.css";
 import "@styles/animations.css";
 import "@styles/aspects.css";
 import "@styles/fonts.css";
 
+import { ClientRouter } from "astro:transitions";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Grid from "@dev/Grid.astro";
 import Meta from "@meta/Meta.astro";
-import type { MetaFragment } from "sanity/generated/graphql";
+import JsonLd from "@meta/JsonLd.astro";
 import { getLocaleFromPath, LOCALE_CONFIG } from "@lib/shopify/locale";
 import CookiesBanner from "@components/CookiesBanner.astro";
+import Analytics from "@components/Analytics.astro";
 import Cart from "@components/cart/Cart.astro";
-import ScriptTextFillWidth from "@scripts/ScriptTextFillWidth.astro";
 import ScriptMeasurements from "@scripts/ScriptMeasurements.astro";
-import { sanityClient } from "sanity/client";
-import { metaSettingsQuery } from "sanity/queries/metaSettings";
-import { WEBSITE_URL } from "astro:env/client";
+import ScriptAnimations from "@scripts/ScriptAnimations.astro";
+import PageTransition from "@decorations/PageTransition.astro";
+import { getGlobals } from "@lib/sanity/globals";
+import type { ResolvedMeta } from "@lib/sanity/meta";
+import {
+  buildOrganisationSchema,
+  buildWebSiteSchema,
+  type JsonLdSchema,
+} from "@lib/sanity/structuredData";
 import { PREVIEW } from "astro:env/client";
 
 interface Props {
-  metaData: MetaFragment | null | undefined;
+  metaData: ResolvedMeta | null | undefined;
+  noindex?: boolean;
+  ogType?: "website" | "article" | "product";
+  /* Page-level structured data. A prop because <slot /> renders inside <main>, not <head>. */
+  jsonLd?: (JsonLdSchema | undefined)[];
 }
 
-const { metaData }: Props = Astro.props;
+const { metaData, noindex = false, ogType, jsonLd = [] }: Props = Astro.props;
 
 const currentLocale = getLocaleFromPath(Astro.url.pathname);
 const localeConfig = LOCALE_CONFIG[currentLocale];
 
-const metaSettingsQueryResult = await sanityClient.request(metaSettingsQuery);
-const metaSettingsData = metaSettingsQueryResult?.allMetaSettings?.[0];
+const {
+  headerData,
+  footerData,
+  cartData,
+  metaSettingsData,
+  organisationSettingsData,
+  analyticsSettingsData,
+} = await getGlobals();
 
-const canonicalUrl = new URL(Astro.url.pathname, WEBSITE_URL).href;
-if (PREVIEW === "true") Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
+const organisationSchema = buildOrganisationSchema(organisationSettingsData, Astro.site);
+const webSiteSchema = buildWebSiteSchema(organisationSettingsData, Astro.site, currentLocale);
+
+// The preview site is otherwise a fully indexable duplicate of live.
+const isPreview = PREVIEW === "true";
+if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
 ---
 
 <html
@@ -47,8 +69,12 @@ if (PREVIEW === "true") Astro.response.headers.set("X-Robots-Tag", "noindex, nof
   data-country={localeConfig.country}
   data-language={localeConfig.language}
   data-path-prefix={localeConfig.pathPrefix ?? "/"}
+  transition:name="root"
+  transition:animate="none"
 >
   <head>
+    <ClientRouter />
+
     <meta charset="utf-8" />
 
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -59,11 +85,24 @@ if (PREVIEW === "true") Astro.response.headers.set("X-Robots-Tag", "noindex, nof
     <link rel="manifest" href="/site.webmanifest" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme" content="#F6F2E5" />
+    <meta name="theme-color" content="#F6F2E5" />
     <meta name="generator" content={Astro.generator} />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
-    <Meta metaData={metaData} metaSettingsData={metaSettingsData} />
+    <Meta
+      metaData={metaData}
+      metaSettingsData={metaSettingsData}
+      locale={currentLocale}
+      siteName={organisationSettingsData?.name}
+      organisationDescription={organisationSettingsData?.description}
+      ogType={ogType}
+      noindex={noindex || isPreview}
+    />
+
+    <JsonLd schema={organisationSchema} />
+    <JsonLd schema={webSiteSchema} />
+    {jsonLd.map((schema) => <JsonLd schema={schema} />)}
+
     <link
       rel="preload"
       href="/fonts/BIZUDMincho-Regular.woff2"
@@ -72,29 +111,46 @@ if (PREVIEW === "true") Astro.response.headers.set("X-Robots-Tag", "noindex, nof
       crossorigin
     />
 
-    <link rel="canonical" href={canonicalUrl} />
-    {PREVIEW === "true" && <meta name="robots" content="noindex, nofollow" />}
-
     <ScriptMeasurements />
-    <ScriptTextFillWidth />
+    <ScriptAnimations />
   </head>
   <body>
-    <div class="header">
-      <Header />
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div transition:persist="page-transition">
+      <PageTransition />
     </div>
 
-    <Cart />
+    <div class="header" transition:persist="header">
+      <Header headerData={headerData} />
+    </div>
 
-    <main>
+    <div transition:persist="cart">
+      <Cart cartData={cartData} />
+    </div>
+
+    <main id="main" tabindex="-1">
       <slot />
     </main>
 
-    <CookiesBanner />
-    <Footer />
+    <div transition:persist="consent">
+      <CookiesBanner />
+      <Analytics analyticsSettingsData={analyticsSettingsData} />
+    </div>
+
+    <Footer footerData={footerData} />
 
     <Grid />
   </body>
 </html>
+
+<script>
+  // The router swaps <main> without moving focus, leaving keyboard and screen reader users on the
+  // old page's control. Only fires on navigation, never initial load.
+  document.addEventListener("astro:after-swap", () => {
+    document.getElementById("main")?.focus();
+  });
+</script>
 
 <style>
   body {
@@ -107,5 +163,24 @@ if (PREVIEW === "true") Astro.response.headers.set("X-Robots-Tag", "noindex, nof
 
   body > main {
     grid-area: 1 / 1 / 2 / 2;
+  }
+
+  main:focus {
+    outline: none;
+  }
+
+  .skip-link {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    padding: var(--s12) var(--s20);
+    background-color: var(--color-text);
+    color: var(--color-background);
+    transform: translateY(-100%);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
   }
 </style>

@@ -1,45 +1,93 @@
 import type { ReactNode } from "react";
-import { headers } from "next/headers";
-import { sanityClient } from "sanity-nextjs/client.server";
-import { metaSettingsQuery } from "sanity-nextjs/queries/metaSettings";
+import type { Metadata, Viewport } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Cart from "@/components/cart/Cart";
 import CookiesBanner from "@/components/CookiesBanner";
+import Analytics from "@/components/Analytics";
+import PageTransition from "@/components/PageTransition";
 import Grid from "@/dev/Grid";
-import Meta from "@/meta/Meta";
+import JsonLd from "@/meta/JsonLd";
+import { buildMetadata, SITE_URL } from "@/meta/metadata";
 import ScriptMeasurements from "@/scripts/ScriptMeasurements";
-import ScriptTextFillWidth from "@/scripts/ScriptTextFillWidth";
+import ScriptAnimations from "@/scripts/ScriptAnimations";
+import { getGlobals } from "@/lib/sanity/globals";
+import { DEFAULT_LOCALE } from "@/lib/shopify/locale";
+import {
+  buildOrganisationSchema,
+  buildWebSiteSchema,
+} from "@/lib/sanity/structuredData";
 import "../styles/globals.css";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    ...(await buildMetadata()),
+    icons: {
+      icon: [
+        { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+        { url: "/favicon.svg", type: "image/svg+xml" },
+      ],
+      shortcut: "/favicon.ico",
+      apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+    },
+    manifest: "/site.webmanifest",
+    appleWebApp: { title: "Digital Meadow" },
+  };
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#F6F2E5",
+};
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const headersList = await headers();
-  const pathname = headersList.get("x-pathname") || "";
-
-  const metaSettingsResult = await sanityClient.request(metaSettingsQuery);
-  const metaSettingsData = metaSettingsResult.allMetaSettings[0] ?? null;
+  const {
+    headerData,
+    footerData,
+    cartData,
+    organisationSettingsData,
+    analyticsSettingsData,
+  } = await getGlobals();
 
   return (
     <html
-      lang="en"
+      lang={DEFAULT_LOCALE}
       className="bg-background text-foreground h-full antialiased"
+      // ScriptAnimations sets html[data-js] pre-hydration.
+      suppressHydrationWarning
     >
-      <head>
-        <Meta metaSettingsData={metaSettingsData} pathname={pathname} />
-      </head>
-      <body className="flex min-h-full flex-col">
+      <body className="grid min-h-full">
+        <JsonLd
+          schema={buildOrganisationSchema(organisationSettingsData, SITE_URL)}
+        />
+        <JsonLd
+          schema={buildWebSiteSchema(
+            organisationSettingsData,
+            SITE_URL,
+            DEFAULT_LOCALE,
+          )}
+        />
         <ScriptMeasurements />
-        <ScriptTextFillWidth />
+        <ScriptAnimations />
+        <PageTransition />
         <Grid />
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <Cart />
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <Header headerData={headerData} />
+        <main id="main" tabIndex={-1}>
+          {children}
+        </main>
+        <Footer footerData={footerData} />
+        <Cart cartData={cartData} />
         <CookiesBanner />
+        <Analytics analyticsSettingsData={analyticsSettingsData} />
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 interface NavItem {
   label: string | null | undefined;
-  href: string;
+  href: string | undefined;
   target?: string;
   rel?: string;
   isInternal: boolean;
@@ -31,11 +31,15 @@ export default function HeaderNav({ navItems }: Props) {
       {navItems.map((item, index) => (
         <div
           key={index}
-          className={
-            item.isCollection ? "nav-item collection" : "nav-item"
-          }
+          className={item.isCollection ? "nav-item collection" : "nav-item"}
         >
-          {item.isInternal ? (
+          {item.href === undefined ? (
+            <span
+              className={`text-link ${underlineStyles[index % underlineStyles.length]}`}
+            >
+              {item.label}
+            </span>
+          ) : item.isInternal ? (
             <Link
               href={item.href}
               className={`text-link ${underlineStyles[index % underlineStyles.length]}`}

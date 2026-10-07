@@ -1,5 +1,6 @@
 import BlockElementIcon from "@sanity/icons/BlockElement";
 import { defineArrayMember, defineField, defineType } from "sanity";
+import { richText } from "../fields/richText";
 
 export const footer = defineType({
   type: "document",
@@ -7,7 +8,7 @@ export const footer = defineType({
   icon: BlockElementIcon,
   fields: [
     defineField({
-      type: "textRich",
+      ...richText({ italic: true, strong: true, link: true }),
       name: "text",
     }),
     defineField({

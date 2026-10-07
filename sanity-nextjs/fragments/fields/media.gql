@@ -6,4 +6,7 @@ fragment Media on Media {
   video {
     ...MuxVideo
   }
+  vimeo {
+    ...VimeoVideo
+  }
 }

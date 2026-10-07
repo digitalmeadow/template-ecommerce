@@ -1,0 +1,14 @@
+---
+import type { JsonLdSchema } from "@lib/sanity/structuredData";
+
+interface Props {
+  schema: JsonLdSchema | null | undefined;
+}
+
+const { schema }: Props = Astro.props;
+
+// CMS copy containing "</script>" would otherwise close the tag early.
+const serialised = schema ? JSON.stringify(schema).replace(/</g, "\\u003c") : "";
+---
+
+{schema && <script type="application/ld+json" is:inline set:html={serialised} />}

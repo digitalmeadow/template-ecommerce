@@ -21,7 +21,8 @@ export default function ProductThumbnailsGrid({
         "max-sm:grid-cols-2",
         "hover-group",
         "[&>.grid-item:nth-child(6n+1)]:row-span-2 [&>.grid-item:nth-child(6n+1)]:col-span-2",
-        "max-sm:[&>.grid-item:nth-child(6n+1)]:row-span-1 max-sm:[&>.grid-item:nth-child(6n+1)]:col-span-1",
+        // Tailwind doesn't preserve source order between these, so the reset excludes 5n+1 items.
+        "max-sm:[&>.grid-item:nth-child(6n+1):not(:nth-child(5n+1))]:row-span-1 max-sm:[&>.grid-item:nth-child(6n+1):not(:nth-child(5n+1))]:col-span-1",
         "max-sm:[&>.grid-item:nth-child(5n+1)]:row-span-2 max-sm:[&>.grid-item:nth-child(5n+1)]:col-span-2",
         className,
       )}

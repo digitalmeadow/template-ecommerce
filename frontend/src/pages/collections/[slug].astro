@@ -1,33 +1,31 @@
 ---
-import { sanityClient } from "sanity/client";
 import PageLayout from "@layouts/PageLayout.astro";
-import { collectionsQuery } from "sanity/queries/collection";
 import { fetchCollectionShopifySanity } from "@lib/fetches/collectionShopifySanity";
 import SectionHero from "@sections/SectionHero.astro";
 import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
-import type { MetaFragment } from "sanity/generated/graphql";
+import { propsForSlug } from "@lib/sanity/staticPaths";
+import { buildCollectionPaths } from "@lib/sanity/paths";
+import { resolveMeta } from "@lib/sanity/meta";
+import { buildBreadcrumbSchema } from "@lib/sanity/structuredData";
 
 export async function getStaticPaths() {
-  const collectionsQueryResult = await sanityClient.request(collectionsQuery);
-  const slugs = collectionsQueryResult.allCollection.map(
-    (collection) => collection.shopify?.handle?.current,
-  );
-  return slugs.map((slug) => (slug ? { params: { slug } } : null));
+  return buildCollectionPaths();
 }
 
-let { slug } = Astro.params;
-const collectionData = await fetchCollectionShopifySanity(slug);
+// Empty in server output (the preview site), where Astro skips getStaticPaths.
+const resolved = await propsForSlug(Astro.props, Astro.params.slug, buildCollectionPaths);
+if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
-// Meta fallbacks
-const metaData: MetaFragment = {
-  __typename: "Meta",
-  title: collectionData.sanity.meta?.title || collectionData.shopify.title,
-  description: collectionData.sanity.meta?.description ?? null,
-  image: collectionData.sanity.meta?.image ?? null,
-};
+const collectionData = await fetchCollectionShopifySanity(
+  Astro.params.slug,
+  resolved.sanityCollectionData,
+);
 ---
 
-<PageLayout metaData={metaData}>
+<PageLayout
+  metaData={resolveMeta(collectionData.sanity, { title: collectionData.shopify.title })}
+  jsonLd={[buildBreadcrumbSchema(Astro.url.pathname, collectionData.shopify.title, Astro.site)]}
+>
   <SectionHero
     section={{
       __typename: "SectionHero",
@@ -40,20 +38,3 @@ const metaData: MetaFragment = {
 
   <ProductThumbnailsGrid productsData={collectionData.productThumbnails} />
 </PageLayout>
-
-<style>
-  .grid {
-    width: var(--container-width);
-    margin: 0 auto;
-
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--gutter);
-    margin-top: var(--s40);
-  }
-  @media (max-width: 32rem) {
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-</style>

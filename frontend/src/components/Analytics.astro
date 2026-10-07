@@ -1,0 +1,60 @@
+---
+import type { AnalyticsSettingsFragment } from "sanity/generated/graphql";
+
+interface Props {
+  analyticsSettingsData: AnalyticsSettingsFragment | null | undefined;
+}
+
+const { analyticsSettingsData }: Props = Astro.props;
+const gtmId = analyticsSettingsData?.gtmId;
+---
+
+{gtmId && <google-tag-manager data-gtm-id={gtmId} hidden />}
+
+<script>
+  import {
+    COOKIE_CONSENT_EVENT,
+    getConsent,
+    type EventCookieConsentChange,
+  } from "@lib/consent/consent";
+
+  declare global {
+    interface Window {
+      dataLayer?: unknown[];
+    }
+  }
+
+  // GTM loads only once a visitor accepts cookies. Client-router navigations are pushState, which
+  // GTM's History Change trigger already reports as page views.
+  class GoogleTagManagerElement extends HTMLElement {
+    connectedCallback() {
+      if (getConsent() === "accepted") {
+        this.load();
+      } else {
+        window.addEventListener(COOKIE_CONSENT_EVENT, this.handleConsentChange);
+      }
+    }
+
+    disconnectedCallback() {
+      window.removeEventListener(COOKIE_CONSENT_EVENT, this.handleConsentChange);
+    }
+
+    handleConsentChange = (event: Event) => {
+      if ((event as EventCookieConsentChange).detail.status === "accepted") this.load();
+    };
+
+    load() {
+      const gtmId = this.dataset.gtmId;
+      if (!gtmId || window.dataLayer) return;
+
+      window.dataLayer = [{ "gtm.start": Date.now(), event: "gtm.js" }];
+
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(gtmId)}`;
+      document.head.appendChild(script);
+    }
+  }
+
+  customElements.define("google-tag-manager", GoogleTagManagerElement);
+</script>

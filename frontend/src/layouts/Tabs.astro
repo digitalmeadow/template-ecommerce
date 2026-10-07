@@ -1,0 +1,152 @@
+---
+// "triggers" slot: elements with [data-tab-trigger]; "panels" slot: matching [data-tab-panel] in the same order. Emits "tabs:change".
+interface Props {
+  id?: string;
+  class?: string;
+  /** Panel active on load. An index with no matching trigger opens that panel with no tab selected. */
+  initialIndex?: number;
+}
+
+const { id, class: className, initialIndex = 0 } = Astro.props;
+---
+
+<tabs-root id={id} class={className} data-initial-index={initialIndex}>
+  <div data-tabs-triggers role="tablist" aria-orientation="vertical">
+    <slot name="triggers" />
+  </div>
+  <div data-tabs-panels>
+    <slot name="panels" />
+  </div>
+</tabs-root>
+
+<style is:global>
+  tabs-root [data-tabs-panels] {
+    display: grid;
+  }
+
+  tabs-root [data-tab-panel] {
+    grid-area: 1 / 1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-default);
+  }
+
+  tabs-root [data-tab-panel][data-state="active"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+</style>
+
+<script>
+  export type EventTabsChangeDetail = { index: number };
+  export type EventTabsChange = CustomEvent<EventTabsChangeDetail>;
+
+  class TabsElement extends HTMLElement {
+    private triggersContainer: HTMLElement | null = null;
+    private triggers: HTMLElement[] = [];
+    private panels: HTMLElement[] = [];
+    private activeIndex = 0;
+    private defaultIndex = 0;
+
+    connectedCallback() {
+      this.triggersContainer = this.querySelector<HTMLElement>("[data-tabs-triggers]");
+      this.triggers = Array.from(this.querySelectorAll<HTMLElement>("[data-tab-trigger]"));
+      this.panels = Array.from(this.querySelectorAll<HTMLElement>("[data-tab-panel]"));
+      this.defaultIndex = Number(this.dataset.initialIndex ?? 0);
+
+      this.triggersContainer?.addEventListener("click", this.handleClick);
+      this.triggersContainer?.addEventListener("keydown", this.handleKeydown);
+
+      // Assigning first keeps the initial activate silent, so nothing animates on load.
+      this.activeIndex = this.defaultIndex;
+      this.activate(this.activeIndex);
+    }
+
+    /**
+     * Clicking the active tab falls back to the default panel, but only where that panel has no
+     * trigger of its own — otherwise deselected is not a state this tabset can show.
+     */
+    private clickTarget(index: number) {
+      if (index !== this.activeIndex) return index;
+
+      const isDeselectable = this.defaultIndex < 0 || this.defaultIndex >= this.triggers.length;
+      return isDeselectable ? this.defaultIndex : index;
+    }
+
+    disconnectedCallback() {
+      this.triggersContainer?.removeEventListener("click", this.handleClick);
+      this.triggersContainer?.removeEventListener("keydown", this.handleKeydown);
+      this.triggersContainer = null;
+    }
+
+    private handleClick = (event: Event) => {
+      const trigger = (event.target as Element).closest<HTMLElement>("[data-tab-trigger]");
+      const index = trigger ? this.triggers.indexOf(trigger) : -1;
+      if (index === -1) return;
+      this.activate(this.clickTarget(index));
+    };
+
+    private handleKeydown = (event: Event) => {
+      const keyboardEvent = event as KeyboardEvent;
+      const count = this.triggers.length;
+      if (count === 0) return;
+
+      const focusedIndex = this.triggers.indexOf(document.activeElement as HTMLElement);
+      // -1 when no trigger holds focus and none is selected, so the arrows enter from either end.
+      const hasActiveTrigger = this.activeIndex >= 0 && this.activeIndex < count;
+      const currentIndex =
+        focusedIndex !== -1 ? focusedIndex : hasActiveTrigger ? this.activeIndex : -1;
+
+      let nextIndex: number | null = null;
+
+      if (keyboardEvent.key === "ArrowDown") {
+        nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % count;
+      } else if (keyboardEvent.key === "ArrowUp") {
+        nextIndex = currentIndex === -1 ? count - 1 : (currentIndex - 1 + count) % count;
+      } else if (keyboardEvent.key === "Home") {
+        nextIndex = 0;
+      } else if (keyboardEvent.key === "End") {
+        nextIndex = count - 1;
+      }
+
+      if (nextIndex === null) return;
+
+      keyboardEvent.preventDefault();
+      this.activate(nextIndex);
+      this.triggers[nextIndex].focus();
+    };
+
+    activate(index: number) {
+      const changed = this.activeIndex !== index;
+      this.activeIndex = index;
+
+      // No roving tabindex, so inactive tabs stay reachable with plain Tab.
+      this.triggers.forEach((trigger, i) => {
+        const isActive = i === index;
+        trigger.setAttribute("aria-selected", String(isActive));
+        if (isActive) {
+          trigger.dataset.state = "active";
+        } else {
+          delete trigger.dataset.state;
+        }
+      });
+
+      this.panels.forEach((panel, i) => {
+        const isActive = i === index;
+        if (isActive) {
+          panel.dataset.state = "active";
+          panel.removeAttribute("inert");
+        } else {
+          delete panel.dataset.state;
+          panel.setAttribute("inert", "");
+        }
+      });
+
+      if (!changed) return;
+      const detail: EventTabsChangeDetail = { index };
+      this.dispatchEvent(new CustomEvent("tabs:change", { detail }));
+    }
+  }
+
+  customElements.define("tabs-root", TabsElement);
+</script>

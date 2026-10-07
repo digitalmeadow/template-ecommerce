@@ -1,0 +1,72 @@
+---
+import { ACCEPTED_FILE_ATTR } from "@lib/forms/constants";
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  placeholder: string;
+  required: boolean;
+  multiple: boolean;
+  errorId?: string;
+}
+
+const { id, name, label, placeholder, required, multiple, errorId }: Props = Astro.props;
+---
+
+<label class="visually-hidden" for={id}>{label}</label>
+<input
+  class="file-input"
+  id={id}
+  name={name}
+  type="file"
+  accept={ACCEPTED_FILE_ATTR}
+  required={required}
+  multiple={multiple}
+  aria-describedby={errorId}
+/>
+<label class="file-label" for={id}>
+  <span class="file-name" data-file-label={placeholder}>{placeholder}</span>
+  <span class="arrow" aria-hidden="true">↑</span>
+</label>
+
+<style>
+  .file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  /* Must measure the same as ButtonSubmit. */
+  .file-label {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s16);
+    padding: var(--s16) var(--s20);
+    cursor: pointer;
+  }
+
+  .file-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-name:not([data-has-file]) {
+    opacity: 0.5;
+  }
+
+  .arrow {
+    flex-shrink: 0;
+  }
+
+  .file-input:focus-visible + .file-label {
+    outline: 1px solid currentColor;
+    outline-offset: var(--s4);
+  }
+</style>

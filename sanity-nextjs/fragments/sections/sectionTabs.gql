@@ -1,0 +1,9 @@
+fragment SectionTabs on SectionTabs {
+  __typename
+  _key
+  id
+
+  tabItems {
+    ...TabItem
+  }
+}

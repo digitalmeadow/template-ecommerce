@@ -9,5 +9,7 @@
   setDimensions();
   window.addEventListener("resize", setDimensions);
   window.addEventListener("DOMContentLoaded", setDimensions);
+  // The router replaces <html> attributes on swap, wiping these before page-load fires.
+  document.addEventListener("astro:after-swap", setDimensions);
   document.addEventListener("astro:page-load", setDimensions);
 </script>

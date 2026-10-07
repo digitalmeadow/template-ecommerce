@@ -12,7 +12,7 @@ const { productsData }: Props = Astro.props;
 
 {
   productsData && productsData.length > 0 && (
-    <section>
+    <section class="u-container">
       <div class="top">
         <h2>Related Products</h2>
 
@@ -47,8 +47,6 @@ const { productsData }: Props = Astro.props;
 
 <style>
   section {
-    width: var(--container-width);
-    margin: 0 auto;
     margin-top: var(--s80);
   }
 
@@ -79,22 +77,19 @@ const { productsData }: Props = Astro.props;
 <script>
   import type { CarouselElement } from "@layouts/Carousel.astro.0.mjs";
 
-  const carousel = document.querySelector(
-    'carousel-root[id="related-products-carousel"]',
-  ) as CarouselElement;
+  // Delegated so buttons rendered on later client-router pages work without rebinding.
+  document.addEventListener("click", (event) => {
+    const trigger = (event.target as Element | null)?.closest<HTMLElement>(
+      "[data-carousel-trigger-prev], [data-carousel-trigger-next]",
+    );
+    if (!trigger) return;
 
-  const prevButton = document.querySelector(
-    '[data-carousel-trigger-prev="related-products-carousel"]',
-  ) as HTMLButtonElement;
-  const nextButton = document.querySelector(
-    '[data-carousel-trigger-next="related-products-carousel"]',
-  ) as HTMLButtonElement;
+    const prevId = trigger.dataset.carouselTriggerPrev;
+    const carousel = document.querySelector(
+      `carousel-root[id="${prevId ?? trigger.dataset.carouselTriggerNext}"]`,
+    ) as CarouselElement | null;
 
-  prevButton.addEventListener("click", () => {
-    carousel.api?.scrollPrev();
-  });
-
-  nextButton.addEventListener("click", () => {
-    carousel.api?.scrollNext();
+    if (prevId) carousel?.api?.scrollPrev();
+    else carousel?.api?.scrollNext();
   });
 </script>

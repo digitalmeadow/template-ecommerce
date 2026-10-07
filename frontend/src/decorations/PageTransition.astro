@@ -1,0 +1,91 @@
+---
+---
+
+<div class="page-transition" aria-hidden="true"></div>
+
+<style>
+  .page-transition {
+    position: fixed;
+    z-index: 15; /* above the header (10), below overlays (20/21) */
+    inset: 0;
+    background-color: var(--color-background);
+    pointer-events: none;
+    clip-path: inset(100% 0 0 0);
+  }
+</style>
+
+<script>
+  import { animate, motionValue } from "motion";
+  import { easeSweep, sweepDuration } from "@styles/animations";
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const getSweep = () => document.querySelector<HTMLElement>(".page-transition");
+
+  // Top edge travels up: 0 = offscreen below, 1 = full cover.
+  const cover = (el: HTMLElement, p: number) => {
+    el.style.clipPath = `inset(${(1 - p) * 100}% 0 0 0)`;
+  };
+  // Bottom edge travels up: 0 = full cover, 1 = offscreen above.
+  const reveal = (el: HTMLElement, p: number) => {
+    el.style.clipPath = `inset(0 0 ${p * 100}% 0)`;
+  };
+
+  let stopCurrent = () => {};
+
+  // Drive clip-path off a motion value — interpolating inset() strings directly is unreliable.
+  // Resolves false when a newer sweep interrupted it.
+  const sweep = (el: HTMLElement, apply: (el: HTMLElement, p: number) => void) => {
+    stopCurrent();
+    const progress = motionValue(0);
+    apply(el, 0);
+    const unsubscribe = progress.on("change", (p) => apply(el, p));
+    const animation = animate(progress, 1, { duration: sweepDuration, ease: easeSweep });
+    // stop() never settles `finished`, so resolve manually on interrupt.
+    return new Promise<boolean>((resolve) => {
+      stopCurrent = () => {
+        unsubscribe();
+        animation.stop();
+        resolve(false);
+      };
+      animation.finished.then(
+        () => {
+          unsubscribe();
+          resolve(true);
+        },
+        () => resolve(false),
+      );
+    });
+  };
+
+  let animatedOut = false;
+
+  document.addEventListener("astro:before-preparation", (event) => {
+    if (reduceMotion) return;
+
+    const originalLoader = event.loader;
+    event.loader = async () => {
+      const el = getSweep();
+      if (el && (await sweep(el, cover))) {
+        el.style.clipPath = "inset(0 0 0 0)"; // commit so it stays covering across the swap
+        animatedOut = true;
+      }
+      try {
+        await originalLoader();
+      } catch (error) {
+        if (el) el.style.clipPath = "";
+        animatedOut = false;
+        throw error;
+      }
+    };
+  });
+
+  document.addEventListener("astro:page-load", async () => {
+    if (reduceMotion || !animatedOut) return;
+    animatedOut = false;
+
+    const el = getSweep();
+    if (!el) return;
+    if (await sweep(el, reveal)) el.style.clipPath = ""; // back to the CSS rest state
+  });
+</script>

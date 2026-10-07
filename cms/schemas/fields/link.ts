@@ -15,7 +15,6 @@ export const link = defineType({
       options: {
         list: ["page", "url", "section", "email", "phone", "file"],
       },
-      initialValue: "page",
       validation: (Rule, context) => (context?.hidden ? Rule.skip() : Rule.required()),
     }),
 
@@ -53,9 +52,15 @@ export const link = defineType({
       type: "string",
       name: "section",
       title: "Section ID",
-      description: "Section ID to scroll to",
-      validation: (Rule) => validateSlugId(Rule),
-      hidden: ({ parent }) => parent?.type != "section",
+      description:
+        "The section anchor to scroll to. Required for Section links; optional for Page links, to land on a specific section after navigating.",
+      validation: (Rule) =>
+        validateSlugId(Rule).custom((value, context) => {
+          if (context.hidden) return true;
+          const parentType = (context.parent as { type?: string })?.type;
+          return parentType === "section" && !value ? "Section required" : true;
+        }),
+      hidden: ({ parent }) => parent?.type != "section" && parent?.type != "page",
     }),
 
     // Email

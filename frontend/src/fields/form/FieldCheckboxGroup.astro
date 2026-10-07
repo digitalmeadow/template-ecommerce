@@ -1,0 +1,112 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  required: boolean;
+  options: string[];
+  errorId?: string;
+}
+
+const { id, name, label, required, options, errorId }: Props = Astro.props;
+
+const labelId = `${id}-label`;
+---
+
+<div
+  class="checkbox-group"
+  role="group"
+  aria-labelledby={labelId}
+  aria-describedby={errorId}
+  aria-required={required || undefined}
+  data-required-group={required || undefined}
+  data-group-name={name}
+  data-group-label={label}
+>
+  <span class="legend" id={labelId}>{label}</span>
+
+  <div class="options">
+    {
+      options.map((option, index) => {
+        const optionId = `${id}-${index}`;
+        return (
+          <Fragment>
+            {index > 0 && (
+              <Fragment>
+                <span class="divider" aria-hidden="true">
+                  /
+                </span>
+                {"\u200B"}
+              </Fragment>
+            )}
+            <span class="option">
+              <input type="checkbox" id={optionId} name={name} value={option} />
+              <label for={optionId}>{option}</label>
+            </span>
+          </Fragment>
+        );
+      })
+    }
+  </div>
+</div>
+
+<style>
+  .checkbox-group {
+    padding: var(--s20) 0;
+  }
+
+  .legend {
+    display: block;
+    margin-bottom: var(--s8);
+    opacity: 0.5;
+  }
+
+  .options {
+    text-wrap: balance;
+  }
+
+  .option,
+  .divider {
+    display: inline;
+  }
+
+  .divider {
+    margin-inline: 0.25em;
+    opacity: 0.5;
+  }
+  @media (max-width: 32rem) {
+    .divider {
+      margin-inline: 0.125em;
+    }
+  }
+
+  input[type="checkbox"] {
+    position: absolute;
+    appearance: none;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  label {
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity var(--transition-default);
+  }
+
+  @media (hover: hover) {
+    label:hover {
+      opacity: 1;
+    }
+  }
+
+  input:checked + label {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
+  input:focus-visible + label {
+    outline: 1px solid currentColor;
+    outline-offset: var(--s4);
+  }
+</style>

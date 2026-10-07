@@ -1,10 +1,32 @@
 import { sanityClientGroq } from "sanity-nextjs/client.server";
 import type { LinkFragment } from "sanity-nextjs/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@/config";
+import { buildScoped } from "./cache";
 import { resolveSanityHref, sanityFileUrlFromRef } from "./resolve";
 
 export { resolveSanityHref, sanityFileUrlFromRef } from "./resolve";
 
+interface ReferenceTarget {
+  _id: string;
+  _type: string;
+  slug: string | null;
+}
+
+// One lookup table beats a query per link: the same handful of targets recur across every page.
+const getReferenceMap = buildScoped(async () => {
+  const documents = await sanityClientGroq.fetch<ReferenceTarget[]>(
+    `*[_type in $types]{
+      _type,
+      _id,
+      "slug": coalesce(slug.current, shopify.handle.current)
+    }`,
+    { types: Object.keys(SANITY_DOCUMENT_ROUTE_PATTERNS) },
+  );
+
+  return new Map(documents.map((document) => [document._id, document]));
+});
+
+// Only required because GraphQL doesn't resolve references in Portable Text.
 async function resolveLinkReference(
   linkData: LinkFragment,
 ): Promise<LinkFragment | null> {
@@ -13,16 +35,8 @@ async function resolveLinkReference(
       throw new Error("Page reference is missing _ref");
     }
 
-    const refId = linkData.page._ref;
-
-    const resolved = await sanityClientGroq.fetch(
-      `*[_id == $refId][0]{
-        _type,
-        _id,
-        "slug": slug.current
-      }`,
-      { refId },
-    );
+    const referenceMap = await getReferenceMap();
+    const resolved = referenceMap.get(linkData.page._ref as string);
 
     if (resolved) {
       return {
@@ -35,32 +49,38 @@ async function resolveLinkReference(
         },
       };
     }
+
+    return { ...linkData, page: null };
   }
 
   return linkData;
 }
 
 export async function resolveLinkHref(
-  linkData: LinkFragment | Record<string, unknown>,
+  linkData: LinkFragment,
 ): Promise<string | undefined> {
   if (!linkData) return undefined;
 
-  const resolvedLink = await resolveLinkReference(linkData as LinkFragment);
+  const resolvedLink = await resolveLinkReference(linkData);
   if (!resolvedLink) return undefined;
 
-  if (resolvedLink.type === "section") return resolvedLink.section ?? "";
+  if (resolvedLink.type === "section")
+    return resolvedLink.section ? `#${resolvedLink.section}` : "";
   if (resolvedLink.type === "url") return resolvedLink.url ?? "";
-  if (resolvedLink.type === "page")
-    return resolveReferenceHref(resolvedLink.page) ?? "";
+  if (resolvedLink.type === "page") {
+    const href = resolveReferenceHref(resolvedLink.page);
+    if (href === undefined) return undefined;
+    return resolvedLink.section ? `${href}#${resolvedLink.section}` : href;
+  }
   if (resolvedLink.type === "email") return `mailto:${resolvedLink.email}`;
   if (resolvedLink.type === "phone") return `tel:${resolvedLink.phone}`;
   if (resolvedLink.type === "file") {
     if (
       resolvedLink.file?.asset &&
-      "_ref" in resolvedLink.file?.asset &&
-      resolvedLink.file?.asset?._ref
+      "_ref" in resolvedLink.file.asset &&
+      resolvedLink.file.asset._ref
     ) {
-      return sanityFileUrlFromRef(resolvedLink.file?.asset?._ref as string);
+      return sanityFileUrlFromRef(resolvedLink.file.asset._ref as string);
     }
     if (resolvedLink.file?.asset?.url) {
       return resolvedLink.file.asset.url;
@@ -69,22 +89,31 @@ export async function resolveLinkHref(
   return undefined;
 }
 
-function resolveReferenceHref(reference: LinkFragment["page"]): string {
+// Unresolvable targets (unpublished or deleted documents) must degrade to no link, not fail the build.
+function resolveReferenceHref(
+  reference: LinkFragment["page"],
+): string | undefined {
   if (!reference?._type) {
-    throw new Error("Reference is missing _type");
-  }
-
-  if (
-    reference?._type &&
-    !(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)
-  ) {
-    throw new Error(
-      `_type: ${reference?._type} not found in SANITY_DOCUMENT_ROUTE_PATTERNS`,
+    console.warn(
+      "Link target is unpublished or deleted; rendering without a link.",
     );
+    return undefined;
   }
 
+  if (!(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
+    console.warn(
+      `Link target _type "${reference._type}" has no route pattern; rendering without a link.`,
+    );
+    return undefined;
+  }
+
+  // Products and collections route by their Shopify handle rather than a slug.
   const slug =
-    "slug" in reference && reference.slug ? reference.slug.current : undefined;
+    "slug" in reference && reference.slug
+      ? reference.slug.current
+      : "shopify" in reference
+        ? reference.shopify?.handle?.current
+        : undefined;
 
   return resolveSanityHref(reference._type, slug);
 }

@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import { useStore } from "@nanostores/react";
-import { $cartCount, loadCart } from "@/stores/cart";
+import { $cartCount } from "@/stores/cart";
 import { setCartOpen } from "@/stores/ui";
 
 export default function CartButton() {
   const count = useStore($cartCount);
-
-  useEffect(() => {
-    loadCart();
-  }, []);
 
   return (
     <button

@@ -2,12 +2,14 @@
 import PriceDisplay from "@blocks/PriceDisplay.astro";
 import Overlay from "@layouts/Overlay.astro";
 import CartLineItem from "./CartLineItem.astro";
-import { sanityClient } from "sanity/client";
-import { cartQuery } from "sanity/queries/cart";
+import type { CartFragment } from "sanity/generated/graphql";
 import PortableText from "@fields/PortableText.astro";
 
-const cartQueryResult = await sanityClient.request(cartQuery);
-const cartData = cartQueryResult.allCart[0];
+interface Props {
+  cartData: CartFragment | null | undefined;
+}
+
+const { cartData }: Props = Astro.props;
 ---
 
 <Overlay id="cart" layout="right" aria-label="Shopping Cart">
@@ -24,7 +26,7 @@ const cartData = cartQueryResult.allCart[0];
 
     <div class="cart-content">
       <div class="empty-message">
-        <PortableText value={cartData.emptyMessageRaw} />
+        <PortableText value={cartData?.emptyMessageRaw} />
       </div>
 
       <ul class="cart-line-items" data-cart-line-items></ul>
@@ -35,7 +37,7 @@ const cartData = cartQueryResult.allCart[0];
 
       <div class="footer">
         <p data-cart-note>
-          <PortableText value={cartData.noteRaw} />
+          <PortableText value={cartData?.noteRaw} />
         </p>
 
         <button class="text-link checkout-button" data-cart-checkout-button>Checkout</button>

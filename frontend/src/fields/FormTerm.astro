@@ -1,0 +1,26 @@
+---
+import type { FormConsentFragment } from "sanity/generated/graphql";
+import FieldWrapper from "@fields/form/FieldWrapper.astro";
+import FieldConsent from "@fields/form/FieldConsent.astro";
+
+interface Props {
+  term: FormConsentFragment;
+  prefix: string;
+}
+
+const { term, prefix }: Props = Astro.props;
+
+const name = term.name ?? "";
+const errorId = `${prefix}-${name}-error`;
+---
+
+<FieldWrapper name={name} type="consent" errorId={errorId}>
+  <FieldConsent
+    id={`${prefix}-${name}`}
+    name={name}
+    label={term.label ?? ""}
+    required={term.required ?? false}
+    statement={term.statementRaw}
+    errorId={errorId}
+  />
+</FieldWrapper>

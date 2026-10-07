@@ -1,23 +1,34 @@
 ---
 import type { SectionHeroFragment } from "sanity/generated/graphql";
+import FontSizeFillWidth from "@layouts/FontSizeFillWidth.astro";
 
 interface Props {
   section: SectionHeroFragment;
 }
 
 const { section }: Props = Astro.props;
+
+// Split server-side so FontSizeFillWidth fits the final per-character layout.
+const characters = (section.heading ?? "").trim().split("");
 ---
 
-<section>
-  <h1 data-text-fill-width data-text-animate-colors aria-label={section.heading}>
-    {section.heading}
-  </h1>
+<section class="u-container">
+  <FontSizeFillWidth>
+    <h1 data-text-animate-colors aria-label={section.heading}>
+      {
+        characters.map((char) => (
+          // The reset makes spans inline-flex, which collapses a lone space to zero width.
+          <span class="text-inherit" aria-hidden="true">
+            {char === " " ? "\u00a0" : char}
+          </span>
+        ))
+      }
+    </h1>
+  </FontSizeFillWidth>
 </section>
 
 <style>
   section {
-    width: var(--container-width);
-    margin: 0 auto;
     margin-top: var(--s200);
     margin-bottom: var(--s40);
   }
@@ -46,29 +57,35 @@ const { section }: Props = Astro.props;
     "var(--color-orange)",
   ];
 
-  const textAnimate = document.querySelector("[data-text-animate-colors]") as HTMLElement;
+  let cleanups: (() => void)[] = [];
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const text = textAnimate.textContent || "";
-  const characters = text.split("");
+  document.addEventListener("astro:page-load", () => {
+    cleanups = [];
+    if (reduceMotion) return;
 
-  textAnimate.innerHTML = characters
-    .map((char) => `<span class="text-inherit text-animate-char">${char}</span>`)
-    .join("");
+    document.querySelectorAll<HTMLElement>("[data-text-animate-colors]").forEach((heading) => {
+      const charElements = Array.from(heading.children);
 
-  const charElements = textAnimate.querySelectorAll(".text-animate-char");
+      charElements.forEach((char, index) => {
+        const animation = char.animate(
+          [
+            { color: "var(--color-text)" },
+            ...COLORS.map((color) => ({ color })),
+            { color: "var(--color-text)" },
+          ],
+          {
+            duration: 2000,
+            delay: 500 + index * 50,
+            iterations: 1,
+          },
+        );
+        cleanups.push(() => animation.cancel());
+      });
+    });
+  });
 
-  charElements.forEach((char, index) => {
-    char.animate(
-      [
-        { color: "var(--color-text)" },
-        ...COLORS.map((color) => ({ color })),
-        { color: "var(--color-text)" },
-      ],
-      {
-        duration: 2000,
-        delay: 500 + index * 50,
-        iterations: 1,
-      },
-    );
+  document.addEventListener("astro:before-swap", () => {
+    cleanups.forEach((cleanup) => cleanup());
   });
 </script>

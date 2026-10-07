@@ -1,0 +1,19 @@
+.form-field {
+  display: flex;
+  align-items: center;
+  gap: var(--s16);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: currentColor;
+  opacity: 0.5;
+}

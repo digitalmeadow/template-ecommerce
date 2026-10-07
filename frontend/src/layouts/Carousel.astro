@@ -9,6 +9,8 @@ interface Props {
   loop?: boolean;
   skipSnaps?: boolean;
   slidesToScroll?: EmblaOptionsType["slidesToScroll"];
+  breakpoints?: EmblaOptionsType["breakpoints"];
+  watchResize?: boolean;
 }
 
 const {
@@ -17,8 +19,10 @@ const {
   align,
   dragFree,
   loop,
-  skipSnaps,
+  skipSnaps = true,
   slidesToScroll,
+  breakpoints,
+  watchResize,
   ...rest
 } = Astro.props;
 ---
@@ -31,6 +35,8 @@ const {
   loop={loop}
   skip-snaps={skipSnaps}
   slides-to-scroll={slidesToScroll}
+  breakpoints={breakpoints ? JSON.stringify(breakpoints) : undefined}
+  watch-resize={watchResize === false ? "false" : undefined}
   {...rest}
 >
   <div data-carousel-viewport>
@@ -65,19 +71,29 @@ const {
 
   export class CarouselElement extends HTMLElement {
     public api: EmblaCarouselType | undefined;
-    private viewport!: HTMLElement;
+    private viewport: HTMLElement | null = null;
 
     static get observedAttributes() {
-      return ["align", "drag-free", "loop", "skip-snaps", "slides-to-scroll"];
+      return [
+        "align",
+        "drag-free",
+        "loop",
+        "skip-snaps",
+        "slides-to-scroll",
+        "breakpoints",
+        "watch-resize",
+      ];
     }
 
     connectedCallback() {
-      this.viewport = this.querySelector("[data-carousel-viewport]")!;
+      this.viewport = this.querySelector<HTMLElement>("[data-carousel-viewport]");
       this.init();
     }
 
     disconnectedCallback() {
-      if (this.api) this.api.destroy();
+      this.api?.destroy();
+      this.api = undefined;
+      this.viewport = null;
     }
 
     attributeChangedCallback() {
@@ -85,7 +101,12 @@ const {
     }
 
     private init() {
-      if (this.api) this.api.destroy();
+      // attributeChangedCallback fires once per attribute on upgrade, all before connect.
+      if (!this.viewport) return;
+
+      this.api?.destroy();
+
+      const breakpointsAttr = this.getAttribute("breakpoints");
 
       const options: EmblaOptionsType = {
         align: (this.getAttribute("align") as EmblaOptionsType["align"]) || "start",
@@ -96,6 +117,8 @@ const {
           this.getAttribute("slides-to-scroll") === "auto"
             ? "auto"
             : Number(this.getAttribute("slides-to-scroll")) || 1,
+        watchResize: this.getAttribute("watch-resize") !== "false",
+        breakpoints: breakpointsAttr ? JSON.parse(breakpointsAttr) : undefined,
       };
 
       this.api = EmblaCarousel(this.viewport, options);

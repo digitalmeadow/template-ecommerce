@@ -35,6 +35,18 @@ export const settings = (S: StructureBuilder) => {
 					.child(
 						S.document().schemaType('metaSettings').documentId('metaSettings')
 					),
+				S.listItem()
+					.title('Organisation')
+					.schemaType('organisationSettings')
+					.child(
+						S.document().schemaType('organisationSettings').documentId('organisationSettings')
+					),
+				S.listItem()
+					.title('Analytics')
+					.schemaType('analyticsSettings')
+					.child(
+						S.document().schemaType('analyticsSettings').documentId('analyticsSettings')
+					),
 			]
 		)
 	)

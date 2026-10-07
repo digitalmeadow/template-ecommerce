@@ -1,0 +1,412 @@
+---
+import type {
+  FormConsentFragment,
+  FormFieldFragment,
+  FormGroupFragment,
+  SectionFormFragment,
+} from "sanity/generated/graphql";
+import FormField from "@fields/FormField.astro";
+import FormTerm from "@fields/FormTerm.astro";
+import ButtonSubmit from "@blocks/ButtonSubmit.astro";
+import PortableText from "@fields/PortableText.astro";
+import { HONEYPOT_FIELD_NAME } from "@lib/forms/constants";
+
+interface Props {
+  section: SectionFormFragment;
+}
+
+const { section }: Props = Astro.props;
+
+const form = section.form;
+const formId = form?._id;
+const groups = (form?.groups ?? [])
+  .filter((group): group is FormGroupFragment => Boolean(group))
+  .map((group) => ({
+    ...group,
+    fields: (group.fields ?? []).filter((field): field is FormFieldFragment =>
+      Boolean(field?.name),
+    ),
+  }))
+  .filter((group) => group.fields.length > 0);
+
+const terms = (form?.terms ?? []).filter((term): term is FormConsentFragment =>
+  Boolean(term?.name),
+);
+
+const lastGroupIndex = groups.length - 1;
+
+// Group headings sit under the section heading when there is one; otherwise they'd skip a level.
+const GroupHeadingTag = section.heading ? "h3" : "h2";
+---
+
+{
+  form && formId && (
+    <section class="section-form u-container" id={section.id ?? undefined}>
+      {section.heading && <h2 class="heading">{section.heading}</h2>}
+
+      <sanity-form class="form" data-form-id={formId}>
+        <form class="groups" data-form novalidate>
+          {groups.map((group, index) => (
+            <div class="group">
+              {group.heading && (
+                <GroupHeadingTag class="group-heading">{group.heading}</GroupHeadingTag>
+              )}
+
+              <div class="fields">
+                {group.fields.map((field) => (
+                  <FormField field={field} prefix={formId} />
+                ))}
+
+                {index === lastGroupIndex && (
+                  <div class="actions">
+                    <ButtonSubmit
+                      label={form.submitLabel ?? "Submit"}
+                      variant="filled"
+                      mutedUntilReady
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {terms.length > 0 && (
+            <div class="terms">
+              {terms.map((term) => (
+                <FormTerm term={term} prefix={formId} />
+              ))}
+            </div>
+          )}
+
+          <div class="honeypot" aria-hidden="true">
+            <label for={`${HONEYPOT_FIELD_NAME}-${formId}`}>Leave this field empty</label>
+            <input
+              id={`${HONEYPOT_FIELD_NAME}-${formId}`}
+              name={HONEYPOT_FIELD_NAME}
+              type="text"
+              tabindex="-1"
+              autocomplete="off"
+            />
+          </div>
+        </form>
+
+        <div class="messages" aria-live="polite">
+          <p class="message" data-form-message />
+          <div class="message" data-form-success hidden>
+            <PortableText value={form.successMessageRaw} />
+          </div>
+        </div>
+      </sanity-form>
+    </section>
+  )
+}
+
+<style>
+  .section-form {
+    margin-top: var(--s120);
+    margin-bottom: var(--s200);
+  }
+
+  .heading {
+    margin-bottom: var(--s80);
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    line-height: 1.1;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--s20);
+    margin-left: calc(8 * var(--column) + 8 * var(--gutter));
+  }
+  @media (max-width: 64rem) {
+    .form {
+      margin-left: 0;
+    }
+  }
+
+  .groups {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--s40);
+    transition: opacity var(--transition-default);
+  }
+
+  .group-heading {
+    margin-bottom: var(--s16);
+  }
+
+  /* Rows sit flush - each field draws its own top border, forming the dividers. */
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 var(--gutter);
+  }
+
+  .fields > :global([data-width="full"]) {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 32rem) {
+    .fields {
+      grid-template-columns: 1fr;
+    }
+    .fields > :global([data-width="half"]) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .honeypot {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--s20);
+  }
+
+  /* Follows the trailing field: beside a half one, on its own row after a full one. */
+  :global([data-width="full"]) + .actions {
+    grid-column: 1 / -1;
+  }
+  @media (max-width: 32rem) {
+    .actions {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .terms {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--s12);
+  }
+
+  /* Locked once submitted; a page load or client-router navigation restores it. */
+  .form[data-state="success"] .groups {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .messages {
+    min-height: 1em;
+  }
+
+  sanity-form[data-state="error"] [data-form-message] {
+    color: var(--color-error);
+  }
+</style>
+
+<script>
+  import { FORM_ENDPOINT } from "@config";
+  import { FORM_ID_FIELD_NAME } from "@lib/forms/constants";
+  import type { FormSubmissionResponse } from "@lib/forms/types";
+
+  class SanityForm extends HTMLElement {
+    private form: HTMLFormElement | null = null;
+    private message: HTMLElement | null = null;
+    private success: HTMLElement | null = null;
+    private button: HTMLElement | null = null;
+
+    connectedCallback() {
+      this.form = this.querySelector("[data-form]");
+      this.message = this.querySelector("[data-form-message]");
+      this.success = this.querySelector("[data-form-success]");
+      this.button = this.querySelector("[data-button-submit]");
+      if (!this.form) return;
+
+      this.form.addEventListener("submit", this.handleSubmit);
+      this.form.addEventListener("change", this.handleFileChange);
+      this.form.addEventListener("input", this.updateReady);
+      this.form.addEventListener("change", this.updateReady);
+      this.updateReady();
+    }
+
+    disconnectedCallback() {
+      this.form?.removeEventListener("submit", this.handleSubmit);
+      this.form?.removeEventListener("change", this.handleFileChange);
+      this.form?.removeEventListener("input", this.updateReady);
+      this.form?.removeEventListener("change", this.updateReady);
+    }
+
+    private setState(state: string | null, text = "") {
+      if (state) this.dataset.state = state;
+      else delete this.dataset.state;
+
+      if (this.button) {
+        if (state) this.button.dataset.state = state;
+        else delete this.button.dataset.state;
+      }
+
+      if (this.message) this.message.textContent = text;
+      if (this.success) this.success.hidden = state !== "success";
+    }
+
+    // The control an error belongs to: either a named input or the group wrapper.
+    private controlFor(name: string) {
+      return this.querySelector<HTMLElement>(
+        `[name="${name}"], [data-group-name="${name}"], [role="radiogroup"]:has([name="${name}"])`,
+      );
+    }
+
+    private clearErrors() {
+      this.querySelectorAll<HTMLElement>("[data-error-for]").forEach((el) => {
+        el.textContent = "";
+        const name = el.dataset.errorFor;
+        if (name) this.controlFor(name)?.removeAttribute("aria-invalid");
+      });
+    }
+
+    private showErrors(errors: Record<string, string>) {
+      Object.entries(errors).forEach(([name, error]) => {
+        const el = this.querySelector(`[data-error-for="${name}"]`);
+        if (el) el.textContent = error;
+        this.controlFor(name)?.setAttribute("aria-invalid", "true");
+      });
+    }
+
+    // Without this a failed submit leaves focus on the button and the errors go unnoticed.
+    private focusFirstError() {
+      const invalid = this.querySelector<HTMLElement>('[aria-invalid="true"]');
+      if (!invalid) return;
+
+      const target = invalid.matches("input, select, textarea")
+        ? invalid
+        : invalid.querySelector<HTMLElement>("input, select, textarea");
+      target?.focus();
+    }
+
+    // `required` on a checkbox only requires that one box, so groups check here.
+    private requiredGroupsFilled() {
+      return Array.from(this.querySelectorAll("[data-required-group]")).every((group) =>
+        group.querySelector("input:checked"),
+      );
+    }
+
+    private validateGroups() {
+      let valid = true;
+
+      this.querySelectorAll<HTMLElement>("[data-required-group]").forEach((group) => {
+        if (group.querySelector("input:checked")) return;
+
+        valid = false;
+        const target = this.querySelector(`[data-error-for="${group.dataset.groupName}"]`);
+        if (target) target.textContent = `${group.dataset.groupLabel} is required.`;
+        group.setAttribute("aria-invalid", "true");
+      });
+
+      return valid;
+    }
+
+    // Native constraint messages, shown inline under each field instead of browser bubbles.
+    private validateControls() {
+      let valid = true;
+
+      this.form
+        ?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+          "input, select, textarea",
+        )
+        .forEach((control) => {
+          if (control.validity.valid) return;
+
+          valid = false;
+          const target = this.querySelector(`[data-error-for="${control.name}"]`);
+          if (target) target.textContent = control.validationMessage;
+          control.setAttribute("aria-invalid", "true");
+        });
+
+      return valid;
+    }
+
+    // Matches `:invalid` rather than checkValidity(), which fires events while typing.
+    private updateReady = () => {
+      if (!this.form || !this.button) return;
+
+      const ready = !this.form.querySelector(":invalid") && this.requiredGroupsFilled();
+
+      if (ready) this.button.dataset.ready = "";
+      else delete this.button.dataset.ready;
+    };
+
+    // Native file inputs are hidden, so the label reports the chosen filename.
+    private handleFileChange = (event: Event) => {
+      const input = event.target as HTMLInputElement;
+      if (input.type !== "file") return;
+
+      const name = this.querySelector<HTMLElement>(`label[for="${input.id}"] [data-file-label]`);
+      if (!name) return;
+
+      const files = input.files;
+      const chosen = !files?.length
+        ? ""
+        : files.length > 1
+          ? `${files.length} files selected`
+          : files[0].name;
+
+      name.textContent = chosen || name.dataset.fileLabel || "";
+
+      if (chosen) name.dataset.hasFile = "";
+      else delete name.dataset.hasFile;
+    };
+
+    private async readResponse(response: Response): Promise<FormSubmissionResponse> {
+      try {
+        return (await response.json()) as FormSubmissionResponse;
+      } catch {
+        return {};
+      }
+    }
+
+    private handleSubmit = async (event: SubmitEvent) => {
+      event.preventDefault();
+      if (!this.form || this.dataset.state === "submitting") return;
+
+      this.clearErrors();
+
+      // Both run so every problem shows at once, not one category per submit.
+      const groupsValid = this.validateGroups();
+      const controlsValid = this.validateControls();
+      if (!groupsValid || !controlsValid) {
+        this.focusFirstError();
+        return;
+      }
+
+      if (!FORM_ENDPOINT) {
+        console.warn("Form not sent: no FORM_ENDPOINT configured in config.ts.");
+        this.setState("error", "This form can't be sent right now. Please try again later.");
+        return;
+      }
+
+      this.setState("submitting");
+
+      const body = new FormData(this.form);
+      body.append(FORM_ID_FIELD_NAME, this.dataset.formId ?? "");
+
+      try {
+        const response = await fetch(FORM_ENDPOINT, { method: "POST", body });
+        const result = await this.readResponse(response);
+
+        if (!response.ok || result.ok === false) {
+          if (result.errors) this.showErrors(result.errors);
+          this.setState("error", result.message ?? "Something went wrong. Please try again.");
+          this.focusFirstError();
+          return;
+        }
+
+        // Locked for the rest of this page view; the values stay visible behind it.
+        this.setState("success");
+        this.form.inert = true;
+      } catch {
+        this.setState("error", "Something went wrong. Please try again.");
+      }
+    };
+  }
+
+  customElements.define("sanity-form", SanityForm);
+</script>

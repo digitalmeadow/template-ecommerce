@@ -22,6 +22,8 @@ interface Props {
   loop?: boolean;
   skipSnaps?: boolean;
   slidesToScroll?: EmblaOptionsType["slidesToScroll"];
+  breakpoints?: EmblaOptionsType["breakpoints"];
+  watchResize?: boolean;
   children: React.ReactNode;
 }
 
@@ -32,8 +34,10 @@ const Carousel = forwardRef<CarouselApi, Props>(function Carousel(
     align = "start",
     dragFree,
     loop,
-    skipSnaps,
+    skipSnaps = true,
     slidesToScroll,
+    breakpoints,
+    watchResize = true,
     children,
   },
   ref,
@@ -44,6 +48,8 @@ const Carousel = forwardRef<CarouselApi, Props>(function Carousel(
     loop,
     skipSnaps,
     slidesToScroll: slidesToScroll === "auto" ? "auto" : (slidesToScroll ?? 1),
+    breakpoints,
+    watchResize,
   };
 
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
