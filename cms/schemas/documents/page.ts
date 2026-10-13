@@ -1,5 +1,6 @@
 import DocumentIcon from "@sanity/icons/Document";
 import { defineField, defineType } from "sanity";
+import { pluralize } from "../../utils/preview";
 import { pageSections } from "../sections/sections";
 
 export const page = defineType({
@@ -30,4 +31,13 @@ export const page = defineType({
       name: "meta",
     }),
   ],
+  preview: {
+    select: { title: "title", slug: "slug.current", sections: "sections" },
+    prepare: ({ title, slug, sections }) => ({
+      title,
+      subtitle: [slug && `/${slug}`, pluralize("section", sections?.length ?? 0)]
+        .filter(Boolean)
+        .join(" · "),
+    }),
+  },
 });

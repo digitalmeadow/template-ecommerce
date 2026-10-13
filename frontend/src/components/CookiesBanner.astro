@@ -1,30 +1,32 @@
 ---
+import type { CookieConsentFragment } from "sanity/generated/graphql";
+import PortableText from "@fields/PortableText.astro";
+
 interface Props {
-  message?: string;
-  acceptLabel?: string;
-  declineLabel?: string;
+  cookieConsentData: CookieConsentFragment | null | undefined;
 }
 
-const {
-  message = "We use cookies to improve your experience and analyze site usage.",
-  acceptLabel = "Accept",
-  declineLabel = "Decline",
-}: Props = Astro.props;
+// No consent copy means no banner, so analytics never load: the safe failure.
+const { cookieConsentData }: Props = Astro.props;
 ---
 
-<cookie-banner>
-  <div class="cookie-banner" data-banner>
-    <p>{message}</p>
-    <div class="actions" data-actions>
-      <button class="text-link underline-color-orange" type="button" data-decline-button
-        >{declineLabel}</button
-      >
-      <button class="text-link underline-color-green" type="button" data-accept-button
-        >{acceptLabel}</button
-      >
-    </div>
-  </div>
-</cookie-banner>
+{
+  cookieConsentData?.messageRaw && (
+    <cookie-banner>
+      <div class="cookie-banner" data-banner>
+        <PortableText value={cookieConsentData.messageRaw} />
+        <div class="actions" data-actions>
+          <button class="text-link underline-color-orange" type="button" data-decline-button>
+            {cookieConsentData.declineLabel}
+          </button>
+          <button class="text-link underline-color-green" type="button" data-accept-button>
+            {cookieConsentData.acceptLabel}
+          </button>
+        </div>
+      </div>
+    </cookie-banner>
+  )
+}
 
 <script>
   import { getConsent, setConsent } from "@lib/consent/consent";

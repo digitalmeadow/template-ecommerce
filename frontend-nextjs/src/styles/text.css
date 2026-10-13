@@ -1,8 +1,18 @@
-.text-body,
-body {
+/* @utility rather than classes so typography composes with variants (`lg:text-body`). */
+@utility text-body {
   font-size: 0.875rem;
   line-height: 1.25;
   font-weight: 400;
+}
+
+@utility text-inherit {
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+}
+
+body {
+  @apply text-body;
 }
 
 /* Tailwind's preflight flattens headings to inherit; restore the browser scale the Astro site uses. */
@@ -16,6 +26,11 @@ body {
   h3 {
     font-size: 1.17em;
   }
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
   sup {
     position: static;
     font-size: smaller;
@@ -52,10 +67,4 @@ body {
 }
 .text-link.underline-color-purple {
   text-decoration-color: var(--color-purple);
-}
-
-.text-inherit {
-  font-size: inherit;
-  line-height: inherit;
-  font-weight: inherit;
 }

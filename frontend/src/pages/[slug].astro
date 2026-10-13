@@ -2,7 +2,7 @@
 import PageLayout from "@layouts/PageLayout.astro";
 import SectionsRenderer from "@sections/SectionsRenderer.astro";
 import { propsForSlug } from "@lib/sanity/staticPaths";
-import { buildPagePaths } from "@lib/sanity/paths";
+import { buildPagePaths, loadPageProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
 import { buildBreadcrumbSchema } from "@lib/sanity/structuredData";
 
@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 }
 
 // Empty in server output (the preview site), where Astro skips getStaticPaths.
-const resolved = await propsForSlug(Astro.props, Astro.params.slug, buildPagePaths);
+const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadPageProps);
 if (!resolved) return Astro.rewrite("/404");
 
 const { pageData } = resolved;

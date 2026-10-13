@@ -4,7 +4,7 @@ import { settings } from "./settings";
 import { pages } from "./pages";
 import { collections } from "./collections";
 import { products } from "./products";
-import { forms } from "./forms";
+import { library } from "./library";
 
 export const structure: StructureResolver = (S) => {
   // prettier-ignore
@@ -15,7 +15,7 @@ export const structure: StructureResolver = (S) => {
 			S.divider(),
 			home(S),
 			pages(S),
-			forms(S),
+			library(S),
 			S.divider(),
 			products(S),
 			collections(S),

@@ -10,7 +10,10 @@ export default function SectionHero({ sectionData }: Props) {
   const characters = (sectionData.heading ?? "").trim().split("");
 
   return (
-    <section className="section-hero mx-auto mt-[var(--s200)] mb-[var(--s40)] w-[var(--container-width)] max-[64rem]:mt-[calc(var(--s200)+var(--s24))]">
+    <section
+      data-color-scheme={sectionData.colorScheme ?? undefined}
+      className="section-hero mx-auto mt-[var(--s200)] mb-[var(--s40)] w-[var(--container-width)] max-[64rem]:mt-[calc(var(--s200)+var(--s24))]"
+    >
       {sectionData.heading && (
         <FontSizeFillWidth>
           <h1 className="uppercase" aria-label={sectionData.heading}>

@@ -1,11 +1,21 @@
-import { defineArrayMember } from "sanity";
+import { sectionAccordions } from "./sectionAccordions";
+import { sectionCollection } from "./sectionCollection";
+import { sectionForm } from "./sectionForm";
+import { sectionHero } from "./sectionHero";
+import { sectionTabs } from "./sectionTabs";
+import { sectionText } from "./sectionText";
 
-// Selected sections per page type
-export const pageSections = [
-  defineArrayMember({ type: "sectionHero", name: "sectionHero" }),
-  defineArrayMember({ type: "sectionText", name: "sectionText" }),
-  defineArrayMember({ type: "sectionCollection", name: "sectionCollection" }),
-  defineArrayMember({ type: "sectionAccordions", name: "sectionAccordions" }),
-  defineArrayMember({ type: "sectionTabs", name: "sectionTabs" }),
-  defineArrayMember({ type: "sectionForm", name: "sectionForm" }),
+// One list feeds both schema registration and every page's `sections` array.
+export const sectionSchemas = [
+  sectionHero,
+  sectionText,
+  sectionCollection,
+  sectionAccordions,
+  sectionTabs,
+  sectionForm,
 ];
+
+export const pageSections = sectionSchemas.map((section) => ({
+  type: section.name,
+  name: section.name,
+}));

@@ -1,4 +1,4 @@
-import type { Rule, StringRule } from "sanity";
+import type { CustomValidator, Rule, StringRule } from "sanity";
 
 const SLUG_ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -53,3 +53,23 @@ export function isEmptyMedia(media: unknown) {
   };
   return !image?.asset && !video?.asset && !vimeo?.url;
 }
+
+interface RequiredInUseOptions {
+  isEmpty?: (parent: unknown) => boolean;
+  hasValue?: (value: unknown) => boolean;
+  message?: string;
+}
+
+// Required while shown and while the parent object is in use, for fields inside optional objects.
+export function requiredInUse({
+  isEmpty = () => false,
+  hasValue = Boolean,
+  message = "Required",
+}: RequiredInUseOptions = {}): CustomValidator {
+  return (value, context) =>
+    context.hidden || isEmpty(context.parent) || hasValue(value) ? true : message;
+}
+
+// Pair with `Rule.required()` — required alone passes a seeded, empty object.
+export const requiredMedia: CustomValidator = (value) => (isEmptyMedia(value) ? "Required" : true);
+export const requiredLink: CustomValidator = (value) => (isEmptyLink(value) ? "Required" : true);

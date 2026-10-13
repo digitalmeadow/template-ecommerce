@@ -1,3 +1,4 @@
+import { colorSchemeField } from "../fields/colorScheme";
 import { defineArrayMember, defineField, defineType } from "sanity";
 import DoubleChevronDownIcon from "@sanity/icons/DoubleChevronDown";
 import { validateSlugId } from "../../utils/validation";
@@ -8,6 +9,7 @@ export const sectionAccordions = defineType({
   title: "Section: Accordions",
   icon: DoubleChevronDownIcon,
   fields: [
+    colorSchemeField,
     defineField({
       type: "string",
       name: "id",

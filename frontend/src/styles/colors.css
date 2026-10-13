@@ -13,4 +13,21 @@
 
   --color-shape-stroke: var(--color-text);
   --color-error: var(--color-orange);
+  --color-focus: var(--color-purple);
+}
+
+/* Sections opt into a scheme with `data-color-scheme`; values match the Next mirror's theme.css. */
+[data-color-scheme="light"] {
+  --color-background: var(--color-white);
+  --color-text: var(--color-black);
+}
+
+[data-color-scheme="dark"] {
+  --color-background: #1a1815;
+  --color-text: #ede7dc;
+}
+
+[data-color-scheme] {
+  background-color: var(--color-background);
+  color: var(--color-text);
 }

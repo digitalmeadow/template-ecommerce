@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { HeaderFragment } from "sanity-nextjs/generated/graphql";
-import type { LinkFragment } from "sanity-nextjs/generated/graphql";
-import { resolveLinkHref } from "@/lib/sanity/links";
+import { resolveSanityLink } from "@/lib/sanity/links";
+import { anchorAttributes } from "@/lib/sanity/resolve";
 import { getLocalization } from "@/lib/shopify/localization";
 import { LOCALE_CONFIG, type LocaleCode } from "@/lib/shopify/locale";
 import LocaleSelector from "@/blocks/LocaleSelector";
@@ -10,29 +10,6 @@ import HeaderNav from "@/components/HeaderNav";
 
 interface Props {
   headerData: HeaderFragment | null | undefined;
-}
-
-function linkIsInternal(href: string): boolean {
-  return (
-    !href.startsWith("http") &&
-    !href.startsWith("mailto:") &&
-    !href.startsWith("tel:") &&
-    !href.startsWith("#")
-  );
-}
-
-function resolveAnchorTarget(linkData: LinkFragment): string | undefined {
-  if (linkData.type === "url" && linkData.newTab) return "_blank";
-  if (linkData.type === "file" && linkData.newTab) return "_blank";
-  return undefined;
-}
-
-function resolveAnchorRel(linkData: LinkFragment): string | undefined {
-  if (linkData.type === "url" && linkData.newTab) return "noopener noreferrer";
-  if (linkData.type === "file") return "noopener noreferrer";
-  if (linkData.type === "email") return "noopener noreferrer";
-  if (linkData.type === "phone") return "noopener noreferrer";
-  return undefined;
 }
 
 async function getLocaleOptions() {
@@ -64,19 +41,15 @@ export default async function Header({ headerData }: Props) {
   const navItems = await Promise.all(
     (headerData.navigationItems ?? []).map(async (item) => {
       if (!item?.link) return null;
-      const href = await resolveLinkHref(item.link);
-      const target = resolveAnchorTarget(item.link);
-      const rel = resolveAnchorRel(item.link);
-      const internal = href !== undefined && linkIsInternal(href);
+      const link = await resolveSanityLink(item.link);
       const isCollection =
         item.link.type === "page" && item.link.page?._type === "collection";
 
       return {
         label: item.label,
-        href,
-        target,
-        rel,
-        isInternal: internal,
+        href: link?.href,
+        ...(link && anchorAttributes(link)),
+        isInternal: link?.kind === "internal",
         isCollection,
       };
     }),

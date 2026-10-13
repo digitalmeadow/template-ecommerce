@@ -6,21 +6,18 @@ export const LOCALE_CONFIG = {
     country: "NZ" as CountryCode,
     currency: "NZD" as CurrencyCode,
     label: "New Zealand",
-    pathPrefix: null,
   },
   "en-AU": {
     language: "EN" as LanguageCode,
     country: "AU" as CountryCode,
     currency: "AUD" as CurrencyCode,
     label: "Australia",
-    pathPrefix: "/",
   },
   "en-US": {
     language: "EN" as LanguageCode,
     country: "US" as CountryCode,
     currency: "USD" as CurrencyCode,
     label: "United States",
-    pathPrefix: "/",
   },
 } as const;
 

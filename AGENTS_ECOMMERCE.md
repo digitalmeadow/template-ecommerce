@@ -12,26 +12,33 @@ Read `AGENTS.md` first, then the frontend file (`AGENTS_ASTRO.md` / `AGENTS_NEXT
 
 Typed Storefront API fragments/queries via codegen, a `shopifyClient` (`GraphQLClient` with `X-Shopify-Storefront-Access-Token`), config with store domain + API version, and `utils/ids` (`shopifyIdFromGid`, `shopifyGidFromId`).
 
+Codegen reads the committed `shopify/schema.json`, so `pnpm gen` runs offline. After bumping `SHOPIFY_API_VERSION`, refresh it with `pnpm --filter shopify introspect`.
+
 ```ts
 import { shopifyClient } from "shopify/client";
 import { productByHandleQuery } from "shopify/queries/product";
 const { productByHandle } = await shopifyClient.request(productByHandleQuery, { handle });
 ```
 
-Country-specific pricing uses `@inContext(country: $countryCode)`.
+Country-specific pricing uses `@inContext(country: $countryCode)`. Shopify silently answers an unknown or disabled country with the primary market, so market-specific reads go through `shopifyRequestWithContext` and compare `context.country` with the country requested. Currency always comes from the response `Money` (`currencyCode`), never from `LOCALE_CONFIG`.
 
 ## Merged fetches (`lib/fetches/`)
 
 `fetchProductShopifySanity(handle, sanityProduct?)` and `fetchCollectionShopifySanity(handle, sanityCollection?)` fetch both APIs in parallel and merge into `ProductShopifySanity` / `CollectionShopifySanity`.
 
 - Pass the Sanity document when the route already holds it (it does — see route data in `AGENTS.md`) to skip a Sanity request.
-- `fetchProductThumbnailShopifySanity` and prices-per-locale are `buildScopedByKey` — each product's thumbnail and prices are fetched once per build however many pages show them.
+- `fetchProductThumbnailShopifySanity` is `buildScopedByKey`, so each thumbnail is fetched once per build.
+- Prices: `productPricesQuery` pages through every product once per locale (`buildScopedByKey` on the locale), so a build costs one request per market. Locales Shopify has no market for are omitted, and readers fall back to `DEFAULT_LOCALE`.
 - Collection thumbnails fetch in parallel; a failed thumbnail is logged and skipped.
 - Shopify localization (locale selector options) is `buildScoped`.
 
 ## Locales
 
 `lib/shopify/locale.ts`: `LOCALE_CONFIG` maps locale codes (`en-AU`, `en-NZ`, `en-US`) to Shopify country/currency/language. `getStoredLocale()` reads `localStorage`; `getCountryCode()` / `getCurrency()` derive from it. The locale selector stores the choice and reloads. Prices for every locale are baked in at build (`pricesPerLocale`) and picked client-side.
+
+## Location notice
+
+`LocationNotice` suggests the visitor's store and never redirects. The country comes from `/api/geo`: CF-IPCountry on the Astro worker, and CF-IPCountry or `x-vercel-ip-country` in Next. It's fetched once per session (`lib/shopify/geo.ts`) and mapped to a `LOCALE_CONFIG` entry. The notice appears only when that store differs from the stored locale and the visitor hasn't dismissed it for that country. While the cookie banner can show, it waits for a consent decision so the two never stack. Copy is the `locationNotice` singleton; `{market}` is replaced with the store label. There's no geo header in dev or locally, so no notice.
 
 ## Cart (nanostores)
 
@@ -40,6 +47,8 @@ Country-specific pricing uses `@inContext(country: $countryCode)`.
 `stores/ui.ts` — `cartOpen` atom + `setCartOpen`. The cart drawer (Overlay `right`) subscribes; checkout redirects to `$checkoutUrl`.
 
 The cart is persisted chrome: `loadCart()` runs once from the cart itself, not from every button or page.
+
+`cartCreate` sets `buyerIdentity.countryCode` to fix the checkout currency. Mutations answer 200 even when Shopify rejects a change, so every payload goes through `applyCartPayload`. It reads `userErrors`/`warnings` and catches lines that were silently dropped (merchandise not sold in the market), then sets `$cartError`, which the cart announces in a `role="alert"` region.
 
 ## Product components and events
 

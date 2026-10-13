@@ -2,17 +2,27 @@ import { graphql } from "../generated";
 
 export const productByHandleQuery = graphql(`
   query ProductByHandle($handle: String!) {
-    productByHandle(handle: $handle) {
+    product(handle: $handle) {
       ...Product
     }
   }
 `);
 
-export const productPriceByHandleQuery = graphql(`
-  query ProductPriceByHandle($handle: String!, $countryCode: CountryCode)
+// Every product's prices for one market in a page, so a build costs one request per market.
+export const productPricesQuery = graphql(`
+  query ProductPrices($countryCode: CountryCode, $cursor: String)
   @inContext(country: $countryCode) {
-    productByHandle(handle: $handle) {
-      ...ProductPrice
+    products(first: 250, after: $cursor) {
+      edges {
+        node {
+          handle
+          ...ProductPrice
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 `);

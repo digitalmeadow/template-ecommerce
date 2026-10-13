@@ -1,8 +1,8 @@
 ---
-import { LOCALE_CONFIG, getLocaleFromPath } from "@lib/shopify/locale";
+import { DEFAULT_LOCALE, LOCALE_CONFIG } from "@lib/shopify/locale";
 import { getLocalization } from "@lib/shopify/localization";
 
-const currentLocale = getLocaleFromPath(Astro.url.pathname);
+const currentLocale = DEFAULT_LOCALE;
 
 const localization = await getLocalization();
 const availableCountries = localization.availableCountries;
@@ -17,7 +17,6 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
   .map(([locale, config]) => ({
     locale,
     label: `${config.label} (${config.currency})`,
-    path: config.pathPrefix,
   }));
 ---
 
@@ -25,11 +24,7 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
   <select aria-label="Select market">
     {
       localeOptions.map((option) => (
-        <option
-          value={option.locale}
-          selected={option.locale === currentLocale}
-          data-path={option.path ?? ""}
-        >
+        <option value={option.locale} selected={option.locale === currentLocale}>
           {option.label}
         </option>
       ))
@@ -38,9 +33,7 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
 </locale-selector>
 
 <script>
-  import { isValidLocale } from "@lib/shopify/locale";
-
-  const LOCALE_STORAGE_KEY = "preferred-locale";
+  import { isValidLocale, LOCALE_STORAGE_KEY } from "@lib/shopify/locale";
 
   export class LocaleSelectorElement extends HTMLElement {
     private select!: HTMLSelectElement;

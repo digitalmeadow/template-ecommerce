@@ -1,8 +1,9 @@
+import { colorSchemeField } from "../fields/colorScheme";
 import { defineField, defineType } from "sanity";
 import BlockElementIcon from "@sanity/icons/BlockElement";
-import { previewMedia } from "../../utils/preview";
+import { mediaSelection, previewMedia } from "../../utils/preview";
 import { validateSlugId } from "../../utils/validation";
-import { richText } from "../fields/richText";
+import { RICH_TEXT, richText } from "../fields/richText";
 
 export const sectionHero = defineType({
   type: "object",
@@ -10,6 +11,7 @@ export const sectionHero = defineType({
   title: "Section: Hero",
   icon: BlockElementIcon,
   fields: [
+    colorSchemeField,
     defineField({
       type: "string",
       name: "id",
@@ -26,16 +28,16 @@ export const sectionHero = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      ...richText({ italic: true, strong: true, link: true }),
+      ...richText(RICH_TEXT.rich),
       name: "text",
     }),
   ],
   preview: {
     select: {
       heading: "heading",
-      media: "backgroundMedia",
+      ...mediaSelection("backgroundMedia."),
     },
-    prepare({ heading, media }) {
+    prepare({ heading, ...media }) {
       return {
         title: "Section: Hero",
         subtitle: heading,

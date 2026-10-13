@@ -36,3 +36,8 @@ export function setConsent(status: ConsentStatus) {
   );
   window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_EVENT, { detail: { status } }));
 }
+
+export function subscribeToConsent(onChange: () => void) {
+  window.addEventListener(COOKIE_CONSENT_EVENT, onChange);
+  return () => window.removeEventListener(COOKIE_CONSENT_EVENT, onChange);
+}

@@ -1,6 +1,6 @@
 import ChevronDownIcon from "@sanity/icons/ChevronDown";
 import { defineField, defineType } from "sanity";
-import { richText } from "./richText";
+import { RICH_TEXT, richText } from "./richText";
 
 export const accordion = defineType({
   type: "document",
@@ -20,9 +20,8 @@ export const accordion = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      ...richText({ headings: true, lists: true, italic: true, strong: true, link: true }),
+      ...richText(RICH_TEXT.prose, { required: true }),
       name: "content",
-      validation: (Rule) => Rule.required(),
     }),
   ],
 });

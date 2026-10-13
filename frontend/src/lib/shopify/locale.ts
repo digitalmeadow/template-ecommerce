@@ -6,49 +6,25 @@ export const LOCALE_CONFIG = {
     country: "NZ" as CountryCode,
     currency: "NZD" as CurrencyCode,
     label: "New Zealand",
-    pathPrefix: null,
   },
   "en-AU": {
     language: "EN" as LanguageCode,
     country: "AU" as CountryCode,
     currency: "AUD" as CurrencyCode,
     label: "Australia",
-    pathPrefix: "/",
   },
   "en-US": {
     language: "EN" as LanguageCode,
     country: "US" as CountryCode,
     currency: "USD" as CurrencyCode,
     label: "United States",
-    pathPrefix: "/",
   },
 } as const;
 
-const DEFAULT_LOCALE: LocaleCode = "en-AU";
-const LOCALE_STORAGE_KEY = "preferred-locale";
+export const DEFAULT_LOCALE: LocaleCode = "en-AU";
+export const LOCALE_STORAGE_KEY = "preferred-locale";
 
 export type LocaleCode = keyof typeof LOCALE_CONFIG;
-
-// Server
-export function getLocaleFromPath(pathname: string): LocaleCode {
-  const segments = pathname.split("/").filter(Boolean);
-  const firstSegment = segments[0];
-
-  // Find locale by matching path
-  for (const [locale, config] of Object.entries(LOCALE_CONFIG)) {
-    if (config.pathPrefix && config.pathPrefix !== "/") {
-      // Remove leading/trailing slashes for comparison
-      // @ts-expect-error -- every current LOCALE_CONFIG entry has pathPrefix "/" or null, so TS
-      // narrows this branch to `never`; kept for when a future locale has a real path prefix
-      const configPath = config.pathPrefix.replace(/^\/|\/$/, "");
-      if (firstSegment === configPath) {
-        return locale as LocaleCode;
-      }
-    }
-  }
-
-  return DEFAULT_LOCALE;
-}
 
 // Client
 export function getStoredLocale(): LocaleCode {

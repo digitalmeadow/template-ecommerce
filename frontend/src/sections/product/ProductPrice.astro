@@ -9,7 +9,7 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
 
 <script>
   import type { PricesPerLocale } from "@lib/fetches/productShopifySanity";
-  import { getStoredLocale } from "@lib/shopify/locale";
+  import { DEFAULT_LOCALE, getStoredLocale } from "@lib/shopify/locale";
   import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
 
   function initialiseProductPrice(rootElement: HTMLElement): () => void {
@@ -23,9 +23,13 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
       (productRoot as HTMLElement).dataset.prices!,
     ) as PricesPerLocale;
 
+    // Locales Shopify has no market for are omitted at build; show the default market's prices.
+    function localePrices() {
+      return pricesPerLocale[getStoredLocale()] ?? pricesPerLocale[DEFAULT_LOCALE];
+    }
+
     // Render default state (lowest price / range)
-    const locale = getStoredLocale();
-    const priceData = pricesPerLocale[locale];
+    const priceData = localePrices();
 
     if (priceData && priceData.variants.edges.length) {
       const variants = priceData.variants.edges.map((e) => e.node);
@@ -35,6 +39,8 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
       const mostExpensive = variants[variants.length - 1];
 
       priceElement.setAttribute("amount", String(cheapest.price.amount));
+      priceElement.setAttribute("currency", cheapest.price.currencyCode);
+      compareAtElement.setAttribute("currency", cheapest.price.currencyCode);
 
       if (parseFloat(mostExpensive.price.amount) > parseFloat(cheapest.price.amount)) {
         priceElement.setAttribute("prefix", "from");
@@ -57,15 +63,17 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
       const { variantId } = event.detail;
 
       if (!variantId) throw new Error("ProductPrice: missing variantId in variant-change event");
-      const locale = getStoredLocale();
-      const priceData = pricesPerLocale[locale];
-      const variant = priceData.variants.edges.find((edge) => edge.node.id === variantId)?.node;
+      const variant = localePrices()?.variants.edges.find(
+        (edge) => edge.node.id === variantId,
+      )?.node;
       if (!variant)
         throw new Error(`ProductPrice: variant with ID ${variantId} not found in price data`);
 
       const { price, compareAtPrice } = variant;
 
       priceElement.setAttribute("amount", String(price.amount));
+      priceElement.setAttribute("currency", price.currencyCode);
+      compareAtElement.setAttribute("currency", price.currencyCode);
       priceElement.removeAttribute("prefix");
 
       if (compareAtPrice) {

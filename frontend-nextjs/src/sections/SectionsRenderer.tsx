@@ -1,11 +1,4 @@
-import type {
-  SectionHeroFragment,
-  SectionTextFragment,
-  SectionCollectionFragment,
-  SectionAccordionsFragment,
-  SectionTabsFragment,
-  SectionFormFragment,
-} from "sanity-nextjs/generated/graphql";
+import type { PageFragment } from "sanity-nextjs/generated/graphql";
 import SectionHero from "./SectionHero";
 import SectionText from "./SectionText";
 import SectionCollection from "./SectionCollection";
@@ -13,16 +6,11 @@ import SectionAccordions from "./SectionAccordions";
 import SectionTabs from "./SectionTabs";
 import SectionForm from "./SectionForm";
 
-type SectionUnion =
-  | SectionHeroFragment
-  | SectionTextFragment
-  | SectionCollectionFragment
-  | SectionAccordionsFragment
-  | SectionTabsFragment
-  | SectionFormFragment;
+// Derived from the fragment, so a section added to the GraphQL union fails the switch below until rendered.
+type Section = NonNullable<NonNullable<PageFragment["sections"]>[number]>;
 
 interface Props {
-  sections: (SectionUnion | null)[] | null | undefined;
+  sections: (Section | null)[] | null | undefined;
 }
 
 export default function SectionsRenderer({ sections }: Props) {
@@ -51,6 +39,7 @@ export default function SectionsRenderer({ sections }: Props) {
           case "SectionForm":
             return <SectionForm key={section._key} sectionData={section} />;
           default:
+            section satisfies never;
             return null;
         }
       })}

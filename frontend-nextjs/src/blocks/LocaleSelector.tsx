@@ -1,23 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { isValidLocale, type LocaleCode } from "@/lib/shopify/locale";
 import {
   getStoredLocale,
   LOCALE_STORAGE_KEY,
 } from "@/lib/shopify/locale.client";
+import { useBrowserValue } from "@/lib/useBrowserValue";
 
 interface Props {
   localeOptions: { locale: LocaleCode; label: string }[];
 }
 
 export default function LocaleSelector({ localeOptions }: Props) {
-  const [currentLocale, setCurrentLocale] = useState<LocaleCode | "">("");
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentLocale(getStoredLocale());
-  }, []);
+  const currentLocale = useBrowserValue<LocaleCode | "">(getStoredLocale, "");
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = event.target.value;

@@ -1,0 +1,76 @@
+---
+import type { AnnouncementBannerFragment } from "sanity/generated/graphql";
+import PortableText from "@fields/PortableText.astro";
+import { announcementDismissedScript } from "@lib/announcement";
+
+interface Props {
+  announcementBannerData: AnnouncementBannerFragment | null | undefined;
+}
+
+const { announcementBannerData }: Props = Astro.props;
+
+const version = String(announcementBannerData?._updatedAt ?? "");
+const visible = announcementBannerData?.enabled && announcementBannerData.textRaw;
+---
+
+{visible && (
+  <>
+    <div class="announcement-banner" data-announcement-banner data-version={version}>
+      <PortableText value={announcementBannerData.textRaw} />
+      <button
+        class="announcement-dismiss"
+        type="button"
+        aria-label="Dismiss announcement"
+        data-announcement-dismiss
+      >
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+          <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </button>
+    </div>
+    <script is:inline set:html={announcementDismissedScript(version)} />
+  </>
+)}
+
+<script>
+  import { ANNOUNCEMENT_DISMISSED_STORAGE_KEY, dismissAnnouncement } from "@lib/announcement";
+
+  document.addEventListener("click", (event) => {
+    const button = (event.target as Element | null)?.closest("[data-announcement-dismiss]");
+    const banner = button?.closest<HTMLElement>("[data-announcement-banner]");
+    if (banner) dismissAnnouncement(banner.dataset.version ?? "");
+  });
+
+  // The client router replaces <html> attributes on every navigation; reapply the dismissal.
+  document.addEventListener("astro:after-swap", () => {
+    const banner = document.querySelector<HTMLElement>("[data-announcement-banner]");
+    if (
+      banner &&
+      localStorage.getItem(ANNOUNCEMENT_DISMISSED_STORAGE_KEY) === banner.dataset.version
+    ) {
+      document.documentElement.dataset.announcementDismissed = "";
+    }
+  });
+</script>
+
+<style>
+  .announcement-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s16);
+    padding: var(--s8) var(--margin);
+
+    text-align: center;
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+
+  :global(html[data-announcement-dismissed]) .announcement-banner {
+    display: none;
+  }
+
+  .announcement-dismiss {
+    flex-shrink: 0;
+  }
+</style>

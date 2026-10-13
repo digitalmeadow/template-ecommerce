@@ -140,7 +140,7 @@ Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `Pa
 - `Filter` — contract in the file's frontmatter: `[data-filter-option]` radios + optional `[data-filter-search]`, `[data-filter-card]` with `data-{facet}`, syncs to the URL query, emits `filter:change`.
 - `FontSizeFillWidth` — wraps one child and scales its font so the glyphs exactly fill the parent width.
 - `Carousel` — Embla; `align`, `dragFree`, `loop`, `skipSnaps` (default true), `slidesToScroll`, `breakpoints`, `watchResize`.
-- `Accordion`, `Overlay` (`fullscreen` | `right`; the cart uses `right`).
+- `Accordion`, `Overlay` (`fullscreen` | `right`; the cart uses `right`). Traps focus (`lib/focus.ts`), restores it on close, and is `inert` while closed. Open with `data-trigger-overlay-open|close|toggle="<id>"` (delegated) or the element's `open()`/`close()`.
 
 ### Forms
 

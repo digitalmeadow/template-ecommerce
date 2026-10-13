@@ -1,6 +1,6 @@
 import ClipboardIcon from "@sanity/icons/Clipboard";
 import { defineArrayMember, defineField, defineType } from "sanity";
-import { richText } from "../fields/richText";
+import { RICH_TEXT, richText } from "../fields/richText";
 
 type FieldValue = { name?: string; type?: string };
 type GroupValue = { fields?: FieldValue[] };
@@ -69,7 +69,7 @@ export const form = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      ...richText({ italic: true, strong: true, link: true }),
+      ...richText(RICH_TEXT.rich, { required: true }),
       name: "successMessage",
       description: "Shown below the form once it has been submitted.",
       initialValue: [
@@ -88,7 +88,6 @@ export const form = defineType({
           ],
         },
       ],
-      validation: (Rule) => Rule.required(),
     }),
   ],
   preview: {

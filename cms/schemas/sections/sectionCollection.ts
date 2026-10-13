@@ -1,3 +1,4 @@
+import { colorSchemeField } from "../fields/colorScheme";
 import { defineField, defineType } from "sanity";
 import BlockElementIcon from "@sanity/icons/BlockElement";
 import { validateSlugId } from "../../utils/validation";
@@ -8,6 +9,7 @@ export const sectionCollection = defineType({
   title: "Section: Collection",
   icon: BlockElementIcon,
   fields: [
+    colorSchemeField,
     defineField({
       type: "string",
       name: "id",

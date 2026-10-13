@@ -11,6 +11,9 @@ export const SINGLETON_DOCUMENT_TYPES: string[] = [
   "metaSettings",
   "organisationSettings",
   "analyticsSettings",
+  "announcementBanner",
+  "cookieConsent",
+  "locationNotice",
 ];
 
 // Created programmatically only — never offered in "New document".
@@ -26,4 +29,4 @@ export const UNPREVIEWABLE_DOCUMENT_TYPES: string[] = [
   "analyticsSettings",
 ];
 
-export const LINKABLE_DOCUMENT_TYPES: string[] = ["home", "page", "product", "collection"];
+export { LINKABLE_DOCUMENT_TYPES } from "frontend/config";

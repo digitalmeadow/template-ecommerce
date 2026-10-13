@@ -1,8 +1,8 @@
-import { defineType } from "sanity";
 import LinkIcon from "@sanity/icons/Link";
-import { defineField } from "sanity";
+import { defineField, defineType } from "sanity";
 import { LINKABLE_DOCUMENT_TYPES } from "../../config";
-import { validateSlugId } from "../../utils/validation";
+import { linkSelection, linkSubtitle } from "../../utils/preview";
+import { requiredInUse, validateSlugId } from "../../utils/validation";
 
 export const link = defineType({
   type: "object",
@@ -24,12 +24,7 @@ export const link = defineType({
       name: "page",
       weak: true,
       to: LINKABLE_DOCUMENT_TYPES.map((navigatable) => ({ type: navigatable })),
-      validation: (Rule) =>
-        Rule.custom((value, context) =>
-          !context.hidden && (context.parent as { type?: string })?.type === "page" && !value
-            ? "Reference required"
-            : true,
-        ),
+      validation: (Rule) => Rule.custom(requiredInUse({ message: "Reference required" })),
       hidden: ({ parent }) => parent?.type != "page",
     }),
 
@@ -39,10 +34,8 @@ export const link = defineType({
       name: "url",
       title: "URL",
       validation: (Rule) =>
-        Rule.uri({ scheme: ["http", "https"], allowRelative: true }).custom((value, context) =>
-          !context.hidden && (context.parent as { type?: string })?.type === "url" && !value
-            ? "HREF required"
-            : true,
+        Rule.uri({ scheme: ["http", "https"], allowRelative: true }).custom(
+          requiredInUse({ message: "HREF required" }),
         ),
       hidden: ({ parent }) => parent?.type != "url",
     }),
@@ -67,12 +60,7 @@ export const link = defineType({
     defineField({
       type: "email",
       name: "email",
-      validation: (Rule) =>
-        Rule.custom((value, context) =>
-          !context.hidden && (context.parent as { type?: string })?.type === "email" && !value
-            ? "Email required"
-            : true,
-        ),
+      validation: (Rule) => Rule.custom(requiredInUse({ message: "Email required" })),
       hidden: ({ parent }) => parent?.type != "email",
     }),
 
@@ -80,12 +68,7 @@ export const link = defineType({
     defineField({
       type: "string",
       name: "phone",
-      validation: (Rule) =>
-        Rule.custom((value, context) =>
-          !context.hidden && (context.parent as { type?: string })?.type === "phone" && !value
-            ? "Phone number required"
-            : true,
-        ),
+      validation: (Rule) => Rule.custom(requiredInUse({ message: "Phone number required" })),
       hidden: ({ parent }) => parent?.type != "phone",
     }),
 
@@ -93,12 +76,7 @@ export const link = defineType({
     defineField({
       type: "file",
       name: "file",
-      validation: (Rule) =>
-        Rule.custom((value, context) =>
-          !context.hidden && (context.parent as { type?: string })?.type === "file" && !value
-            ? "File required"
-            : true,
-        ),
+      validation: (Rule) => Rule.custom(requiredInUse({ message: "File required" })),
       hidden: ({ parent }) => parent?.type != "file",
     }),
 
@@ -112,4 +90,8 @@ export const link = defineType({
     }),
   ],
   options: { collapsible: true, collapsed: false },
+  preview: {
+    select: linkSelection(),
+    prepare: (link) => ({ title: link.linkType ?? "No link", subtitle: linkSubtitle(link) }),
+  },
 });

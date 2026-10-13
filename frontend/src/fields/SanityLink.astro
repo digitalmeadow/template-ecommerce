@@ -1,6 +1,7 @@
 ---
 import type { LinkFragment } from "sanity/generated/graphql";
-import { resolveLinkHref } from "@lib/sanity/links";
+import { resolveSanityLink } from "@lib/sanity/links";
+import { anchorAttributes } from "@lib/sanity/resolve";
 
 interface Props {
   linkData: LinkFragment | null | undefined;
@@ -10,35 +11,12 @@ interface Props {
 
 const { linkData, class: className, ...rest } = Astro.props;
 
-const href = linkData ? await resolveLinkHref(linkData) : "";
-
-function resolveAnchorTarget(linkData: LinkFragment): string | undefined {
-  if (!linkData) return undefined;
-  if (linkData.type === "url" && linkData.newTab) return "_blank";
-  if (linkData.type === "file" && linkData.newTab) return "_blank";
-  return undefined;
-}
-
-function resolveAnchorRel(linkData: LinkFragment): string {
-  if (!linkData) return "";
-  if (linkData.type === "url" && linkData.newTab) return "noopener noreferrer";
-  if (linkData.type === "file") return "noopener noreferrer";
-  if (linkData.type === "email") return "noopener noreferrer";
-  if (linkData.type === "phone") return "noopener noreferrer";
-  return "";
-}
+const link = await resolveSanityLink(linkData);
 ---
 
 {
-  linkData && href !== undefined ? (
-    <a
-      class={className}
-      href={href}
-      target={resolveAnchorTarget(linkData)}
-      rel={resolveAnchorRel(linkData)}
-      download={linkData.type === "file" ? linkData.file?.asset?.originalFilename : undefined}
-      {...rest}
-    >
+  link ? (
+    <a class={className} href={link.href} {...anchorAttributes(link)} {...rest}>
       <slot />
     </a>
   ) : (

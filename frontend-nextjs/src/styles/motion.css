@@ -1,7 +1,5 @@
-/* Shared timing tokens (--ease-out-cubic, --transition-default|media-load|page) live in animations.css. */
+/* Easings live in theme.css (@theme); --transition-default|media-load|page in animations.css. */
 :root {
-  --ease-sweep: cubic-bezier(0.83, 0, 0.17, 1);
-
   --transition-slow-duration: 0.5s;
   --transition-slow: var(--transition-slow-duration) var(--ease-out-cubic);
 

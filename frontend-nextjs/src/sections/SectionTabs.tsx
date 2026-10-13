@@ -13,6 +13,7 @@ export default function SectionTabs({ sectionData }: Props) {
 
   return (
     <section
+      data-color-scheme={sectionData.colorScheme ?? undefined}
       className="section-tabs bg-surface mt-[var(--s120)] py-[var(--margin)]"
       id={sectionData.id ?? undefined}
     >

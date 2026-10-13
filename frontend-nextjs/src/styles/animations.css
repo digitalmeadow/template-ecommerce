@@ -1,6 +1,4 @@
 :root {
-  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
-
   --transition-default-duration: 0.25s;
   --transition-default: var(--transition-default-duration) var(--ease-out-cubic);
 

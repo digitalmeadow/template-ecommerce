@@ -1,6 +1,7 @@
 fragment SectionTabs on SectionTabs {
   __typename
   _key
+  colorScheme
   id
 
   tabItems {

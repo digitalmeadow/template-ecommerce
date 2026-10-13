@@ -19,6 +19,8 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 </overlay-root>
 
 <script>
+  import { trapFocus } from "@lib/focus";
+
   export type EventOverlayOpenDetail = { id: string };
   export type EventOverlayOpen = CustomEvent<EventOverlayOpenDetail>;
   export type EventOverlayClose = CustomEvent<null>;
@@ -44,6 +46,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
       }
 
       this.backdrop.addEventListener("click", this.handleCloseClick);
+      this.render();
     }
 
     disconnectedCallback() {
@@ -106,7 +109,10 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
       if (event.key === "Escape") {
         event.preventDefault();
         this.close();
+        return;
       }
+
+      trapFocus(this.panel, event);
     };
 
     close() {
@@ -148,6 +154,8 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     }
 
     render() {
+      // Closed overlays stay in the DOM; keep their content out of the tab order and accessibility tree.
+      this.inert = !this.isOpen;
       if (this.isOpen) {
         this.dataset.state = "open";
       } else {
@@ -279,61 +287,3 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     }
   }
 </style>
-
-<script>
-  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
-
-  const overlayOpeners = document.querySelectorAll(
-    `[data-trigger-overlay-open]`,
-  ) as NodeListOf<HTMLElement>;
-
-  for (const trigger of overlayOpeners) {
-    trigger.addEventListener("click", () => {
-      const overlayId = trigger.getAttribute("data-trigger-overlay-open");
-      if (!overlayId) return;
-
-      const overlayRootElement = document.querySelector(
-        `overlay-root[id="${overlayId}"]`,
-      ) as OverlayElement | null;
-      if (!overlayRootElement) return;
-
-      overlayRootElement.open();
-    });
-  }
-
-  const overlayClosers = document.querySelectorAll(
-    `[data-trigger-overlay-close]`,
-  ) as NodeListOf<HTMLElement>;
-
-  for (const trigger of overlayClosers) {
-    trigger.addEventListener("click", () => {
-      const overlayId = trigger.getAttribute("data-trigger-overlay-close");
-      if (!overlayId) return;
-
-      const overlayRootElement = document.querySelector(
-        `overlay-root[id="${overlayId}"]`,
-      ) as OverlayElement | null;
-      if (!overlayRootElement) return;
-
-      overlayRootElement.close();
-    });
-  }
-
-  const overlayTogglers = document.querySelectorAll(
-    `[data-trigger-overlay-toggle]`,
-  ) as NodeListOf<HTMLElement>;
-
-  for (const trigger of overlayTogglers) {
-    trigger.addEventListener("click", () => {
-      const overlayId = trigger.getAttribute("data-trigger-overlay-toggle");
-      if (!overlayId) return;
-
-      const overlayRootElement = document.querySelector(
-        `overlay-root[id="${overlayId}"]`,
-      ) as OverlayElement | null;
-      if (!overlayRootElement) return;
-
-      overlayRootElement.toggle();
-    });
-  }
-</script>

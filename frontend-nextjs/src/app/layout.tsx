@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Cart from "@/components/cart/Cart";
 import CookiesBanner from "@/components/CookiesBanner";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
+import LocationNotice from "@/components/LocationNotice";
 import Analytics from "@/components/Analytics";
 import PageTransition from "@/components/PageTransition";
 import Grid from "@/dev/Grid";
@@ -17,6 +19,8 @@ import {
   buildOrganisationSchema,
   buildWebSiteSchema,
 } from "@/lib/sanity/structuredData";
+import { fontBody } from "@/fonts";
+import { cn } from "@/lib/utils";
 import "../styles/globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,12 +57,18 @@ export default async function RootLayout({
     cartData,
     organisationSettingsData,
     analyticsSettingsData,
+    announcementBannerData,
+    cookieConsentData,
+    locationNoticeData,
   } = await getGlobals();
 
   return (
     <html
       lang={DEFAULT_LOCALE}
-      className="bg-background text-foreground h-full antialiased"
+      className={cn(
+        fontBody.variable,
+        "bg-background text-foreground h-full antialiased",
+      )}
       // ScriptAnimations sets html[data-js] pre-hydration.
       suppressHydrationWarning
     >
@@ -80,13 +90,18 @@ export default async function RootLayout({
         <a className="skip-link" href="#main">
           Skip to content
         </a>
+        <AnnouncementBanner announcementBannerData={announcementBannerData} />
         <Header headerData={headerData} />
         <main id="main" tabIndex={-1}>
           {children}
         </main>
         <Footer footerData={footerData} />
         <Cart cartData={cartData} />
-        <CookiesBanner />
+        <CookiesBanner cookieConsentData={cookieConsentData} />
+        <LocationNotice
+          locationNoticeData={locationNoticeData}
+          waitForConsent={Boolean(cookieConsentData?.messageRaw)}
+        />
         <Analytics analyticsSettingsData={analyticsSettingsData} />
       </body>
     </html>

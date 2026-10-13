@@ -30,6 +30,24 @@ export const settings = (S: StructureBuilder) => {
 						S.document().schemaType('cart').documentId('cart')
 					),
 				S.listItem()
+					.title('Announcement Banner')
+					.schemaType('announcementBanner')
+					.child(
+						S.document().schemaType('announcementBanner').documentId('announcementBanner')
+					),
+				S.listItem()
+					.title('Cookie Consent')
+					.schemaType('cookieConsent')
+					.child(
+						S.document().schemaType('cookieConsent').documentId('cookieConsent')
+					),
+				S.listItem()
+					.title('Location Notice')
+					.schemaType('locationNotice')
+					.child(
+						S.document().schemaType('locationNotice').documentId('locationNotice')
+					),
+				S.listItem()
 					.title('Meta Settings')
 					.schemaType('metaSettings')
 					.child(

@@ -1,0 +1,8 @@
+fragment AnnouncementBanner on AnnouncementBanner {
+  __typename
+  _id
+  _updatedAt
+
+  enabled
+  textRaw
+}

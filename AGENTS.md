@@ -54,7 +54,7 @@ One real file, the root `.env` (gitignored; copy `.env.example`). Every package 
 
 A static build renders every page in one process, so **a query in the wrong place multiplies by the page count**. The dataset is metered.
 
-- **Site-wide data goes in one query.** `queries/globals.ts` fetches header, footer, cart, meta, organisation and analytics settings in one request via `getGlobals()`. Layout passes results down as props; components never fetch for themselves.
+- **Site-wide data goes in one query.** `queries/globals.ts` fetches header, footer, cart, meta, organisation, analytics, announcement banner, cookie consent and location notice settings in one request via `getGlobals()`. Layout passes results down as props; components never fetch for themselves.
 - **Route-wide data is fetched once per route**, then handed to each page (Astro: `getStaticPaths` props; Next: cached bulk query looked up by slug). Detail pages make no per-page Sanity request for their own document.
 - **Build-wide values are memoised** by `buildScoped` / `buildScopedByKey` (`lib/sanity/cache.ts` in each frontend). They cache the *promise* so concurrent renders share one request, and are inert in dev and on the preview (drafts) site so content stays live.
 - **Links** resolve against one cached `_id → {_type, slug}` map — never a query per link. Unpublished/unknown targets warn and render without a link instead of failing the build.
@@ -69,15 +69,20 @@ A static build renders every page in one process, so **a query in the wrong plac
 
 ## Analytics + consent
 
-GTM only. `analyticsSettings.gtmId` in the CMS; the script loads only after the cookie banner records consent (`lib/consent/consent.ts` fires `cookie-consent:change`). Configure GA4 etc. inside GTM. Client-side navigations are `pushState`, so use GTM's History Change trigger for page views.
+GTM only. `analyticsSettings.gtmId` in the CMS; banner copy is the `cookieConsent` singleton (no document, no banner, so analytics never load). The script loads only after the cookie banner records consent (`lib/consent/consent.ts` fires `cookie-consent:change`). Configure GA4 etc. inside GTM. Client-side navigations are `pushState`, so use GTM's History Change trigger for page views.
 
 ## CMS (`cms/`)
 
 - `schemas/` organised `documents/`, `fields/`, `sections/`, `settings/`.
-- **Rich text** is the `richText({ headings, lists, italic, strong, link, images })` field factory, not a named type: each field opts into only what it renders, and the stored shape is always a block array so changing options needs no migration.
+- **Rich text** is the `richText(RICH_TEXT.rich | prose | longform, { required })` field factory, not a named type. Prefer a preset over raw options; pass `required` to the factory rather than adding `validation`. The stored shape is always a block array, so changing presets needs no migration.
 - **Nested objects must be named types** in `schemas/fields/` (e.g. `postalAddress`) — Sanity's GraphQL deploy rejects anonymous inline objects.
-- **Optional object validation**: use the helpers in `utils/validation.ts` (`isEmptyLink`, `isEmptyButton`, `isEmptyMedia`, `requireMetaFields`) so untouched optional fields don't demand inner required values.
-- **A new singleton** must be registered in: `schemas/index.ts`, `structure/`, `SINGLETON_DOCUMENT_TYPES` in `cms/config.ts`, and (if it has a route) `SANITY_DOCUMENT_ROUTE_PATTERNS` in both frontends' config. Types with no route go in `UNPREVIEWABLE_DOCUMENT_TYPES`.
+- **Optional object validation**: use the helpers in `utils/validation.ts` so untouched optional fields don't demand inner required values. Inner fields: `Rule.custom(requiredInUse({ isEmpty, hasValue, message }))`. A required `media`/`link` field: `Rule.required().custom(requiredMedia | requiredLink)` (required alone passes a seeded, empty object).
+- **Previews**: every type says what it is. Use `utils/preview.tsx` (`previewText`, `pluralize`, `mediaSelection` + `previewMedia`, `linkSelection` + `linkSubtitle`); select media through `mediaSelection` so Mux thumbnails resolve.
+- **Announcement banner** (`announcementBanner` singleton): shown above the header when `enabled`. Dismissal is stored against the document's `_updatedAt`, so editing it shows it again, and it's applied pre-paint by an inline script (`lib/announcement.ts`) so it never flashes.
+- **Section colour scheme**: every section has `colorScheme` (`colorSchemeField`, light/dark), rendered as `data-color-scheme` on its root; both frontends re-scope their colour variables under that attribute.
+- **Sections** register once, in `sectionSchemas` (`schemas/sections/sections.ts`), which feeds both `schemaTypes` and every page's `sections` array.
+- **Linkable types**: `LINKABLE_DOCUMENT_TYPES` in `frontend/config.ts` (mirrored in `frontend-nextjs/src/config.ts`); the Studio reads it, and each type must have a route pattern (compile-time `satisfies`).
+- **A new singleton** must be registered in: `schemas/index.ts`, `structure/`, `SINGLETON_DOCUMENT_TYPES` in `cms/config.ts` (which also drops its "Create" template), and (if it has a route) `SANITY_DOCUMENT_ROUTE_PATTERNS` in both frontends' config. Types with no route go in `UNPREVIEWABLE_DOCUMENT_TYPES`.
 - **Media**: `media.type` is `image` | `video` (Mux, looping image replacement) | `vimeo` (Vimeo URL, alternative provider).
 - **Forms**: `form` documents (groups of `formField`, `formConsent` terms) rendered by `sectionForm`. Submissions POST multipart `FormData` (+ `formId`) to the frontend's `FORM_ENDPOINT`; no endpoint ships with the template.
 

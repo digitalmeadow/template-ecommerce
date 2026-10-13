@@ -1,8 +1,6 @@
 import { defineField, defineType } from "sanity";
-import { isEmptyMedia } from "../../utils/validation";
-
-const mediaType = (context: { parent?: unknown }) =>
-  (context.parent as { type?: string } | undefined)?.type;
+import { mediaSelection, previewMedia } from "../../utils/preview";
+import { isEmptyMedia, requiredInUse } from "../../utils/validation";
 
 export const media = defineType({
   type: "object",
@@ -21,10 +19,7 @@ export const media = defineType({
         layout: "dropdown",
       },
       initialValue: "image",
-      validation: (Rule) =>
-        Rule.custom((value, context) =>
-          !context.hidden && !isEmptyMedia(context.parent) && !value ? "Required" : true,
-        ),
+      validation: (Rule) => Rule.custom(requiredInUse({ isEmpty: isEmptyMedia })),
     }),
     defineField({
       type: "image",
@@ -35,13 +30,12 @@ export const media = defineType({
       },
       // Only nags once the object carries something; an untouched field is just unused.
       validation: (Rule) =>
-        Rule.custom((value, context) =>
-          !context.hidden &&
-          !isEmptyMedia(context.parent) &&
-          mediaType(context) === "image" &&
-          !value?.asset
-            ? "Image required"
-            : true,
+        Rule.custom(
+          requiredInUse({
+            isEmpty: isEmptyMedia,
+            hasValue: (value) => !!(value as { asset?: unknown } | undefined)?.asset,
+            message: "Image required",
+          }),
         ),
     }),
     defineField({
@@ -49,32 +43,28 @@ export const media = defineType({
       name: "video",
       hidden: ({ parent }) => parent?.type !== "video",
       validation: (Rule) =>
-        Rule.custom((value, context) =>
-          !context.hidden &&
-          !isEmptyMedia(context.parent) &&
-          mediaType(context) === "video" &&
-          !value
-            ? "Video required"
-            : true,
-        ),
+        Rule.custom(requiredInUse({ isEmpty: isEmptyMedia, message: "Video required" })),
     }),
     defineField({
       type: "vimeoVideo",
       name: "vimeo",
       hidden: ({ parent }) => parent?.type !== "vimeo",
       validation: (Rule) =>
-        Rule.custom((value, context) =>
-          !context.hidden &&
-          !isEmptyMedia(context.parent) &&
-          mediaType(context) === "vimeo" &&
-          !(value as { url?: string })?.url
-            ? "Video required"
-            : true,
+        Rule.custom(
+          requiredInUse({
+            isEmpty: isEmptyMedia,
+            hasValue: (value) => !!(value as { url?: string } | undefined)?.url,
+            message: "Video required",
+          }),
         ),
     }),
   ],
   options: {
     collapsible: true,
     collapsed: false,
+  },
+  preview: {
+    select: mediaSelection(),
+    prepare: (selection) => ({ title: selection.mediaType, media: previewMedia(selection) }),
   },
 });

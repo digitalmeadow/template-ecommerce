@@ -9,7 +9,7 @@ interface Props {
 const { section }: Props = Astro.props;
 ---
 
-<section class="u-container">
+<section data-color-scheme={section.colorScheme ?? undefined} class="u-container">
   <PortableText value={section.textRaw} />
 </section>
 

@@ -12,6 +12,10 @@ export const cartCreateMutation = graphql(`
         field
         message
       }
+      warnings {
+        code
+        message
+      }
     }
   }
 `);
@@ -29,6 +33,10 @@ export const cartLinesUpdateMutation = graphql(`
       userErrors {
         code
         field
+        message
+      }
+      warnings {
+        code
         message
       }
     }
@@ -50,6 +58,10 @@ export const cartLinesAddMutation = graphql(`
         field
         message
       }
+      warnings {
+        code
+        message
+      }
     }
   }
 `);
@@ -69,6 +81,10 @@ export const cartLinesRemoveMutation = graphql(`
         field
         message
       }
+      warnings {
+        code
+        message
+      }
     }
   }
 `);
@@ -85,6 +101,10 @@ export const cartBuyerUpdateMutation = graphql(`
       userErrors {
         code
         field
+        message
+      }
+      warnings {
+        code
         message
       }
     }

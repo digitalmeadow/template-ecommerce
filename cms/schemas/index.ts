@@ -6,17 +6,13 @@ import { home } from "./documents/home";
 import { button } from "./fields/button";
 import { page } from "./documents/page";
 import { media } from "./fields/media";
-import { sectionHero } from "./sections/sectionHero";
 import { product } from "./documents/product";
 import { productVariant } from "./documents/productVariant";
 import { collection } from "./documents/collection";
 import { shopifyProduct } from "./fields/shopifyProduct";
 import { shopifyProductVariant } from "./fields/shopifyProductVariant";
 import { shopifyCollection } from "./fields/shopifyCollection";
-import { sectionText } from "./sections/sectionText";
-import { sectionCollection } from "./sections/sectionCollection";
 import { accordion } from "./fields/accordion";
-import { sectionAccordions } from "./sections/sectionAccordions";
 import { cart } from "./settings/cart";
 import { metaSettings } from "./settings/metaSettings";
 import { organisationSettings } from "./settings/organisationSettings";
@@ -27,9 +23,11 @@ import { tabItem } from "./fields/tabItem";
 import { formField } from "./fields/formField";
 import { formGroup } from "./fields/formGroup";
 import { formConsent } from "./fields/formConsent";
-import { sectionTabs } from "./sections/sectionTabs";
-import { sectionForm } from "./sections/sectionForm";
 import { form } from "./documents/form";
+import { sectionSchemas } from "./sections/sections";
+import { announcementBanner } from "./settings/announcementBanner";
+import { cookieConsent } from "./settings/cookieConsent";
+import { locationNotice } from "./settings/locationNotice";
 
 export const schemaTypes = [
   // Fields
@@ -49,12 +47,7 @@ export const schemaTypes = [
   formConsent,
 
   // Sections
-  sectionHero,
-  sectionText,
-  sectionCollection,
-  sectionAccordions,
-  sectionTabs,
-  sectionForm,
+  ...sectionSchemas,
 
   // Documents
   home,
@@ -71,4 +64,7 @@ export const schemaTypes = [
   header,
   footer,
   cart,
+  announcementBanner,
+  cookieConsent,
+  locationNotice,
 ];

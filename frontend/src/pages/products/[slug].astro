@@ -4,7 +4,7 @@ import { fetchProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import ProductSection from "@sections/product/ProductSection.astro";
 import RelatedProductsSection from "@sections/product/RelatedProductsSection.astro";
 import { propsForSlug } from "@lib/sanity/staticPaths";
-import { buildProductPaths } from "@lib/sanity/paths";
+import { buildProductPaths, loadProductProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
 import { buildBreadcrumbSchema, buildProductSchema } from "@lib/sanity/structuredData";
 
@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 }
 
 // Empty in server output (the preview site), where Astro skips getStaticPaths.
-const resolved = await propsForSlug(Astro.props, Astro.params.slug, buildProductPaths);
+const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadProductProps);
 if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
 const productData = await fetchProductShopifySanity(Astro.params.slug, resolved.sanityProductData);

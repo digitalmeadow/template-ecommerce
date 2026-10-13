@@ -6,6 +6,7 @@
   --theme-muted: #9c958c;
   --theme-surface: #ffffff;
   --theme-border: #d9d3c5;
+  --theme-focus: var(--theme-accent);
 }
 
 [data-color-scheme="dark"] {
@@ -20,6 +21,24 @@
   --theme-muted: #6b8f80;
   --theme-surface: #243d34;
   --theme-border: #3a5c4e;
+}
+
+/*
+ * @theme resolves --color-* once, at :root, so a scheme set on a subtree would never reach them.
+ * Re-declaring them wherever a scheme or theme is set makes them resolve against that element.
+ */
+[data-color-scheme],
+[data-theme] {
+  --color-background: var(--theme-bg);
+  --color-foreground: var(--theme-fg);
+  --color-accent: var(--theme-accent);
+  --color-muted: var(--theme-muted);
+  --color-surface: var(--theme-surface);
+  --color-border: var(--theme-border);
+  --color-focus: var(--theme-focus);
+
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 }
 
 @theme {
@@ -37,6 +56,11 @@
   --color-muted: var(--theme-muted);
   --color-surface: var(--theme-surface);
   --color-border: var(--theme-border);
+  --color-focus: var(--theme-focus);
+
+  /* Registered here so they're utilities too: `ease-out-cubic`, `ease-sweep`. */
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-sweep: cubic-bezier(0.83, 0, 0.17, 1);
 }
 
 :root {

@@ -53,8 +53,23 @@ main:focus {
   outline: none;
 }
 
-/* Header overlays the top of main, as in the Astro layout; sections own the offset. */
+/* Header overlays the top of main, as in the Astro layout; sections own the offset. The
+   announcement banner, when present, takes its own row above both. */
+body {
+  grid-template-rows: auto 1fr;
+}
+
+body > [data-announcement-banner] {
+  grid-area: 1 / 1 / 2 / 2;
+  position: relative;
+  z-index: 11;
+}
+
+html[data-announcement-dismissed] [data-announcement-banner] {
+  display: none;
+}
+
 body > header,
 body > main {
-  grid-area: 1 / 1 / 2 / 2;
+  grid-area: 2 / 1 / 3 / 2;
 }

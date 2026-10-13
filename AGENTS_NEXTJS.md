@@ -37,7 +37,7 @@ export default function ComponentName({ someData, className }: Props) {
 
 - `getGlobals()` (`lib/sanity/globals.ts`) — one request for header, footer, cart, meta, organisation, analytics. The layout fetches it and passes props down.
 - `buildScoped` / `buildScopedByKey` (`lib/sanity/cache.ts`) — module-level promise memo, active only when `NEXT_PHASE === "phase-production-build"` and `PREVIEW !== "true"`, wrapped in React `cache()` so layout, `generateMetadata` and page share one request per render.
-- Next can't pass props from `generateStaticParams`, so routes look their document up in a cached bulk query (`getPages`, `getProducts`, `getCollections`, `getHome` in `lib/sanity/paths.ts`) — never a per-slug Sanity request.
+- Next can't pass props from `generateStaticParams`, so during the build routes look their document up in a cached bulk query (`getPages`, `getProducts`, `getCollections`, `getHome` in `lib/sanity/paths.ts`). Outside the build (`buildCacheEnabled` false: dev, preview), `getPage` etc. fetch just that slug instead of the whole collection.
 - No server actions for data fetching; no `loading.tsx`/`error.tsx` unless specified.
 - Don't call `headers()`/`cookies()` in the layout — it forces every page dynamic.
 
@@ -50,6 +50,7 @@ export default function ComponentName({ someData, className }: Props) {
 
 - **Tailwind v4** (`@import "tailwindcss"` + `@theme` in `theme.css`). Tokens: `bg-background`, `text-foreground`, `text-accent`, `text-muted`, `bg-surface`, `border-border`.
 - Spacing scale `--s4 … --s400` via arbitrary values (`mt-[var(--s40)]`).
+- Typography helpers are `@utility` (`text-body`, `text-inherit`) so they compose with variants. Easings (`--ease-out-cubic`, `--ease-sweep`) live in `@theme`, which makes them utilities too (`ease-out-cubic`). Focus rings use `--color-focus`.
 - Utilities: `u-container`, `visually-hidden` (`@utility` in `globals.css`).
 - Breakpoints 1000px / 500px (`64rem` / `32rem`).
 - `motion.css` holds reveal/parallax/page-transition rules and tokens; `forms.css` is a placeholder (forms are styled with Tailwind).
@@ -59,7 +60,7 @@ export default function ComponentName({ someData, className }: Props) {
 
 - `SanityImage` — `"use client"`, Next `<Image>` with a custom loader (crop rect, hotspot `object-position`, widths from 64), LQIP blur-up, `priority` prop. Layout modes `width | height | cover | contain`.
 - `SanityMedia` — async; `image` → SanityImage, `video` → MuxVideo, `vimeo` → VimeoVideo (oEmbed fetched server-side for ratio + thumbnail).
-- `SanityLink` — resolves any link type; plain content when the target can't resolve.
+- `SanityLink` — resolves any link type; plain content when the target can't resolve. Resolution is split: `resolveSanityLink` (async, fills page refs from the cached map) feeds the pure `resolveLink() → { href, kind, newTab }` in `lib/sanity/resolve.ts`; render attributes via `anchorAttributes()`.
 
 ## Layout primitives
 
@@ -68,7 +69,8 @@ export default function ComponentName({ someData, className }: Props) {
 - `Dropdown` — `id`, `trigger`, `children` (panel), `onToggle`; outside click / Escape close.
 - `FontSizeFillWidth` — wraps one child, fits its glyphs to the container width (ResizeObserver).
 - `Carousel` — `embla-carousel-react`; `align`, `dragFree`, `loop`, `skipSnaps` (default true), `slidesToScroll`, `breakpoints`, `watchResize`; exposes `api`.
-- `Accordion` (group events), `Overlay` (`fullscreen` | `right`, scroll lock, Escape/backdrop close).
+- `Accordion` (group events), `Overlay` (controlled: `open` + `onClose`; `fullscreen` | `right`, iOS-safe scroll lock, focus trap via `lib/focus.ts`, focus restore, Escape/backdrop close, `inert` while closed).
+- `SectionsRenderer` derives its union from `PageFragment["sections"]`; the `satisfies never` default makes an unrendered section a compile error.
 
 ## Forms
 
@@ -82,6 +84,14 @@ export default function ComponentName({ someData, className }: Props) {
 ## State (nanostores)
 
 `useStore()` from `@nanostores/react`. Store definitions are shared with Astro — see `AGENTS_ECOMMERCE.md`.
+
+## Browser-only values
+
+Read `localStorage`, consent etc. with `useBrowserValue(read, serverValue, subscribe?)` (`lib/useBrowserValue.ts`, a `useSyncExternalStore` wrapper), not `useEffect` + `setState`.
+
+## Fonts
+
+`next/font/local` in `src/fonts/index.ts`; the generated CSS variable is applied on `<html>` and mapped to `--font-body` etc. in `styles/fonts.css`.
 
 ## What NOT to do
 

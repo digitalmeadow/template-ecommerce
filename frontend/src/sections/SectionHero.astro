@@ -12,7 +12,7 @@ const { section }: Props = Astro.props;
 const characters = (section.heading ?? "").trim().split("");
 ---
 
-<section class="u-container">
+<section data-color-scheme={section.colorScheme ?? undefined} class="u-container">
   <FontSizeFillWidth>
     <h1 data-text-animate-colors aria-label={section.heading}>
       {

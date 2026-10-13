@@ -10,8 +10,10 @@ import {
   $cartTotal,
   $checkoutUrl,
   $cartLines,
+  $cartError,
   loadCart,
 } from "@/stores/cart";
+import { cartOpen, setCartOpen } from "@/stores/ui";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -25,6 +27,8 @@ export default function CartClient({ emptyMessage, note }: Props) {
   const total = useStore($cartTotal);
   const checkoutUrl = useStore($checkoutUrl);
   const lines = useStore($cartLines);
+  const error = useStore($cartError);
+  const open = useStore(cartOpen);
 
   const isEmpty = lines.length === 0;
 
@@ -38,7 +42,13 @@ export default function CartClient({ emptyMessage, note }: Props) {
   }, [checkoutUrl]);
 
   return (
-    <Overlay id="cart" layout="right" ariaLabel="Shopping Cart">
+    <Overlay
+      id="cart"
+      open={open}
+      onClose={() => setCartOpen(false)}
+      layout="right"
+      ariaLabel="Shopping Cart"
+    >
       <div className="header mb-[var(--s40)]">
         <h2>
           Your Cart <span data-cart-count>({count})</span>
@@ -73,6 +83,11 @@ export default function CartClient({ emptyMessage, note }: Props) {
           </div>
 
           <div className="footer mt-auto">
+            {/* Always mounted so screen readers announce changes to it. */}
+            <p role="alert" className="cart-error empty:hidden">
+              {error}
+            </p>
+
             {note && <div data-cart-note>{note}</div>}
 
             <button

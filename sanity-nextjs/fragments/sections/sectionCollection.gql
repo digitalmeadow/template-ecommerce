@@ -1,6 +1,7 @@
 fragment SectionCollection on SectionCollection {
   __typename
   _key
+  colorScheme
 
   collection {
     ...Collection

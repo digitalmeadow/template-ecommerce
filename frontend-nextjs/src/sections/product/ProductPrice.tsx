@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import type { PricesPerLocale } from "@/lib/fetches/productShopifySanity";
 import { getStoredLocale } from "@/lib/shopify/locale.client";
+import { DEFAULT_LOCALE } from "@/lib/shopify/locale";
 import PriceDisplay from "@/blocks/PriceDisplay";
 import { cn } from "@/lib/utils";
 
@@ -12,12 +13,14 @@ interface Props {
 
 interface PriceState {
   amount: string;
+  currency: string;
   compareAt?: string;
   prefix?: string;
 }
 
 function resolvePrice(pricesPerLocale: PricesPerLocale, variantId?: string): PriceState | null {
-  const variants = pricesPerLocale[getStoredLocale()]?.variants?.edges?.map((edge) => edge.node);
+  const prices = pricesPerLocale[getStoredLocale()] ?? pricesPerLocale[DEFAULT_LOCALE];
+  const variants = prices?.variants?.edges?.map((edge) => edge.node);
   if (!variants?.length) return null;
 
   const withCompareAt = (variant: (typeof variants)[number]) => {
@@ -28,7 +31,13 @@ function resolvePrice(pricesPerLocale: PricesPerLocale, variantId?: string): Pri
   };
 
   const selected = variantId ? variants.find((variant) => variant.id === variantId) : undefined;
-  if (selected) return { amount: selected.price.amount, compareAt: withCompareAt(selected) };
+  if (selected) {
+    return {
+      amount: selected.price.amount,
+      currency: selected.price.currencyCode,
+      compareAt: withCompareAt(selected),
+    };
+  }
 
   const sorted = [...variants].sort(
     (a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount),
@@ -39,6 +48,7 @@ function resolvePrice(pricesPerLocale: PricesPerLocale, variantId?: string): Pri
 
   return {
     amount: cheapest.price.amount,
+    currency: cheapest.price.currencyCode,
     compareAt: withCompareAt(cheapest),
     prefix: isRange ? "from" : undefined,
   };
@@ -70,8 +80,10 @@ export default function ProductPrice({ className }: Props) {
 
   return (
     <div ref={rootRef} className={cn("product-price", "inline-flex gap-[1ch]", className)}>
-      {price?.compareAt && <PriceDisplay variant="compare-at" amount={price.compareAt} />}
-      {price && <PriceDisplay amount={price.amount} prefix={price.prefix} />}
+      {price?.compareAt && (
+        <PriceDisplay variant="compare-at" amount={price.compareAt} currency={price.currency} />
+      )}
+      {price && <PriceDisplay amount={price.amount} currency={price.currency} prefix={price.prefix} />}
     </div>
   );
 }

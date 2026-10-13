@@ -4,7 +4,7 @@ import SanityLink from "@fields/SanityLink.astro";
 import LogoSvg from "@svgs/logo.svg";
 import LocaleSelector from "@blocks/LocaleSelector.astro";
 import CartButton from "./cart/CartButton.astro";
-import { resolveLinkHref } from "@lib/sanity/links";
+import { resolveSanityLink } from "@lib/sanity/links";
 
 interface Props {
   headerData: HeaderFragment | null | undefined;
@@ -36,7 +36,7 @@ const underlineStyles = [
     {
       headerData?.navigationItems?.map(async (navigationItem, index) => {
         if (!navigationItem?.link) return null;
-        const href = await resolveLinkHref(navigationItem.link);
+        const href = (await resolveSanityLink(navigationItem.link))?.href;
         const isActive = Astro.url.pathname === href;
         return (
           <div

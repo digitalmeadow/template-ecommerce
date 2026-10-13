@@ -13,7 +13,11 @@ const { section }: Props = Astro.props;
 const tabItems = section.tabItems ?? [];
 ---
 
-<section class="section-tabs" id={section.id ?? undefined}>
+<section
+  data-color-scheme={section.colorScheme ?? undefined}
+  class="section-tabs"
+  id={section.id ?? undefined}
+>
   <Tabs id={section._key ?? undefined} class="u-container">
     {
       tabItems.map(

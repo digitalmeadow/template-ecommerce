@@ -1,0 +1,119 @@
+---
+import type { LocationNoticeFragment } from "sanity/generated/graphql";
+
+interface Props {
+  locationNoticeData: LocationNoticeFragment | null | undefined;
+  // True while a cookie banner may be showing: the notice waits for it so the two never stack.
+  waitForConsent: boolean;
+}
+
+const { locationNoticeData, waitForConsent }: Props = Astro.props;
+---
+
+{locationNoticeData && (
+  <location-notice
+    data-message={locationNoticeData.message}
+    data-switch-label={locationNoticeData.switchLabel}
+    data-wait-for-consent={waitForConsent ? "" : undefined}
+  >
+    <div class="location-notice" role="status">
+      <p data-message />
+      <div class="actions">
+        <button class="text-link underline-color-orange" type="button" data-dismiss>
+          {locationNoticeData.dismissLabel}
+        </button>
+        <button class="text-link underline-color-green" type="button" data-switch />
+      </div>
+    </div>
+  </location-notice>
+)}
+
+<script>
+  import { getConsent, subscribeToConsent } from "@lib/consent/consent";
+  import { getStoredLocale, LOCALE_STORAGE_KEY, type LocaleCode } from "@lib/shopify/locale";
+  import { dismissLocationNotice, fillMarket, suggestedLocale } from "@lib/shopify/geo";
+
+  // Suggests the visitor's own store; never redirects.
+  class LocationNoticeElement extends HTMLElement {
+    private suggestion: LocaleCode | null = null;
+    private unsubscribe?: () => void;
+
+    connectedCallback() {
+      this.querySelector("[data-dismiss]")!.addEventListener("click", this.handleDismiss);
+      this.querySelector("[data-switch]")!.addEventListener("click", this.handleSwitch);
+
+      if (!("waitForConsent" in this.dataset) || getConsent() !== null) {
+        this.suggest();
+      } else {
+        this.unsubscribe = subscribeToConsent(() => {
+          this.unsubscribe?.();
+          this.suggest();
+        });
+      }
+    }
+
+    disconnectedCallback() {
+      this.unsubscribe?.();
+    }
+
+    private async suggest() {
+      this.suggestion = await suggestedLocale(getStoredLocale());
+      if (!this.suggestion) return;
+
+      this.querySelector("[data-message]")!.textContent = fillMarket(
+        this.dataset.message,
+        this.suggestion,
+      );
+      this.querySelector("[data-switch]")!.textContent = fillMarket(
+        this.dataset.switchLabel,
+        this.suggestion,
+      );
+      this.dataset.visible = "";
+    }
+
+    private handleDismiss = () => {
+      if (this.suggestion) dismissLocationNotice(this.suggestion);
+      delete this.dataset.visible;
+    };
+
+    private handleSwitch = () => {
+      if (!this.suggestion) return;
+      localStorage.setItem(LOCALE_STORAGE_KEY, this.suggestion);
+      window.location.reload();
+    };
+  }
+
+  customElements.define("location-notice", LocationNoticeElement);
+</script>
+
+<style>
+  location-notice {
+    display: none;
+  }
+
+  location-notice[data-visible] {
+    display: block;
+  }
+
+  .location-notice {
+    position: fixed;
+    z-index: 5;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: var(--margin) var(--margin-dynamic);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    background-color: var(--color-background);
+  }
+
+  .actions {
+    display: flex;
+    gap: var(--s16);
+    flex-wrap: wrap;
+  }
+</style>

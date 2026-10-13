@@ -1,11 +1,8 @@
-import { SANITY_PROJECT_ID, SANITY_DATASET } from "astro:env/client";
 import type { LinkFragment } from "sanity/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
 import { sanityClientGroq } from "sanity/client";
-import { resolveSanityHref } from "./resolve";
+import { resolveLink, type ResolvedLink } from "./resolve";
 import { buildScoped } from "./cache";
-
-export { resolveSanityHref };
 
 interface ReferenceTarget {
   _id: string;
@@ -48,77 +45,17 @@ async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragmen
         },
       };
     }
+
+    return { ...linkData, page: null };
   }
 
   // Already resolved or not a page link
   return linkData;
 }
 
-export async function resolveLinkHref(linkData: LinkFragment): Promise<string | undefined> {
-  if (!linkData) return undefined;
-
-  const resolvedLink = await resolveLinkReference(linkData);
-  if (!resolvedLink) return undefined;
-
-  if (resolvedLink.type === "section")
-    return resolvedLink.section ? `#${resolvedLink.section}` : "";
-  if (resolvedLink.type === "url") return resolvedLink.url ?? "";
-  if (resolvedLink.type === "page") {
-    const href = resolveReferenceHref(resolvedLink.page);
-    if (href === undefined) return undefined;
-    return resolvedLink.section ? `${href}#${resolvedLink.section}` : href;
-  }
-  if (resolvedLink.type === "email") return `mailto:${resolvedLink.email}`;
-  if (resolvedLink.type === "phone") return `tel:${resolvedLink.phone}`;
-  if (resolvedLink.type === "file") {
-    if (
-      resolvedLink.file?.asset &&
-      "_ref" in resolvedLink.file.asset &&
-      resolvedLink.file.asset._ref
-    ) {
-      return sanityFileUrlFromRef(resolvedLink.file.asset._ref as string);
-    }
-    if (resolvedLink.file?.asset?.url) {
-      return resolvedLink.file.asset.url;
-    }
-  }
-  return undefined;
-}
-
-// Unresolvable targets (unpublished or deleted documents) must degrade to no link, not fail the build.
-function resolveReferenceHref(reference: LinkFragment["page"]): string | undefined {
-  if (!reference?._type) {
-    console.warn("Link target is unpublished or deleted; rendering without a link.");
-    return undefined;
-  }
-
-  if (!(reference._type in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
-    console.warn(
-      `Link target _type "${reference._type}" has no route pattern; rendering without a link.`,
-    );
-    return undefined;
-  }
-
-  // Products and collections route by their Shopify handle rather than a slug.
-  const slug =
-    "slug" in reference && reference.slug
-      ? reference.slug.current
-      : "shopify" in reference
-        ? reference.shopify?.handle?.current
-        : undefined;
-
-  return resolveSanityHref(reference._type, slug);
-}
-
-function sanityFileUrlFromRef(source: string | undefined): string {
-  if (!source) return "";
-
-  if (source.startsWith("file-")) {
-    source = source.slice(5);
-  }
-
-  const lastDashIndex = source.lastIndexOf("-");
-  const sourceUrl = source.slice(0, lastDashIndex) + "." + source.slice(lastDashIndex + 1);
-
-  return `https://cdn.sanity.io/files/${SANITY_PROJECT_ID}/${SANITY_DATASET}/${sourceUrl}`;
+export async function resolveSanityLink(
+  linkData: LinkFragment | null | undefined,
+): Promise<ResolvedLink | null> {
+  if (!linkData) return null;
+  return resolveLink(await resolveLinkReference(linkData));
 }

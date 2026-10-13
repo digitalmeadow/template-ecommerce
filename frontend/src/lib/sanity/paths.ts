@@ -1,7 +1,7 @@
 import { sanityClient } from "sanity/client";
-import { pagesQuery } from "sanity/queries/page";
-import { productsQuery } from "sanity/queries/product";
-import { collectionsQuery } from "sanity/queries/collection";
+import { pageQuery, pagesQuery } from "sanity/queries/page";
+import { productByHandleQuery, productsQuery } from "sanity/queries/product";
+import { collectionByHandleQuery, collectionsQuery } from "sanity/queries/collection";
 
 /**
  * Detail-route path builders. These live outside the pages because Astro evaluates
@@ -40,4 +40,24 @@ export async function buildCollectionPaths() {
       params: { slug: collection.shopify!.handle!.current! },
       props: { sanityCollectionData: collection },
     }));
+}
+
+// Request-time counterparts (preview, dev): one document, in the same props shape as the paths.
+
+export async function loadPageProps(slug: string) {
+  const { allPage } = await sanityClient.request(pageQuery, { slug });
+  const page = allPage[0];
+  return page ? { pageData: page } : null;
+}
+
+export async function loadProductProps(handle: string) {
+  const { allProduct } = await sanityClient.request(productByHandleQuery, { handle });
+  const product = allProduct[0];
+  return product?.shopify?.status === "active" ? { sanityProductData: product } : null;
+}
+
+export async function loadCollectionProps(handle: string) {
+  const { allCollection } = await sanityClient.request(collectionByHandleQuery, { handle });
+  const collection = allCollection[0];
+  return collection ? { sanityCollectionData: collection } : null;
 }

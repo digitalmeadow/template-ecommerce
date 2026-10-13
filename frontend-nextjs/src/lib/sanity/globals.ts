@@ -13,5 +13,8 @@ export const getGlobals = buildScoped(async () => {
     metaSettingsData: result?.allMetaSettings?.[0],
     organisationSettingsData: result?.allOrganisationSettings?.[0],
     analyticsSettingsData: result?.allAnalyticsSettings?.[0],
+    announcementBannerData: result?.allAnnouncementBanner?.[0],
+    cookieConsentData: result?.allCookieConsent?.[0],
+    locationNoticeData: result?.allLocationNotice?.[0],
   };
 });

@@ -27,7 +27,7 @@ export async function fetchCollectionShopifySanity(
         .request(sanityCollectionByHandleQuery, { handle })
         .then((result) => result.allCollection[0]),
   ]);
-  const shopifyCollection = shopifyCollectionQuery.collectionByHandle;
+  const shopifyCollection = shopifyCollectionQuery.collection;
 
   const productHandles =
     shopifyCollection?.products?.edges.map((edge) => edge.node.handle) || [];

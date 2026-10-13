@@ -57,6 +57,7 @@ export default async function CollectionPage({ params }: Props) {
         sectionData={{
           __typename: "SectionHero",
           _key: null,
+          colorScheme: null,
           heading: collectionData.shopify.title,
           textRaw: null,
           backgroundMedia: null,

@@ -10,7 +10,10 @@ export default function SectionAccordions({ sectionData }: Props) {
   if (!sectionData.accordions?.length) return null;
 
   return (
-    <section className="mx-auto mt-[var(--s120)] mb-[var(--s64)] flex w-[var(--container-width)] flex-col items-center">
+    <section
+      data-color-scheme={sectionData.colorScheme ?? undefined}
+      className="mx-auto mt-[var(--s120)] mb-[var(--s64)] flex w-[var(--container-width)] flex-col items-center"
+    >
       {sectionData.accordions.map((accordion) => {
         if (!accordion) return null;
         return (

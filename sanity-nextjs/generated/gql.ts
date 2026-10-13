@@ -35,21 +35,24 @@ type Documents = {
     "fragment Slug on Slug {\n  current\n}": typeof types.SlugFragmentDoc,
     "fragment TabItem on TabItem {\n  _key\n  title\n  contentRaw\n  media {\n    ...Media\n  }\n}": typeof types.TabItemFragmentDoc,
     "fragment VimeoVideo on VimeoVideo {\n  url\n}": typeof types.VimeoVideoFragmentDoc,
-    "fragment SectionAccordions on SectionAccordions {\n  __typename\n  _key\n  accordions {\n    ...Accordion\n  }\n}": typeof types.SectionAccordionsFragmentDoc,
-    "fragment SectionCollection on SectionCollection {\n  __typename\n  _key\n  collection {\n    ...Collection\n  }\n}": typeof types.SectionCollectionFragmentDoc,
-    "fragment SectionForm on SectionForm {\n  __typename\n  _key\n  id\n  heading\n  form {\n    ...Form\n  }\n}": typeof types.SectionFormFragmentDoc,
-    "fragment SectionHero on SectionHero {\n  __typename\n  _key\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": typeof types.SectionHeroFragmentDoc,
-    "fragment SectionTabs on SectionTabs {\n  __typename\n  _key\n  id\n  tabItems {\n    ...TabItem\n  }\n}": typeof types.SectionTabsFragmentDoc,
-    "fragment SectionText on SectionText {\n  __typename\n  _key\n  textRaw\n}": typeof types.SectionTextFragmentDoc,
+    "fragment SectionAccordions on SectionAccordions {\n  __typename\n  _key\n  colorScheme\n  accordions {\n    ...Accordion\n  }\n}": typeof types.SectionAccordionsFragmentDoc,
+    "fragment SectionCollection on SectionCollection {\n  __typename\n  _key\n  colorScheme\n  collection {\n    ...Collection\n  }\n}": typeof types.SectionCollectionFragmentDoc,
+    "fragment SectionForm on SectionForm {\n  __typename\n  _key\n  colorScheme\n  id\n  heading\n  form {\n    ...Form\n  }\n}": typeof types.SectionFormFragmentDoc,
+    "fragment SectionHero on SectionHero {\n  __typename\n  _key\n  colorScheme\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": typeof types.SectionHeroFragmentDoc,
+    "fragment SectionTabs on SectionTabs {\n  __typename\n  _key\n  colorScheme\n  id\n  tabItems {\n    ...TabItem\n  }\n}": typeof types.SectionTabsFragmentDoc,
+    "fragment SectionText on SectionText {\n  __typename\n  _key\n  colorScheme\n  textRaw\n}": typeof types.SectionTextFragmentDoc,
     "fragment AnalyticsSettings on AnalyticsSettings {\n  __typename\n  _id\n  gtmId\n}": typeof types.AnalyticsSettingsFragmentDoc,
+    "fragment AnnouncementBanner on AnnouncementBanner {\n  __typename\n  _id\n  _updatedAt\n  enabled\n  textRaw\n}": typeof types.AnnouncementBannerFragmentDoc,
     "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}": typeof types.CartFragmentDoc,
+    "fragment CookieConsent on CookieConsent {\n  __typename\n  _id\n  messageRaw\n  acceptLabel\n  declineLabel\n}": typeof types.CookieConsentFragmentDoc,
     "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}": typeof types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": typeof types.HeaderFragmentDoc,
+    "fragment LocationNotice on LocationNotice {\n  __typename\n  _id\n  message\n  switchLabel\n  dismissLabel\n}": typeof types.LocationNoticeFragmentDoc,
     "fragment MetaSettings on MetaSettings {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n}": typeof types.MetaSettingsFragmentDoc,
     "fragment OrganisationSettings on OrganisationSettings {\n  __typename\n  _id\n  type\n  name\n  description\n  logo {\n    ...SanityImage\n  }\n  foundingDate\n  founders\n  numberOfEmployees\n  telephone\n  areaServed\n  knowsAbout\n  sameAs\n  address {\n    ...PostalAddress\n  }\n}": typeof types.OrganisationSettingsFragmentDoc,
     "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(\n      where: { shopify: { handle: { current: { eq: $handle } } } }\n    ) {\n      ...Collection\n    }\n  }\n": typeof types.CollectionByHandleQueryDocument,
     "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n": typeof types.CollectionsQueryDocument,
-    "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n  }\n": typeof types.GlobalsQueryDocument,
+    "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n    allAnnouncementBanner {\n      ...AnnouncementBanner\n    }\n    allCookieConsent {\n      ...CookieConsent\n    }\n    allLocationNotice {\n      ...LocationNotice\n    }\n  }\n": typeof types.GlobalsQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": typeof types.HomeQueryDocument,
     "\n  query PageQuery($slug: String!) {\n    allPage(where: { slug: { current: { eq: $slug } } }) {\n      ...Page\n    }\n  }\n": typeof types.PageQueryDocument,
     "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n": typeof types.PagesQueryDocument,
@@ -79,21 +82,24 @@ const documents: Documents = {
     "fragment Slug on Slug {\n  current\n}": types.SlugFragmentDoc,
     "fragment TabItem on TabItem {\n  _key\n  title\n  contentRaw\n  media {\n    ...Media\n  }\n}": types.TabItemFragmentDoc,
     "fragment VimeoVideo on VimeoVideo {\n  url\n}": types.VimeoVideoFragmentDoc,
-    "fragment SectionAccordions on SectionAccordions {\n  __typename\n  _key\n  accordions {\n    ...Accordion\n  }\n}": types.SectionAccordionsFragmentDoc,
-    "fragment SectionCollection on SectionCollection {\n  __typename\n  _key\n  collection {\n    ...Collection\n  }\n}": types.SectionCollectionFragmentDoc,
-    "fragment SectionForm on SectionForm {\n  __typename\n  _key\n  id\n  heading\n  form {\n    ...Form\n  }\n}": types.SectionFormFragmentDoc,
-    "fragment SectionHero on SectionHero {\n  __typename\n  _key\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": types.SectionHeroFragmentDoc,
-    "fragment SectionTabs on SectionTabs {\n  __typename\n  _key\n  id\n  tabItems {\n    ...TabItem\n  }\n}": types.SectionTabsFragmentDoc,
-    "fragment SectionText on SectionText {\n  __typename\n  _key\n  textRaw\n}": types.SectionTextFragmentDoc,
+    "fragment SectionAccordions on SectionAccordions {\n  __typename\n  _key\n  colorScheme\n  accordions {\n    ...Accordion\n  }\n}": types.SectionAccordionsFragmentDoc,
+    "fragment SectionCollection on SectionCollection {\n  __typename\n  _key\n  colorScheme\n  collection {\n    ...Collection\n  }\n}": types.SectionCollectionFragmentDoc,
+    "fragment SectionForm on SectionForm {\n  __typename\n  _key\n  colorScheme\n  id\n  heading\n  form {\n    ...Form\n  }\n}": types.SectionFormFragmentDoc,
+    "fragment SectionHero on SectionHero {\n  __typename\n  _key\n  colorScheme\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}": types.SectionHeroFragmentDoc,
+    "fragment SectionTabs on SectionTabs {\n  __typename\n  _key\n  colorScheme\n  id\n  tabItems {\n    ...TabItem\n  }\n}": types.SectionTabsFragmentDoc,
+    "fragment SectionText on SectionText {\n  __typename\n  _key\n  colorScheme\n  textRaw\n}": types.SectionTextFragmentDoc,
     "fragment AnalyticsSettings on AnalyticsSettings {\n  __typename\n  _id\n  gtmId\n}": types.AnalyticsSettingsFragmentDoc,
+    "fragment AnnouncementBanner on AnnouncementBanner {\n  __typename\n  _id\n  _updatedAt\n  enabled\n  textRaw\n}": types.AnnouncementBannerFragmentDoc,
     "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}": types.CartFragmentDoc,
+    "fragment CookieConsent on CookieConsent {\n  __typename\n  _id\n  messageRaw\n  acceptLabel\n  declineLabel\n}": types.CookieConsentFragmentDoc,
     "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}": types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": types.HeaderFragmentDoc,
+    "fragment LocationNotice on LocationNotice {\n  __typename\n  _id\n  message\n  switchLabel\n  dismissLabel\n}": types.LocationNoticeFragmentDoc,
     "fragment MetaSettings on MetaSettings {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n}": types.MetaSettingsFragmentDoc,
     "fragment OrganisationSettings on OrganisationSettings {\n  __typename\n  _id\n  type\n  name\n  description\n  logo {\n    ...SanityImage\n  }\n  foundingDate\n  founders\n  numberOfEmployees\n  telephone\n  areaServed\n  knowsAbout\n  sameAs\n  address {\n    ...PostalAddress\n  }\n}": types.OrganisationSettingsFragmentDoc,
     "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(\n      where: { shopify: { handle: { current: { eq: $handle } } } }\n    ) {\n      ...Collection\n    }\n  }\n": types.CollectionByHandleQueryDocument,
     "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n": types.CollectionsQueryDocument,
-    "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n  }\n": types.GlobalsQueryDocument,
+    "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n    allAnnouncementBanner {\n      ...AnnouncementBanner\n    }\n    allCookieConsent {\n      ...CookieConsent\n    }\n    allLocationNotice {\n      ...LocationNotice\n    }\n  }\n": types.GlobalsQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": types.HomeQueryDocument,
     "\n  query PageQuery($slug: String!) {\n    allPage(where: { slug: { current: { eq: $slug } } }) {\n      ...Page\n    }\n  }\n": types.PageQueryDocument,
     "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n": types.PagesQueryDocument,
@@ -203,27 +209,27 @@ export function graphql(source: "fragment VimeoVideo on VimeoVideo {\n  url\n}")
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment SectionAccordions on SectionAccordions {\n  __typename\n  _key\n  accordions {\n    ...Accordion\n  }\n}"): (typeof documents)["fragment SectionAccordions on SectionAccordions {\n  __typename\n  _key\n  accordions {\n    ...Accordion\n  }\n}"];
+export function graphql(source: "fragment SectionAccordions on SectionAccordions {\n  __typename\n  _key\n  colorScheme\n  accordions {\n    ...Accordion\n  }\n}"): (typeof documents)["fragment SectionAccordions on SectionAccordions {\n  __typename\n  _key\n  colorScheme\n  accordions {\n    ...Accordion\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment SectionCollection on SectionCollection {\n  __typename\n  _key\n  collection {\n    ...Collection\n  }\n}"): (typeof documents)["fragment SectionCollection on SectionCollection {\n  __typename\n  _key\n  collection {\n    ...Collection\n  }\n}"];
+export function graphql(source: "fragment SectionCollection on SectionCollection {\n  __typename\n  _key\n  colorScheme\n  collection {\n    ...Collection\n  }\n}"): (typeof documents)["fragment SectionCollection on SectionCollection {\n  __typename\n  _key\n  colorScheme\n  collection {\n    ...Collection\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment SectionForm on SectionForm {\n  __typename\n  _key\n  id\n  heading\n  form {\n    ...Form\n  }\n}"): (typeof documents)["fragment SectionForm on SectionForm {\n  __typename\n  _key\n  id\n  heading\n  form {\n    ...Form\n  }\n}"];
+export function graphql(source: "fragment SectionForm on SectionForm {\n  __typename\n  _key\n  colorScheme\n  id\n  heading\n  form {\n    ...Form\n  }\n}"): (typeof documents)["fragment SectionForm on SectionForm {\n  __typename\n  _key\n  colorScheme\n  id\n  heading\n  form {\n    ...Form\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment SectionHero on SectionHero {\n  __typename\n  _key\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}"): (typeof documents)["fragment SectionHero on SectionHero {\n  __typename\n  _key\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}"];
+export function graphql(source: "fragment SectionHero on SectionHero {\n  __typename\n  _key\n  colorScheme\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}"): (typeof documents)["fragment SectionHero on SectionHero {\n  __typename\n  _key\n  colorScheme\n  backgroundMedia {\n    ...Media\n  }\n  heading\n  textRaw\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment SectionTabs on SectionTabs {\n  __typename\n  _key\n  id\n  tabItems {\n    ...TabItem\n  }\n}"): (typeof documents)["fragment SectionTabs on SectionTabs {\n  __typename\n  _key\n  id\n  tabItems {\n    ...TabItem\n  }\n}"];
+export function graphql(source: "fragment SectionTabs on SectionTabs {\n  __typename\n  _key\n  colorScheme\n  id\n  tabItems {\n    ...TabItem\n  }\n}"): (typeof documents)["fragment SectionTabs on SectionTabs {\n  __typename\n  _key\n  colorScheme\n  id\n  tabItems {\n    ...TabItem\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment SectionText on SectionText {\n  __typename\n  _key\n  textRaw\n}"): (typeof documents)["fragment SectionText on SectionText {\n  __typename\n  _key\n  textRaw\n}"];
+export function graphql(source: "fragment SectionText on SectionText {\n  __typename\n  _key\n  colorScheme\n  textRaw\n}"): (typeof documents)["fragment SectionText on SectionText {\n  __typename\n  _key\n  colorScheme\n  textRaw\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -231,7 +237,15 @@ export function graphql(source: "fragment AnalyticsSettings on AnalyticsSettings
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "fragment AnnouncementBanner on AnnouncementBanner {\n  __typename\n  _id\n  _updatedAt\n  enabled\n  textRaw\n}"): (typeof documents)["fragment AnnouncementBanner on AnnouncementBanner {\n  __typename\n  _id\n  _updatedAt\n  enabled\n  textRaw\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}"): (typeof documents)["fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "fragment CookieConsent on CookieConsent {\n  __typename\n  _id\n  messageRaw\n  acceptLabel\n  declineLabel\n}"): (typeof documents)["fragment CookieConsent on CookieConsent {\n  __typename\n  _id\n  messageRaw\n  acceptLabel\n  declineLabel\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -240,6 +254,10 @@ export function graphql(source: "fragment Footer on Footer {\n  __typename\n  _i
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}"): (typeof documents)["fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "fragment LocationNotice on LocationNotice {\n  __typename\n  _id\n  message\n  switchLabel\n  dismissLabel\n}"): (typeof documents)["fragment LocationNotice on LocationNotice {\n  __typename\n  _id\n  message\n  switchLabel\n  dismissLabel\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -259,7 +277,7 @@ export function graphql(source: "\n  query CollectionsQuery {\n    allCollection
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n  }\n"): (typeof documents)["\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n  }\n"];
+export function graphql(source: "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n    allAnnouncementBanner {\n      ...AnnouncementBanner\n    }\n    allCookieConsent {\n      ...CookieConsent\n    }\n    allLocationNotice {\n      ...LocationNotice\n    }\n  }\n"): (typeof documents)["\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n    allAnnouncementBanner {\n      ...AnnouncementBanner\n    }\n    allCookieConsent {\n      ...CookieConsent\n    }\n    allLocationNotice {\n      ...LocationNotice\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

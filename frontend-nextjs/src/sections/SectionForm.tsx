@@ -15,6 +15,7 @@ export default function SectionForm({ sectionData }: Props) {
 
   return (
     <section
+      data-color-scheme={sectionData.colorScheme ?? undefined}
       className="section-form mt-[var(--s120)] pb-[var(--s200)]"
       id={sectionData.id ?? undefined}
     >

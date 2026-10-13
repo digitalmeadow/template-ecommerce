@@ -1,4 +1,5 @@
 import ComposeIcon from "@sanity/icons/Compose";
+import { colorSchemeField } from "../fields/colorScheme";
 import { defineField, defineType } from "sanity";
 import { validateSlugId } from "../../utils/validation";
 
@@ -8,6 +9,7 @@ export const sectionForm = defineType({
   title: "Section: Form",
   icon: ComposeIcon,
   fields: [
+    colorSchemeField,
     defineField({
       type: "string",
       name: "id",

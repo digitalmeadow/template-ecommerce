@@ -1,7 +1,7 @@
 import BoldIcon from "@sanity/icons/Bold";
 import ImageIcon from "@sanity/icons/Image";
 import ItalicIcon from "@sanity/icons/Italic";
-import { defineArrayMember } from "sanity";
+import { defineArrayMember, type ArrayRule } from "sanity";
 import Italics from "../../components/marks/Italics";
 
 export interface RichTextOptions {
@@ -13,9 +13,16 @@ export interface RichTextOptions {
   images?: boolean;
 }
 
+// Named presets keep fields from drifting; pass raw options only for a genuine one-off.
+export const RICH_TEXT = {
+  rich: { italic: true, strong: true, link: true },
+  prose: { headings: true, lists: true, italic: true, strong: true, link: true },
+  longform: { headings: true, lists: true, italic: true, strong: true, link: true, images: true },
+} as const satisfies Record<string, RichTextOptions>;
+
 // A field factory, not a type: each field opts into only the features it renders, and the stored
 // shape stays a plain block array, so changing options never needs a migration.
-export function richText(options: RichTextOptions = {}) {
+export function richText(options: RichTextOptions = {}, { required = false } = {}) {
   const { headings, lists, italic, strong, link, images } = options;
 
   return {
@@ -50,5 +57,6 @@ export function richText(options: RichTextOptions = {}) {
       }),
       ...(images ? [defineArrayMember({ type: "image", name: "image", icon: ImageIcon })] : []),
     ],
+    validation: (Rule: ArrayRule<unknown[]>) => (required ? Rule.required() : Rule),
   };
 }

@@ -7,6 +7,7 @@ interface NavItem {
   href: string | undefined;
   target?: string;
   rel?: string;
+  download?: string;
   isInternal: boolean;
   isCollection: boolean;
 }
@@ -46,6 +47,7 @@ export default function HeaderNav({ navItems }: Props) {
               data-active={pathname === item.href ? "" : undefined}
               target={item.target}
               rel={item.rel}
+              download={item.download}
             >
               {item.label}
             </Link>
@@ -56,6 +58,7 @@ export default function HeaderNav({ navItems }: Props) {
               data-active={pathname === item.href ? "" : undefined}
               target={item.target}
               rel={item.rel}
+              download={item.download}
             >
               {item.label}
             </a>

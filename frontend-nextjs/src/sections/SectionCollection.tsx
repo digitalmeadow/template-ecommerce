@@ -21,7 +21,7 @@ export default async function SectionCollection({ sectionData }: Props) {
   );
 
   const productHandles =
-    shopifyCollection.collectionByHandle?.products.edges.map(
+    shopifyCollection.collection?.products.edges.map(
       (edge) => edge?.node?.handle,
     ) ?? [];
 
@@ -34,10 +34,13 @@ export default async function SectionCollection({ sectionData }: Props) {
   }
 
   return (
-    <section className="mx-auto flex w-[var(--container-width)] flex-col items-center text-center">
+    <section
+      data-color-scheme={sectionData.colorScheme ?? undefined}
+      className="mx-auto flex w-[var(--container-width)] flex-col items-center text-center"
+    >
       <h2>
         Collection: {sectionData.collection?.shopify?.title}
-        <sup>({shopifyCollection.collectionByHandle?.products.edges.length})</sup>
+        <sup>({shopifyCollection.collection?.products.edges.length})</sup>
       </h2>
 
       <ProductThumbnailsGrid productsData={productsData} />

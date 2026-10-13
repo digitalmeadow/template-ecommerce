@@ -1,6 +1,7 @@
 fragment SectionForm on SectionForm {
   __typename
   _key
+  colorScheme
   id
 
   heading

@@ -4,7 +4,7 @@ import { fetchCollectionShopifySanity } from "@lib/fetches/collectionShopifySani
 import SectionHero from "@sections/SectionHero.astro";
 import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
 import { propsForSlug } from "@lib/sanity/staticPaths";
-import { buildCollectionPaths } from "@lib/sanity/paths";
+import { buildCollectionPaths, loadCollectionProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
 import { buildBreadcrumbSchema } from "@lib/sanity/structuredData";
 
@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 }
 
 // Empty in server output (the preview site), where Astro skips getStaticPaths.
-const resolved = await propsForSlug(Astro.props, Astro.params.slug, buildCollectionPaths);
+const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadCollectionProps);
 if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
 const collectionData = await fetchCollectionShopifySanity(
@@ -30,6 +30,7 @@ const collectionData = await fetchCollectionShopifySanity(
     section={{
       __typename: "SectionHero",
       _key: null,
+      colorScheme: null,
       heading: collectionData.shopify.title,
       textRaw: null,
       backgroundMedia: null,

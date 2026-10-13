@@ -1,0 +1,8 @@
+fragment CookieConsent on CookieConsent {
+  __typename
+  _id
+
+  messageRaw
+  acceptLabel
+  declineLabel
+}

@@ -9,6 +9,9 @@ const enabled =
   process.env.NEXT_PHASE === "phase-production-build" &&
   process.env.PREVIEW !== "true";
 
+/** Whether bulk queries are shared across pages; when not, fetch only the document a route needs. */
+export const buildCacheEnabled = enabled;
+
 /** Caches the promise, not the value: concurrent page renders share one in-flight request. */
 export function buildScoped<T>(load: () => Promise<T>): () => Promise<T> {
   let cached: Promise<T> | undefined;

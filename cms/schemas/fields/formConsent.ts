@@ -1,7 +1,7 @@
 import CheckmarkIcon from "@sanity/icons/Checkmark";
 import { defineField, defineType } from "sanity";
 import { validateSlugId } from "../../utils/validation";
-import { richText } from "./richText";
+import { RICH_TEXT, richText } from "./richText";
 
 // Terms sit below the submit rather than in a group, so no width/placeholder/options.
 export const formConsent = defineType({
@@ -25,10 +25,9 @@ export const formConsent = defineType({
       validation: (Rule) => validateSlugId(Rule.required()),
     }),
     defineField({
-      ...richText({ headings: true, lists: true, italic: true, strong: true, link: true }),
+      ...richText(RICH_TEXT.prose, { required: true }),
       name: "statement",
       description: "The wording beside the checkbox. Link out to policies from here.",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       type: "boolean",

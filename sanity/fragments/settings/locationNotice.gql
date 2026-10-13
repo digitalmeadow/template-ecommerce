@@ -1,0 +1,8 @@
+fragment LocationNotice on LocationNotice {
+  __typename
+  _id
+
+  message
+  switchLabel
+  dismissLabel
+}

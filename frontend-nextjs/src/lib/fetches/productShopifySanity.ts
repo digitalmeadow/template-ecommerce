@@ -1,8 +1,9 @@
-import { shopifyClient } from "shopify/client";
+import { shopifyClient, shopifyRequestWithContext } from "shopify/client";
 import { sanityClient } from "sanity-nextjs/client.server";
 import {
   type ProductFragment as ShopifyProductFragment,
   type ProductPriceFragment as ShopifyProductPriceFragment,
+  type CountryCode,
 } from "shopify/generated/graphql";
 import type {
   ProductFragment as SanityProductFragment,
@@ -10,7 +11,7 @@ import type {
 } from "sanity-nextjs/generated/graphql";
 import {
   productByHandleQuery as shopifyProductByHandleQuery,
-  productPriceByHandleQuery as shopifyProductPriceByHandleQuery,
+  productPricesQuery as shopifyProductPricesQuery,
 } from "shopify/queries/product";
 import {
   productByHandleQuery as sanityProductByHandleQuery,
@@ -20,7 +21,10 @@ import {
 import { LOCALE_CONFIG, type LocaleCode } from "@/lib/shopify/locale";
 import { buildScopedByKey } from "@/lib/sanity/cache";
 
-export type PricesPerLocale = Record<LocaleCode, ShopifyProductPriceFragment>;
+// Locales whose market Shopify doesn't serve are omitted; readers fall back to the default locale.
+export type PricesPerLocale = Partial<
+  Record<LocaleCode, ShopifyProductPriceFragment>
+>;
 
 export type ProductThumbnailShopifySanity = {
   shopify: ShopifyProductFragment;
@@ -37,7 +41,7 @@ export const fetchProductThumbnailShopifySanity = buildScopedByKey(
         sanityClient.request(sanityProductThumbnailByHandleQuery, { handle }),
         fetchPricesPerLocale(handle),
       ]);
-    const shopifyProduct = shopifyProductQuery.productByHandle;
+    const shopifyProduct = shopifyProductQuery.product;
     const sanityProduct = sanityProductQuery.allProduct[0];
 
     if (!shopifyProduct || !sanityProduct) {
@@ -75,7 +79,7 @@ export async function fetchProductShopifySanity(
           .then((result) => result.allProduct[0]),
       fetchPricesPerLocale(handle),
     ]);
-  const shopifyProduct = shopifyProductQuery.productByHandle;
+  const shopifyProduct = shopifyProductQuery.product;
 
   if (!shopifyProduct || !sanityProduct)
     throw new Error(
@@ -97,31 +101,52 @@ export async function fetchProductShopifySanity(
   };
 }
 
-const fetchPricesPerLocale = buildScopedByKey(
-  async (handle): Promise<PricesPerLocale> => {
-    const prices: Record<LocaleCode, ShopifyProductPriceFragment> =
-      {} as Record<LocaleCode, ShopifyProductPriceFragment>;
+function fetchProductPricesPage(
+  countryCode: CountryCode,
+  cursor: string | null,
+) {
+  return shopifyRequestWithContext(shopifyProductPricesQuery, {
+    countryCode,
+    cursor,
+  });
+}
 
-    const localeCodes = Object.keys(LOCALE_CONFIG) as LocaleCode[];
+// Every product's prices for one market, paged; shared by every page in the build.
+const fetchProductPricesForLocale = buildScopedByKey(
+  async (locale): Promise<Map<string, ShopifyProductPriceFragment>> => {
+    const countryCode = LOCALE_CONFIG[locale as LocaleCode].country;
+    const prices = new Map<string, ShopifyProductPriceFragment>();
+    let cursor: string | null = null;
 
-    await Promise.all(
-      localeCodes.map(async (locale) => {
-        const countryCode = LOCALE_CONFIG[locale].country;
+    do {
+      const { data, context } = await fetchProductPricesPage(
+        countryCode,
+        cursor,
+      );
 
-        const shopifyProductPriceQuery = await shopifyClient.request(
-          shopifyProductPriceByHandleQuery,
-          { handle, countryCode },
+      if (context.country && context.country !== countryCode) {
+        console.warn(
+          `Shopify has no market for ${countryCode}; omitting ${locale} prices.`,
         );
-        const shopifyProduct = shopifyProductPriceQuery.productByHandle;
+        return new Map();
+      }
 
-        if (!shopifyProduct)
-          throw new Error(
-            `Error: Price data for handle: "${handle}", locale: "${locale}"`,
-          );
-        prices[locale] = shopifyProduct;
-      }),
-    );
+      for (const { node } of data.products.edges) prices.set(node.handle, node);
+      const { hasNextPage, endCursor } = data.products.pageInfo;
+      cursor = hasNextPage ? (endCursor ?? null) : null;
+    } while (cursor);
 
     return prices;
   },
 );
+
+async function fetchPricesPerLocale(handle: string): Promise<PricesPerLocale> {
+  const localeCodes = Object.keys(LOCALE_CONFIG) as LocaleCode[];
+  const entries = await Promise.all(
+    localeCodes.map(async (locale) => {
+      const prices = await fetchProductPricesForLocale(locale);
+      return [locale, prices.get(handle)] as const;
+    }),
+  );
+  return Object.fromEntries(entries.filter(([, prices]) => prices));
+}

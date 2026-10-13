@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
-import { isEmptyButton, isEmptyLink } from "../../utils/validation";
+import { linkSelection, linkSubtitle } from "../../utils/preview";
+import { isEmptyButton, isEmptyLink, requiredInUse } from "../../utils/validation";
 
 export const button = defineType({
   type: "object",
@@ -9,10 +10,7 @@ export const button = defineType({
     defineField({
       type: "string",
       name: "label",
-      validation: (Rule) =>
-        Rule.custom((value, context) =>
-          context.hidden || isEmptyButton(context.parent) || value ? true : "Required",
-        ),
+      validation: (Rule) => Rule.custom(requiredInUse({ isEmpty: isEmptyButton })),
     }),
     defineField({
       type: "link",
@@ -20,9 +18,16 @@ export const button = defineType({
       // Hidden until there's a label, so an unused button never demands a link.
       hidden: ({ parent }) => !parent?.label,
       validation: (Rule) =>
-        Rule.custom((value, context) =>
-          context.hidden || isEmptyButton(context.parent) || !isEmptyLink(value) ? true : "Required",
+        Rule.custom(
+          requiredInUse({ isEmpty: isEmptyButton, hasValue: (value) => !isEmptyLink(value) }),
         ),
     }),
   ],
+  preview: {
+    select: { label: "label", ...linkSelection("link.") },
+    prepare: ({ label, ...link }) => ({
+      title: label || "(no label)",
+      subtitle: linkSubtitle(link),
+    }),
+  },
 });

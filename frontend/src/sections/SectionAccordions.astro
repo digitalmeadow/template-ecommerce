@@ -10,7 +10,7 @@ interface Props {
 const { section }: Props = Astro.props;
 ---
 
-<section class="u-container">
+<section data-color-scheme={section.colorScheme ?? undefined} class="u-container">
   {
     section.accordions?.map((accordion) => {
       if (!accordion) return null;

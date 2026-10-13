@@ -36,6 +36,8 @@ const { cartData }: Props = Astro.props;
       </div>
 
       <div class="footer">
+        <p class="cart-error" role="alert" data-cart-error></p>
+
         <p data-cart-note>
           <PortableText value={cartData?.noteRaw} />
         </p>
@@ -47,7 +49,7 @@ const { cartData }: Props = Astro.props;
 </Overlay>
 
 <script>
-  import { $cart, $cartTotal, $checkoutUrl, $cartLines, loadCart } from "@stores/cart";
+  import { $cart, $cartTotal, $checkoutUrl, $cartLines, $cartError, loadCart } from "@stores/cart";
   import { cartOpen, setCartOpen } from "@stores/ui";
   import type { CartLineItemElement } from "./CartLineItem.astro.0.mts";
   import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
@@ -62,6 +64,7 @@ const { cartData }: Props = Astro.props;
   const checkoutButton = cartElement.querySelector(
     "[data-cart-checkout-button]",
   ) as HTMLButtonElement;
+  const errorElement = cartElement.querySelector("[data-cart-error]") as HTMLElement;
   const itemTemplate = cartElement.querySelector(
     "[data-cart-line-template]",
   ) as HTMLTemplateElement;
@@ -122,6 +125,9 @@ const { cartData }: Props = Astro.props;
       checkoutButton.disabled = true;
     }
   });
+  $cartError.subscribe((error: string | null) => {
+    errorElement.textContent = error ?? "";
+  });
   cartOpen.subscribe((isOpen: boolean) => {
     const overlay = overlayElement as OverlayElement;
     if (!overlay) return;
@@ -175,6 +181,10 @@ const { cartData }: Props = Astro.props;
   }
 
   .empty-message {
+    display: none;
+  }
+
+  .cart-error:empty {
     display: none;
   }
 

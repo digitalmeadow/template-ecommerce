@@ -4,10 +4,10 @@ fragment ProductPrice on Product {
       node {
         id
         price {
-          amount
+          ...Money
         }
         compareAtPrice {
-          amount
+          ...Money
         }
       }
     }

@@ -1,6 +1,6 @@
 import TagIcon from "@sanity/icons/Tag";
 import { defineArrayMember, defineField, defineType } from "sanity";
-import { previewMedia } from "../../utils/preview";
+import { mediaSelection, previewMedia } from "../../utils/preview";
 
 export const product = defineType({
   type: "document",
@@ -41,9 +41,9 @@ export const product = defineType({
     select: {
       title: "shopify.title",
       subtitle: "shopify.handle.current",
-      media: "mediaThumbnail",
+      ...mediaSelection("mediaThumbnail."),
     },
-    prepare({ title, subtitle, media }) {
+    prepare({ title, subtitle, ...media }) {
       return {
         title,
         subtitle,

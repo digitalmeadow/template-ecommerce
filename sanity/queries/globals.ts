@@ -21,5 +21,14 @@ export const globalsQuery = graphql(`
     allAnalyticsSettings {
       ...AnalyticsSettings
     }
+    allAnnouncementBanner {
+      ...AnnouncementBanner
+    }
+    allCookieConsent {
+      ...CookieConsent
+    }
+    allLocationNotice {
+      ...LocationNotice
+    }
   }
 `);
