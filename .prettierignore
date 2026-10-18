@@ -1,0 +1,11 @@
+node_modules/
+pnpm-lock.yaml
+**/generated/
+**/dist/
+**/.astro/
+**/.next/
+**/.wrangler/
+**/.sanity/
+**/next-env.d.ts
+shopify/schema.json
+.claude/

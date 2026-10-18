@@ -2,9 +2,8 @@ import { scroll } from "motion";
 
 // Reads a numeric CSS custom property (e.g. "1.12", "5%") off :root.
 function readVar(name: string, fallback: number): number {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const n = parseFloat(raw);
-  return Number.isFinite(n) ? n : fallback;
+  const value = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+  return Number.isFinite(value) ? value : fallback;
 }
 
 // [data-animate-parallax] drifts media inside its overflow-hidden frame; the -wrapper variant drifts the element itself.
@@ -13,8 +12,8 @@ export function initParallax(): () => void {
   if (reduceMotion) return () => {};
 
   const scale = readVar("--parallax-scale", 1.12);
-  const defaultTravel = readVar("--parallax-travel", 5);
-  const wrapperTravel = readVar("--parallax-travel-wrapper", 3);
+  const defaultTravel = readVar("--parallax-travel", 2);
+  const wrapperTravel = readVar("--parallax-travel-wrapper", 1);
 
   // Max drift the overscale can hide on each edge — clamp so we never reveal frame edges.
   const maxTravel = ((scale - 1) / 2) * 100;
@@ -41,7 +40,7 @@ export function initParallax(): () => void {
     });
   };
 
-  // Media drift: move the frame's stacked children (image/video + blurhash) together.
+  // Media drift: move the frame's stacked children (image/video + placeholder) together.
   const FRAME_SELECTOR = ".sanity-image, .vimeo-video";
   document.querySelectorAll<HTMLElement>("[data-animate-parallax]").forEach((host) => {
     const frame = host.matches(FRAME_SELECTOR)
@@ -56,11 +55,11 @@ export function initParallax(): () => void {
   });
 
   // Wrapper drift: move the element itself, no scale, no overflow assumptions.
-  document.querySelectorAll<HTMLElement>("[data-animate-parallax-wrapper]").forEach((el) => {
-    const override = parseFloat(el.dataset.animateParallaxWrapper ?? "");
+  document.querySelectorAll<HTMLElement>("[data-animate-parallax-wrapper]").forEach((element) => {
+    const override = parseFloat(element.dataset.animateParallaxWrapper ?? "");
     const travel = Number.isFinite(override) ? override : wrapperTravel;
-    drive(el, [el], travel, "");
+    drive(element, [element], travel, "");
   });
 
-  return () => cleanups.forEach((clean) => clean());
+  return () => cleanups.forEach((cleanup) => cleanup());
 }

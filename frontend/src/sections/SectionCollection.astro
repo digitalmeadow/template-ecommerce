@@ -1,11 +1,6 @@
 ---
 import type { SectionCollectionFragment } from "sanity/generated/graphql";
-import { shopifyClient } from "shopify/client";
-import { collectionByHandleQuery } from "shopify/queries/collection";
-import {
-  type ProductThumbnailShopifySanity,
-  fetchProductThumbnailShopifySanity,
-} from "@lib/fetches/productShopifySanity";
+import { fetchShopifyCollectionWithThumbnails } from "@lib/fetches/collectionShopifySanity";
 import ProductThumbnailsGrid from "./product/ProductThumbnailsGrid.astro";
 
 interface Props {
@@ -14,34 +9,27 @@ interface Props {
 
 const { section }: Props = Astro.props;
 
-if (!section.collection?.shopify?.handle?.current) {
-  throw new Error("Collection handle is missing");
-}
-
-const shopifyCollection = await shopifyClient.request(collectionByHandleQuery, {
-  handle: section.collection.shopify.handle.current,
-});
-
-const productHandles =
-  shopifyCollection.collection?.products.edges.map((edge) => edge?.node?.handle) || [];
-
-const productsData: ProductThumbnailShopifySanity[] = await Promise.all(
-  productHandles.map(fetchProductThumbnailShopifySanity),
-);
+const handle = section.collection?.shopify?.handle?.current;
+const collection = handle ? await fetchShopifyCollectionWithThumbnails(handle) : null;
 ---
 
-<section data-color-scheme={section.colorScheme ?? undefined} class="u-container">
-  <h2>
-    Collection: {section.collection?.shopify?.title}<sup
-      >({shopifyCollection.collection?.products.edges.length})</sup
-    >
-  </h2>
+{collection && (
+  <section
+    data-color-scheme={section.colorScheme ?? undefined}
+    class="section-collection u-container"
+    id={section.id ?? undefined}
+  >
+    <h2>
+      Collection: {section.collection?.shopify?.title}
+      <sup>({collection.shopify?.products.edges.length ?? 0})</sup>
+    </h2>
 
-  <ProductThumbnailsGrid productsData={productsData} />
-</section>
+    <ProductThumbnailsGrid productsData={collection.productThumbnails} />
+  </section>
+)}
 
 <style>
-  section {
+  .section-collection {
     display: flex;
     flex-direction: column;
     align-items: center;

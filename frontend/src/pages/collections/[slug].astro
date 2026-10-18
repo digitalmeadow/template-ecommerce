@@ -12,7 +12,6 @@ export async function getStaticPaths() {
   return buildCollectionPaths();
 }
 
-// Empty in server output (the preview site), where Astro skips getStaticPaths.
 const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadCollectionProps);
 if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
@@ -31,9 +30,10 @@ const collectionData = await fetchCollectionShopifySanity(
       __typename: "SectionHero",
       _key: null,
       colorScheme: null,
+      id: null,
       heading: collectionData.shopify.title,
       textRaw: null,
-      backgroundMedia: null,
+      mediaBackground: null,
     }}
   />
 

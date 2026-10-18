@@ -5,6 +5,7 @@ import type { PricesPerLocale } from "@/lib/fetches/productShopifySanity";
 import { getStoredLocale } from "@/lib/shopify/locale.client";
 import { DEFAULT_LOCALE } from "@/lib/shopify/locale";
 import PriceDisplay from "@/blocks/PriceDisplay";
+import type { EventProductVariantChange } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -62,10 +63,10 @@ export default function ProductPrice({ className }: Props) {
     const productRoot = rootRef.current?.closest<HTMLElement>("[data-product-root]");
     if (!productRoot) throw new Error("ProductPrice: missing [data-product-root]");
 
-    const pricesPerLocale = JSON.parse(productRoot.dataset.prices!) as PricesPerLocale;
+    const pricesPerLocale = JSON.parse(productRoot.dataset.prices ?? "{}") as PricesPerLocale;
 
     function handleVariantChange(event: Event) {
-      const { variantId } = (event as CustomEvent<{ variantId?: string }>).detail;
+      const { variantId } = (event as EventProductVariantChange).detail;
       setPrice(resolvePrice(pricesPerLocale, variantId));
     }
 
@@ -83,7 +84,9 @@ export default function ProductPrice({ className }: Props) {
       {price?.compareAt && (
         <PriceDisplay variant="compare-at" amount={price.compareAt} currency={price.currency} />
       )}
-      {price && <PriceDisplay amount={price.amount} currency={price.currency} prefix={price.prefix} />}
+      {price && (
+        <PriceDisplay amount={price.amount} currency={price.currency} prefix={price.prefix} />
+      )}
     </div>
   );
 }

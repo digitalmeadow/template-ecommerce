@@ -14,13 +14,11 @@ const { productData }: Props = Astro.props;
     <SanityMedia mediaData={productData.sanity.mediaThumbnail} layout="width" />
   </div>
 
-  {
-    productData.sanity.mediaGallery?.map((mediaItem) => (
-      <div class="media-item">
-        <SanityMedia mediaData={mediaItem} layout="width" />
-      </div>
-    ))
-  }
+  {productData.sanity.mediaGallery?.map((mediaItem) => (
+    <div class="media-item">
+      <SanityMedia mediaData={mediaItem} layout="width" />
+    </div>
+  ))}
 </div>
 
 <style>

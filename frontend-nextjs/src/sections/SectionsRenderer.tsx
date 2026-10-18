@@ -14,11 +14,9 @@ interface Props {
 }
 
 export default function SectionsRenderer({ sections }: Props) {
-  if (!sections) return null;
-
   return (
     <>
-      {sections.map((section) => {
+      {sections?.map((section) => {
         if (!section) return null;
 
         switch (section.__typename) {
@@ -27,13 +25,9 @@ export default function SectionsRenderer({ sections }: Props) {
           case "SectionText":
             return <SectionText key={section._key} sectionData={section} />;
           case "SectionCollection":
-            return (
-              <SectionCollection key={section._key} sectionData={section} />
-            );
+            return <SectionCollection key={section._key} sectionData={section} />;
           case "SectionAccordions":
-            return (
-              <SectionAccordions key={section._key} sectionData={section} />
-            );
+            return <SectionAccordions key={section._key} sectionData={section} />;
           case "SectionTabs":
             return <SectionTabs key={section._key} sectionData={section} />;
           case "SectionForm":

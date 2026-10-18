@@ -1,4 +1,4 @@
-fragment MerchandiseFields on ProductVariant {
+fragment Merchandise on ProductVariant {
   ...ProductVariant
 
   product {

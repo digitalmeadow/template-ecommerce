@@ -1,6 +1,3 @@
----
----
-
 <div class="page-transition" aria-hidden="true"></div>
 
 <style>
@@ -23,23 +20,23 @@
   const getSweep = () => document.querySelector<HTMLElement>(".page-transition");
 
   // Top edge travels up: 0 = offscreen below, 1 = full cover.
-  const cover = (el: HTMLElement, p: number) => {
-    el.style.clipPath = `inset(${(1 - p) * 100}% 0 0 0)`;
+  const cover = (element: HTMLElement, progress: number) => {
+    element.style.clipPath = `inset(${(1 - progress) * 100}% 0 0 0)`;
   };
   // Bottom edge travels up: 0 = full cover, 1 = offscreen above.
-  const reveal = (el: HTMLElement, p: number) => {
-    el.style.clipPath = `inset(0 0 ${p * 100}% 0)`;
+  const reveal = (element: HTMLElement, progress: number) => {
+    element.style.clipPath = `inset(0 0 ${progress * 100}% 0)`;
   };
 
   let stopCurrent = () => {};
 
   // Drive clip-path off a motion value — interpolating inset() strings directly is unreliable.
   // Resolves false when a newer sweep interrupted it.
-  const sweep = (el: HTMLElement, apply: (el: HTMLElement, p: number) => void) => {
+  const sweep = (element: HTMLElement, apply: (element: HTMLElement, progress: number) => void) => {
     stopCurrent();
     const progress = motionValue(0);
-    apply(el, 0);
-    const unsubscribe = progress.on("change", (p) => apply(el, p));
+    apply(element, 0);
+    const unsubscribe = progress.on("change", (value) => apply(element, value));
     const animation = animate(progress, 1, { duration: sweepDuration, ease: easeSweep });
     // stop() never settles `finished`, so resolve manually on interrupt.
     return new Promise<boolean>((resolve) => {
@@ -65,15 +62,15 @@
 
     const originalLoader = event.loader;
     event.loader = async () => {
-      const el = getSweep();
-      if (el && (await sweep(el, cover))) {
-        el.style.clipPath = "inset(0 0 0 0)"; // commit so it stays covering across the swap
+      const sweepElement = getSweep();
+      if (sweepElement && (await sweep(sweepElement, cover))) {
+        sweepElement.style.clipPath = "inset(0 0 0 0)"; // commit so it stays covering across the swap
         animatedOut = true;
       }
       try {
         await originalLoader();
       } catch (error) {
-        if (el) el.style.clipPath = "";
+        if (sweepElement) sweepElement.style.clipPath = "";
         animatedOut = false;
         throw error;
       }
@@ -84,8 +81,8 @@
     if (reduceMotion || !animatedOut) return;
     animatedOut = false;
 
-    const el = getSweep();
-    if (!el) return;
-    if (await sweep(el, reveal)) el.style.clipPath = ""; // back to the CSS rest state
+    const sweepElement = getSweep();
+    if (!sweepElement) return;
+    if (await sweep(sweepElement, reveal)) sweepElement.style.clipPath = ""; // back to the CSS rest state
   });
 </script>

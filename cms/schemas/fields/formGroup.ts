@@ -24,11 +24,14 @@ export const formGroup = defineType({
   preview: {
     select: { heading: "heading", fields: "fields" },
     prepare({ heading, fields }) {
-      const entries: FieldValue[] = fields ?? [];
+      const groupFields: FieldValue[] = fields ?? [];
 
       return {
         title: heading || "Untitled group",
-        subtitle: entries.map((field) => field?.label).filter(Boolean).join(" · "),
+        subtitle: groupFields
+          .map((field) => field?.label)
+          .filter(Boolean)
+          .join(" · "),
       };
     },
   },

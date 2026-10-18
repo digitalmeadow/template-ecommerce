@@ -7,7 +7,7 @@ import CookiesBanner from "@/components/CookiesBanner";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import LocationNotice from "@/components/LocationNotice";
 import Analytics from "@/components/Analytics";
-import PageTransition from "@/components/PageTransition";
+import PageTransition from "@/decorations/PageTransition";
 import Grid from "@/dev/Grid";
 import JsonLd from "@/meta/JsonLd";
 import { buildMetadata, SITE_URL } from "@/meta/metadata";
@@ -15,15 +15,14 @@ import ScriptMeasurements from "@/scripts/ScriptMeasurements";
 import ScriptAnimations from "@/scripts/ScriptAnimations";
 import { getGlobals } from "@/lib/sanity/globals";
 import { DEFAULT_LOCALE } from "@/lib/shopify/locale";
-import {
-  buildOrganisationSchema,
-  buildWebSiteSchema,
-} from "@/lib/sanity/structuredData";
+import { buildOrganisationSchema, buildWebSiteSchema } from "@/lib/sanity/structuredData";
 import { fontBody } from "@/fonts";
 import { cn } from "@/lib/utils";
+import { THEME_COLOR } from "@/config";
 import "../styles/globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const { organisationSettingsData } = await getGlobals();
   return {
     ...(await buildMetadata()),
     icons: {
@@ -34,8 +33,9 @@ export async function generateMetadata(): Promise<Metadata> {
       shortcut: "/favicon.ico",
       apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
     },
-    manifest: "/site.webmanifest",
-    appleWebApp: { title: "Digital Meadow" },
+    appleWebApp: organisationSettingsData?.name
+      ? { title: organisationSettingsData.name }
+      : undefined,
   };
 }
 
@@ -43,7 +43,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#F6F2E5",
+  themeColor: THEME_COLOR,
 };
 
 export default async function RootLayout({
@@ -65,24 +65,13 @@ export default async function RootLayout({
   return (
     <html
       lang={DEFAULT_LOCALE}
-      className={cn(
-        fontBody.variable,
-        "bg-background text-foreground h-full antialiased",
-      )}
+      className={cn(fontBody.variable, "h-full bg-background text-foreground antialiased")}
       // ScriptAnimations sets html[data-js] pre-hydration.
       suppressHydrationWarning
     >
       <body className="grid min-h-full">
-        <JsonLd
-          schema={buildOrganisationSchema(organisationSettingsData, SITE_URL)}
-        />
-        <JsonLd
-          schema={buildWebSiteSchema(
-            organisationSettingsData,
-            SITE_URL,
-            DEFAULT_LOCALE,
-          )}
-        />
+        <JsonLd schema={buildOrganisationSchema(organisationSettingsData, SITE_URL)} />
+        <JsonLd schema={buildWebSiteSchema(organisationSettingsData, SITE_URL, DEFAULT_LOCALE)} />
         <ScriptMeasurements />
         <ScriptAnimations />
         <PageTransition />

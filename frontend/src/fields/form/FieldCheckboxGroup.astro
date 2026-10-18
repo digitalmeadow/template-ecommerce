@@ -23,30 +23,30 @@ const labelId = `${id}-label`;
   data-group-name={name}
   data-group-label={label}
 >
-  <span class="legend" id={labelId}>{label}</span>
+  <span class="question" id={labelId}>
+    {label}
+  </span>
 
   <div class="options">
-    {
-      options.map((option, index) => {
-        const optionId = `${id}-${index}`;
-        return (
-          <Fragment>
-            {index > 0 && (
-              <Fragment>
-                <span class="divider" aria-hidden="true">
-                  /
-                </span>
-                {"\u200B"}
-              </Fragment>
-            )}
-            <span class="option">
-              <input type="checkbox" id={optionId} name={name} value={option} />
-              <label for={optionId}>{option}</label>
-            </span>
-          </Fragment>
-        );
-      })
-    }
+    {options.map((option, index) => {
+      const optionId = `${id}-${index}`;
+      return (
+        <Fragment>
+          {index > 0 && (
+            <Fragment>
+              <span class="divider" aria-hidden="true">
+                /
+              </span>
+              {"\u200B"}
+            </Fragment>
+          )}
+          <span class="option">
+            <input type="checkbox" id={optionId} name={name} value={option} />
+            <label for={optionId}>{option}</label>
+          </span>
+        </Fragment>
+      );
+    })}
   </div>
 </div>
 
@@ -55,7 +55,7 @@ const labelId = `${id}-label`;
     padding: var(--s20) 0;
   }
 
-  .legend {
+  .question {
     display: block;
     margin-bottom: var(--s8);
     opacity: 0.5;

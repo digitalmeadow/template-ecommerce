@@ -9,17 +9,15 @@ interface Props {
   aspectRatio: string;
   posterURL: string;
   filename?: string;
-  blurDataURL: string;
+  placeholderSrc?: string;
   layout?: "width" | "height" | "cover" | "contain";
-  loading?: "lazy" | "eager";
   mediaId?: string;
 }
 
 const layoutContainerClasses: Record<string, string> = {
   width: "w-full",
   height: "h-full",
-  cover:
-    "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-auto min-w-full min-h-full",
+  cover: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-auto min-w-full min-h-full",
   contain: "w-full h-full",
 };
 
@@ -28,7 +26,7 @@ export default function MuxVideoPlayer({
   aspectRatio,
   posterURL,
   filename,
-  blurDataURL,
+  placeholderSrc,
   layout = "width",
   mediaId,
 }: Props) {
@@ -39,12 +37,14 @@ export default function MuxVideoPlayer({
       className={cn("mux-video relative", layoutContainerClasses[layout])}
       style={{ aspectRatio }}
     >
-      <img
-        src={blurDataURL}
-        alt=""
-        aria-hidden="true"
-        className="mux-video-placeholder absolute inset-0 h-full w-full object-cover"
-      />
+      {placeholderSrc && (
+        <img
+          src={placeholderSrc}
+          alt=""
+          aria-hidden="true"
+          className="placeholder absolute inset-0 h-full w-full object-cover"
+        />
+      )}
 
       <MuxPlayer
         className={cn(

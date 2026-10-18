@@ -23,18 +23,14 @@ export default function ButtonSubmit({
   className,
 }: Props) {
   const text =
-    state === "submitting"
-      ? labelSubmitting
-      : state === "success"
-        ? labelSuccess
-        : label;
+    state === "submitting" ? labelSubmitting : state === "success" ? labelSuccess : label;
 
   return (
     <button
       className={cn(
         "button-submit flex cursor-pointer items-center justify-between gap-[var(--s16)] border border-current px-[var(--s20)] py-[var(--s16)] transition-opacity duration-[var(--transition-default-duration)]",
         // Border kept so the box still measures the same as a file control.
-        variant === "filled" && "bg-accent border-accent text-background",
+        variant === "filled" && "border-accent bg-accent text-background",
         mutedUntilReady && !ready && "opacity-50",
         state === "submitting" && "pointer-events-none opacity-50",
         className,

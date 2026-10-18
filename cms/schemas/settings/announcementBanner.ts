@@ -1,7 +1,7 @@
 import BellIcon from "@sanity/icons/Bell";
 import { defineField, defineType } from "sanity";
 import { previewText } from "../../utils/preview";
-import { RICH_TEXT, richText } from "../fields/richText";
+import { RICH_TEXT_STYLES, richText } from "../fields/richText";
 
 export const announcementBanner = defineType({
   type: "document",
@@ -17,7 +17,7 @@ export const announcementBanner = defineType({
       initialValue: false,
     }),
     defineField({
-      ...richText(RICH_TEXT.rich),
+      ...richText(RICH_TEXT_STYLES.default),
       name: "text",
       validation: (Rule) =>
         Rule.custom((value, context) =>
@@ -29,9 +29,11 @@ export const announcementBanner = defineType({
   ],
   preview: {
     select: { enabled: "enabled", text: "text" },
-    prepare: ({ enabled, text }) => ({
-      title: "Announcement Banner",
-      subtitle: enabled ? previewText(text) || "Enabled" : "Disabled",
-    }),
+    prepare({ enabled, text }) {
+      return {
+        title: "Announcement Banner",
+        subtitle: enabled ? previewText(text) || "Enabled" : "Disabled",
+      };
+    },
   },
 });

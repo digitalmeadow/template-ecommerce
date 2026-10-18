@@ -10,10 +10,5 @@ export default function JsonLd({ schema }: Props) {
   // CMS copy containing "</script>" would otherwise close the tag early.
   const serialised = JSON.stringify(schema).replace(/</g, "\\u003c");
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: serialised }}
-    />
-  );
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serialised }} />;
 }

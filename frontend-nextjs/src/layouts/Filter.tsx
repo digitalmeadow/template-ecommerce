@@ -1,18 +1,12 @@
 "use client";
 
-import {
-  useId,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { animate } from "motion";
 import {
   easeOutCubicFn,
   prefersReducedMotion,
   transitionDefaultDuration,
-} from "@/scripts/motion/tokens";
+} from "@/styles/animations";
 import { cn } from "@/lib/utils";
 
 export interface FilterFacet {
@@ -66,11 +60,7 @@ function writeUrl(values: Record<string, string>, query: string) {
 
   const search = params.toString();
   const { pathname } = window.location;
-  window.history.replaceState(
-    null,
-    "",
-    search ? `${pathname}?${search}` : pathname,
-  );
+  window.history.replaceState(null, "", search ? `${pathname}?${search}` : pathname);
   window.dispatchEvent(new Event(URL_CHANGE_EVENT));
 }
 
@@ -113,22 +103,11 @@ export default function Filter({
     }
 
     setPending(next);
-    animate(
-      fade,
-      { opacity: 0 },
-      { duration: 0.15, ease: easeOutCubicFn },
-    ).finished.then(() => {
+    animate(fade, { opacity: 0 }, { duration: 0.15, ease: easeOutCubicFn }).finished.then(() => {
       if (token !== fadeToken.current) return;
       setPending(null);
-      writeUrl(
-        next,
-        new URLSearchParams(window.location.search).get(SEARCH_PARAM) ?? "",
-      );
-      animate(
-        fade,
-        { opacity: 1 },
-        { duration: transitionDefaultDuration, ease: easeOutCubicFn },
-      );
+      writeUrl(next, new URLSearchParams(window.location.search).get(SEARCH_PARAM) ?? "");
+      animate(fade, { opacity: 1 }, { duration: transitionDefaultDuration, ease: easeOutCubicFn });
     });
   }
 
@@ -136,8 +115,7 @@ export default function Filter({
   const matches = (item: FilterItem) =>
     facets.every(
       (facet) =>
-        !applied[facet.name] ||
-        (item.facets[facet.name] ?? []).includes(applied[facet.name]),
+        !applied[facet.name] || (item.facets[facet.name] ?? []).includes(applied[facet.name]),
     ) &&
     (!needle || (item.search ?? "").toLowerCase().includes(needle));
   const anyVisible = items.some(matches);
@@ -148,10 +126,7 @@ export default function Filter({
         {facets.map((facet) => (
           <fieldset key={facet.name} className="filter-facet">
             <legend>{facet.label}</legend>
-            {[
-              { value: "", label: facet.allLabel ?? "All" },
-              ...facet.options,
-            ].map((option) => {
+            {[{ value: "", label: facet.allLabel ?? "All" }, ...facet.options].map((option) => {
               const optionId = `${baseId}-${facet.name}-${option.value}`;
               return (
                 <span key={option.value} className="filter-option">
@@ -198,11 +173,7 @@ export default function Filter({
         {!anyVisible && empty}
         <div className={cn("filter-grid", gridClassName)}>
           {items.map((item) => (
-            <div
-              key={item.key}
-              className={itemClassName}
-              hidden={!matches(item)}
-            >
+            <div key={item.key} className={itemClassName} hidden={!matches(item)}>
               {item.node}
             </div>
           ))}

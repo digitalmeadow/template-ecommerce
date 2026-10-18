@@ -14,10 +14,10 @@ export interface RichTextOptions {
 }
 
 // Named presets keep fields from drifting; pass raw options only for a genuine one-off.
-export const RICH_TEXT = {
-  rich: { italic: true, strong: true, link: true },
-  prose: { headings: true, lists: true, italic: true, strong: true, link: true },
-  longform: { headings: true, lists: true, italic: true, strong: true, link: true, images: true },
+export const RICH_TEXT_STYLES = {
+  default: { italic: true, strong: true, link: true },
+  extended: { headings: true, lists: true, italic: true, strong: true, link: true },
+  full: { headings: true, lists: true, italic: true, strong: true, link: true, images: true },
 } as const satisfies Record<string, RichTextOptions>;
 
 // A field factory, not a type: each field opts into only the features it renders, and the stored

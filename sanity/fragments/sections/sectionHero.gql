@@ -2,8 +2,9 @@ fragment SectionHero on SectionHero {
   __typename
   _key
   colorScheme
+  id
 
-  backgroundMedia {
+  mediaBackground {
     ...Media
   }
   heading

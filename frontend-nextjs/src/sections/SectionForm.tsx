@@ -21,13 +21,13 @@ export default function SectionForm({ sectionData }: Props) {
     >
       <div className="u-container">
         {sectionData.heading && (
-          <h2 className="text-muted mb-[100px] max-[64rem]:mb-[var(--s80)]">
+          <h2 className="mb-[100px] text-muted max-[64rem]:mb-[var(--s80)]">
             {sectionData.heading}
           </h2>
         )}
 
         <FormClient
-          className="text-foreground ml-[calc(6*var(--column)+6*var(--gutter))] max-[64rem]:ml-0"
+          className="ml-[calc(6*var(--column)+6*var(--gutter))] text-foreground max-[64rem]:ml-0"
           formId={form._id}
           groups={groups}
           terms={(terms ?? []).map((term) => ({

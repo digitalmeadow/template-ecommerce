@@ -10,11 +10,7 @@ interface Props {
   children: ReactNode;
 }
 
-export default async function SanityLink({
-  linkData,
-  className,
-  children,
-}: Props) {
+export default async function SanityLink({ linkData, className, children }: Props) {
   const link = await resolveSanityLink(linkData);
   if (!link) return children;
 

@@ -34,9 +34,7 @@ export function setConsent(status: ConsentStatus) {
     COOKIE_CONSENT_STORAGE_KEY,
     JSON.stringify({ status, timestamp: new Date().toISOString() }),
   );
-  window.dispatchEvent(
-    new CustomEvent(COOKIE_CONSENT_EVENT, { detail: { status } }),
-  );
+  window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_EVENT, { detail: { status } }));
 }
 
 export function subscribeToConsent(onChange: () => void) {

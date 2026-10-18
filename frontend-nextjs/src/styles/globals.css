@@ -1,38 +1,19 @@
 @import "tailwindcss";
 
 @import "./reset.css" layer(base);
-@import "./fonts.css";
 @import "./theme.css";
+@import "./colors.css";
+@import "./fonts.css";
+@import "./base.css";
 @import "./text.css";
 @import "./spacing.css";
-@import "./animations.css";
+@import "./elements.css";
 @import "./forms.css";
-@import "./motion.css";
+@import "./animations.css";
 @import "./header.css";
 @import "./footer.css";
 
-body {
-  font-family: var(--font-body);
-}
-
-@utility visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-@utility u-container {
-  width: 100%;
-  max-width: var(--container-width);
-  margin-left: auto;
-  margin-right: auto;
-}
+/* Page layout (Astro: PageLayout's styles). */
 
 .skip-link {
   position: fixed;
@@ -69,7 +50,12 @@ html[data-announcement-dismissed] [data-announcement-banner] {
   display: none;
 }
 
-body > header,
+body > .header,
 body > main {
   grid-area: 2 / 1 / 3 / 2;
+}
+
+/* Toggled by dev/Grid (ctrl+G). */
+body[data-outlined]:not([data-outlined="false"]) * {
+  outline: 1px solid rgba(0, 0, 0, 0.1);
 }

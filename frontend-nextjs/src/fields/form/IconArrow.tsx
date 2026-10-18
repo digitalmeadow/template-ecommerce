@@ -17,11 +17,7 @@ export default function IconArrow({ direction = "right", className }: Props) {
       fill="none"
       aria-hidden="true"
     >
-      <path
-        d="M1 8H15M15 8L8.5 1.5M15 8L8.5 14.5"
-        stroke="currentColor"
-        strokeWidth="1.25"
-      />
+      <path d="M1 8H15M15 8L8.5 1.5M15 8L8.5 14.5" stroke="currentColor" strokeWidth="1.25" />
     </svg>
   );
 }

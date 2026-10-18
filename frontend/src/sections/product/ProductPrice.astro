@@ -3,14 +3,18 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
 ---
 
 <div class="product-price" data-product-price>
-  <PriceDisplay variant="compare-at" data-price-compare-at />
+  <PriceDisplay variant="compare-at" data-price-compare-at hidden />
   <PriceDisplay data-price />
 </div>
 
 <script>
   import type { PricesPerLocale } from "@lib/fetches/productShopifySanity";
   import { DEFAULT_LOCALE, getStoredLocale } from "@lib/shopify/locale";
-  import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
+  import type { EventProductVariantChange } from "@lib/events";
+
+  type PriceVariant = NonNullable<
+    PricesPerLocale[keyof PricesPerLocale]
+  >["variants"]["edges"][number]["node"];
 
   function initialiseProductPrice(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
@@ -19,20 +23,17 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
     const priceElement = rootElement.querySelector("[data-price]") as HTMLElement;
     const compareAtElement = rootElement.querySelector("[data-price-compare-at]") as HTMLElement;
 
-    const pricesPerLocale = JSON.parse(
-      (productRoot as HTMLElement).dataset.prices!,
-    ) as PricesPerLocale;
+    const pricesPerLocale = JSON.parse(productRoot.dataset.prices ?? "{}") as PricesPerLocale;
 
     // Locales Shopify has no market for are omitted at build; show the default market's prices.
     function localePrices() {
       return pricesPerLocale[getStoredLocale()] ?? pricesPerLocale[DEFAULT_LOCALE];
     }
 
-    // Render default state (lowest price / range)
     const priceData = localePrices();
 
     if (priceData && priceData.variants.edges.length) {
-      const variants = priceData.variants.edges.map((e) => e.node);
+      const variants = priceData.variants.edges.map((edge) => edge.node);
       variants.sort((a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount));
 
       const cheapest = variants[0];
@@ -48,15 +49,14 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
         priceElement.removeAttribute("prefix");
       }
 
-      if (
-        cheapest.compareAtPrice &&
-        parseFloat(cheapest.compareAtPrice.amount) > parseFloat(cheapest.price.amount)
-      ) {
-        compareAtElement.setAttribute("amount", String(cheapest.compareAtPrice.amount));
-        compareAtElement.style.display = "";
-      } else {
-        compareAtElement.style.display = "none";
-      }
+      renderCompareAt(cheapest);
+    }
+
+    function renderCompareAt({ price, compareAtPrice }: PriceVariant) {
+      const isDiscounted =
+        !!compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat(price.amount);
+      if (isDiscounted) compareAtElement.setAttribute("amount", String(compareAtPrice.amount));
+      compareAtElement.hidden = !isDiscounted;
     }
 
     function handleVariantChange(event: EventProductVariantChange) {
@@ -69,19 +69,13 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
       if (!variant)
         throw new Error(`ProductPrice: variant with ID ${variantId} not found in price data`);
 
-      const { price, compareAtPrice } = variant;
+      const { price } = variant;
 
       priceElement.setAttribute("amount", String(price.amount));
       priceElement.setAttribute("currency", price.currencyCode);
       compareAtElement.setAttribute("currency", price.currencyCode);
       priceElement.removeAttribute("prefix");
-
-      if (compareAtPrice) {
-        compareAtElement.setAttribute("amount", String(compareAtPrice.amount));
-        compareAtElement.style.display = "";
-      } else {
-        compareAtElement.style.display = "none";
-      }
+      renderCompareAt(variant);
     }
 
     productRoot.addEventListener("product:variant-change", handleVariantChange as EventListener);

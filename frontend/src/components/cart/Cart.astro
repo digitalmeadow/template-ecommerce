@@ -12,142 +12,174 @@ interface Props {
 const { cartData }: Props = Astro.props;
 ---
 
-<Overlay id="cart" layout="right" aria-label="Shopping Cart">
-  <div class="header" slot="header">
-    <h2>Your Cart <span data-cart-count></span></h2>
-  </div>
-
-  <aside class="cart" data-cart slot="content">
-    <template data-cart-line-template>
-      <li>
-        <CartLineItem />
-      </li>
-    </template>
-
-    <div class="cart-content">
-      <div class="empty-message">
-        <PortableText value={cartData?.emptyMessageRaw} />
-      </div>
-
-      <ul class="cart-line-items" data-cart-line-items></ul>
-
-      <div data-cart-total>
-        <span>Total:&nbsp;<PriceDisplay /></span>
-      </div>
-
-      <div class="footer">
-        <p class="cart-error" role="alert" data-cart-error></p>
-
-        <p data-cart-note>
-          <PortableText value={cartData?.noteRaw} />
-        </p>
-
-        <button class="text-link checkout-button" data-cart-checkout-button>Checkout</button>
-      </div>
+<cart-drawer>
+  <Overlay id="cart" layout="right" aria-label="Shopping Cart">
+    <div class="header" slot="header">
+      <h2>
+        Your Cart <span data-cart-count></span>
+      </h2>
     </div>
-  </aside>
-</Overlay>
+
+    <aside class="cart" data-cart slot="content">
+      <template data-cart-line-template>
+        <li>
+          <CartLineItem />
+        </li>
+      </template>
+
+      <div class="cart-content">
+        <div class="empty-message">
+          <PortableText value={cartData?.emptyMessageRaw} />
+        </div>
+
+        <ul class="cart-line-items" data-cart-line-items></ul>
+
+        <div data-cart-total>
+          <span>
+            Total:&nbsp;
+            <PriceDisplay />
+          </span>
+        </div>
+
+        <div class="footer">
+          <p class="cart-error" role="alert" data-cart-error></p>
+
+          <div data-cart-note>
+            <PortableText value={cartData?.noteRaw} />
+          </div>
+
+          <button class="text-link checkout-button" type="button" data-cart-checkout-button>
+            Checkout
+          </button>
+        </div>
+      </div>
+    </aside>
+  </Overlay>
+</cart-drawer>
 
 <script>
-  import { $cart, $cartTotal, $checkoutUrl, $cartLines, $cartError, loadCart } from "@stores/cart";
-  import { cartOpen, setCartOpen } from "@stores/ui";
-  import type { CartLineItemElement } from "./CartLineItem.astro.0.mts";
-  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
+  import {
+    $cart,
+    $cartCount,
+    $cartTotal,
+    $checkoutUrl,
+    $cartLines,
+    $cartError,
+    loadCart,
+  } from "@stores/cart";
+  import { $cartOpen, setCartOpen } from "@stores/ui";
+  import type { CartLineItemElement, OverlayElement } from "@lib/elements";
 
-  const cartElement = document.querySelector("[data-cart]") as HTMLElement;
-  const lineItemsContainer = cartElement.querySelector(
-    "[data-cart-line-items]",
-  ) as HTMLUListElement;
-  const totalPriceDisplay = cartElement.querySelector(
-    "[data-cart-total] price-display",
-  ) as HTMLElement;
-  const checkoutButton = cartElement.querySelector(
-    "[data-cart-checkout-button]",
-  ) as HTMLButtonElement;
-  const errorElement = cartElement.querySelector("[data-cart-error]") as HTMLElement;
-  const itemTemplate = cartElement.querySelector(
-    "[data-cart-line-template]",
-  ) as HTMLTemplateElement;
-  const overlayElement = document.querySelector('overlay-root[id="cart"]') as HTMLElement;
+  class CartDrawerElement extends HTMLElement {
+    private cartElement!: HTMLElement;
+    private countElement!: HTMLElement;
+    private lineItemsContainer!: HTMLUListElement;
+    private totalPriceDisplay!: HTMLElement;
+    private checkoutButton!: HTMLButtonElement;
+    private errorElement!: HTMLElement;
+    private itemTemplate!: HTMLTemplateElement;
+    private overlayElement!: OverlayElement;
+    private unsubscribes: (() => void)[] = [];
 
-  function handleCheckoutClick() {
-    const url = $checkoutUrl.get();
-    if (!url) throw new Error("Checkout URL is not available");
-    window.location.href = url;
+    connectedCallback() {
+      this.cartElement = this.querySelector("[data-cart]")!;
+      this.countElement = this.querySelector("[data-cart-count]")!;
+      this.lineItemsContainer = this.querySelector("[data-cart-line-items]")!;
+      this.totalPriceDisplay = this.querySelector("[data-cart-total] price-display")!;
+      this.checkoutButton = this.querySelector("[data-cart-checkout-button]")!;
+      this.errorElement = this.querySelector("[data-cart-error]")!;
+      this.itemTemplate = this.querySelector("[data-cart-line-template]")!;
+      this.overlayElement = this.querySelector("overlay-root")!;
+
+      this.unsubscribes = [
+        $cart.subscribe(this.renderCart),
+        $cartCount.subscribe(this.renderCount),
+        $cartTotal.subscribe(this.renderTotal),
+        $checkoutUrl.subscribe(this.renderCheckout),
+        $cartError.subscribe(this.renderError),
+        $cartOpen.subscribe(this.handleOpenChange),
+      ];
+
+      this.checkoutButton.addEventListener("click", this.handleCheckoutClick);
+      this.overlayElement.addEventListener("overlay:closed", this.handleOverlayClosed);
+    }
+
+    disconnectedCallback() {
+      this.unsubscribes.forEach((unsubscribe) => unsubscribe());
+      this.unsubscribes = [];
+      this.checkoutButton.removeEventListener("click", this.handleCheckoutClick);
+      this.overlayElement.removeEventListener("overlay:closed", this.handleOverlayClosed);
+    }
+
+    private handleCheckoutClick = () => {
+      const url = $checkoutUrl.get();
+      if (!url) throw new Error("Checkout URL is not available");
+      window.location.href = url;
+    };
+
+    private handleOverlayClosed = () => setCartOpen(false);
+
+    // Subscribing fires immediately, possibly before the overlay is upgraded.
+    private handleOpenChange = async (isOpen: boolean) => {
+      await customElements.whenDefined("overlay-root");
+      if (isOpen) this.overlayElement.open();
+      else this.overlayElement.close();
+    };
+
+    private renderCount = (count: number) => {
+      this.countElement.textContent = `(${count})`;
+    };
+
+    private renderTotal = (total: { amount: string; currencyCode: string } | null) => {
+      if (total) {
+        this.totalPriceDisplay.setAttribute("amount", String(total.amount));
+        this.totalPriceDisplay.setAttribute("currency", total.currencyCode);
+      } else {
+        this.totalPriceDisplay.removeAttribute("amount");
+      }
+    };
+
+    private renderCheckout = (url: string | null) => {
+      if (url) this.cartElement.dataset.checkoutValid = "";
+      else delete this.cartElement.dataset.checkoutValid;
+      this.checkoutButton.disabled = !url;
+    };
+
+    private renderError = (error: string | null) => {
+      this.errorElement.textContent = error ?? "";
+    };
+
+    private renderCart = () => {
+      const lines = $cartLines.get();
+      this.lineItemsContainer.innerHTML = "";
+
+      if (!$cart.get() || !lines.length) {
+        this.cartElement.dataset.state = "empty";
+        return;
+      }
+
+      this.cartElement.dataset.state = "loaded";
+
+      for (const line of lines) {
+        const clone = this.itemTemplate.content.cloneNode(true) as DocumentFragment;
+        const lineItemElement = clone.querySelector("cart-line-item") as CartLineItemElement;
+        customElements.whenDefined("cart-line-item").then(() => lineItemElement.init(line));
+        this.lineItemsContainer.appendChild(clone);
+      }
+    };
   }
 
-  function clearLineItems() {
-    lineItemsContainer.innerHTML = "";
-  }
+  customElements.define("cart-drawer", CartDrawerElement);
 
-  function renderCart() {
-    const cart = $cart.get();
-    const lines = $cartLines.get();
-
-    if (!cart || !lines.length) {
-      cartElement.dataset.state = "empty";
-      clearLineItems();
-      totalPriceDisplay.removeAttribute("amount");
-      checkoutButton.disabled = true;
-      cartElement.removeAttribute("data-checkout-valid");
-      return;
-    }
-
-    cartElement.dataset.state = "loaded";
-    clearLineItems();
-
-    for (const line of lines) {
-      const clone = itemTemplate.content.cloneNode(true) as DocumentFragment;
-      const cartLineItemElement = clone.querySelector("cart-line-item") as CartLineItemElement;
-      customElements.whenDefined("cart-line-item").then(() => {
-        cartLineItemElement.init(line);
-      });
-
-      lineItemsContainer.appendChild(clone);
-    }
-  }
-
-  $cart.subscribe(renderCart);
-  $cartTotal.subscribe((total: { amount: string; currencyCode: string } | null) => {
-    if (total) {
-      totalPriceDisplay.setAttribute("amount", String(total.amount));
-      totalPriceDisplay.setAttribute("currency", total.currencyCode);
-    } else {
-      totalPriceDisplay.removeAttribute("amount");
-    }
-  });
-  $checkoutUrl.subscribe((url: string | null) => {
-    if (url) {
-      cartElement.setAttribute("data-checkout-valid", "");
-      checkoutButton.disabled = false;
-    } else {
-      cartElement.removeAttribute("data-checkout-valid");
-      checkoutButton.disabled = true;
-    }
-  });
-  $cartError.subscribe((error: string | null) => {
-    errorElement.textContent = error ?? "";
-  });
-  cartOpen.subscribe((isOpen: boolean) => {
-    const overlay = overlayElement as OverlayElement;
-    if (!overlay) return;
-    if (isOpen) {
-      overlay.open();
-    } else {
-      overlay.close();
-    }
-  });
-
-  checkoutButton.addEventListener("click", handleCheckoutClick);
-
-  overlayElement.addEventListener("overlay:closed", () => {
-    setCartOpen(false);
-  });
-
+  // Module scripts run once, so the persisted cart loads once per visit, not per navigation.
   loadCart();
 </script>
 
 <style>
+  cart-drawer {
+    display: contents;
+  }
+
   .cart {
     height: 100%;
   }

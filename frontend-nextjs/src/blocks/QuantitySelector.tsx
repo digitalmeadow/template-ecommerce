@@ -1,51 +1,31 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, type ChangeEvent } from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
   min?: number;
   max?: number;
   initial?: number;
+  updating?: boolean;
   onChange?: (value: number) => void;
   className?: string;
 }
 
-export interface QuantitySelectorHandle {
-  setUpdatingState: (updating: boolean) => void;
-}
-
-const QuantitySelector = ({
+export default function QuantitySelector({
   min = 1,
   max = Infinity,
   initial = 1,
+  updating = false,
   onChange,
   className,
-}: Props) => {
-  const [value, setValue] = useState(() =>
-    Math.max(min, Math.min(max, initial || 1)),
-  );
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [updating, _setUpdating] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
+}: Props) {
+  const [value, setValue] = useState(() => Math.max(min, Math.min(max, initial || 1)));
   const inputRef = useRef<HTMLInputElement>(null);
 
   const clamp = useCallback(
-    (v: number) => Math.max(min, Math.min(max, v)),
+    (quantity: number) => Math.max(min, Math.min(max, quantity)),
     [min, max],
-  );
-
-  const emit = useCallback(
-    (newValue: number) => {
-      rootRef.current?.dispatchEvent(
-        new CustomEvent("quantity-selector:quantity-changed", {
-          detail: { value: newValue },
-          bubbles: true,
-        }),
-      );
-      onChange?.(newValue);
-    },
-    [onChange],
   );
 
   const setValueAndEmit = useCallback(
@@ -53,9 +33,9 @@ const QuantitySelector = ({
       const clamped = clamp(newValue);
       if (clamped === value) return;
       setValue(clamped);
-      emit(clamped);
+      onChange?.(clamped);
     },
-    [value, clamp, emit],
+    [value, clamp, onChange],
   );
 
   const decrease = useCallback(() => {
@@ -67,8 +47,8 @@ const QuantitySelector = ({
   }, [value, setValueAndEmit]);
 
   const onInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const parsed = parseInt(e.target.value, 10);
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const parsed = parseInt(event.target.value, 10);
       if (isNaN(parsed)) {
         if (inputRef.current) inputRef.current.value = String(value);
         return;
@@ -78,7 +58,6 @@ const QuantitySelector = ({
     [value, setValueAndEmit],
   );
 
-  // Sync input display when value changes externally
   useEffect(() => {
     if (inputRef.current) inputRef.current.value = String(value);
   }, [value]);
@@ -88,19 +67,15 @@ const QuantitySelector = ({
 
   return (
     <div
-      ref={rootRef}
-      className={cn("flex gap-[var(--s8)]", className)}
-      {...(updating ? { "data-state": "updating" } : {})}
+      className={cn("quantity-selector", "flex gap-[var(--s8)]", className)}
+      data-state={updating ? "updating" : undefined}
     >
       <button
         type="button"
         aria-label="Decrease quantity"
         disabled={atMin || updating}
         onClick={decrease}
-        className={cn(
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          updating && "opacity-50",
-        )}
+        className="disabled:cursor-not-allowed disabled:opacity-50"
       >
         −
       </button>
@@ -118,8 +93,7 @@ const QuantitySelector = ({
         disabled={updating}
         aria-busy={updating || undefined}
         className={cn(
-          "w-[2ch] text-center",
-          updating && "opacity-50",
+          "w-[2ch] text-center disabled:opacity-50",
           "[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
           "[appearance:textfield]",
         )}
@@ -129,15 +103,10 @@ const QuantitySelector = ({
         aria-label="Increase quantity"
         disabled={atMax || updating}
         onClick={increase}
-        className={cn(
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          updating && "opacity-50",
-        )}
+        className="disabled:cursor-not-allowed disabled:opacity-50"
       >
         +
       </button>
     </div>
   );
-};
-
-export default QuantitySelector;
+}

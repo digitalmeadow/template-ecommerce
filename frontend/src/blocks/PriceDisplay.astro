@@ -1,4 +1,17 @@
-<price-display {...Astro.props}>
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"span"> {
+  variant?: "standard" | "compare-at";
+  amount?: string;
+  currency?: string;
+  prefix?: string;
+}
+
+const { variant = "standard", ...attributes }: Props = Astro.props;
+---
+
+<price-display variant={variant} {...attributes}>
   <span data-price-prefix></span>
   <span data-price-value></span>
 </price-display>
@@ -6,7 +19,7 @@
 <script>
   import { getCurrency, getStoredLocale } from "@lib/shopify/locale";
 
-  export class PriceDisplayElement extends HTMLElement {
+  class PriceDisplayElement extends HTMLElement {
     private prefixElement!: HTMLSpanElement;
     private priceElement!: HTMLSpanElement;
     private locale!: string;
@@ -57,6 +70,10 @@
   price-display {
     display: inline-flex;
     column-gap: 1ch;
+  }
+
+  price-display[hidden] {
+    display: none;
   }
 
   price-display[data-variant="compare-at"] span {

@@ -6,30 +6,3 @@ fragment Image on Image {
   height
   width
 }
-
-fragment VideoSource on VideoSource {
-  url
-  format
-  height
-  width
-}
-
-fragment Video on Video {
-  sources {
-    ...VideoSource
-  }
-}
-
-fragment MediaFields on Media {
-  __typename
-
-  ... on MediaImage {
-    image {
-      ...Image
-    }
-  }
-
-  ... on Video {
-    ...Video
-  }
-}

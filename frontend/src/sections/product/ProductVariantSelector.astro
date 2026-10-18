@@ -1,6 +1,7 @@
 ---
 import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import { shopifyIdFromGid } from "shopify/utils/ids";
+import { DEFAULT_VARIANT_TITLE, type Variant } from "@lib/shopify/variants";
 
 interface Props {
   productData: ProductShopifySanity;
@@ -10,17 +11,8 @@ const { productData }: Props = Astro.props;
 
 const options = productData.shopify.options || [];
 const variants = productData.shopify.variants.edges;
-const isSingleDefaultVariant = variants.length === 1 && variants[0].node.title === "Default Title";
-
-// Prepare minimal variant matching data for client-side
-export interface Variant {
-  id: string;
-  selectedOptions: Array<{
-    name: string;
-    value: string;
-  }>;
-  availableForSale: boolean;
-}
+const isSingleDefaultVariant =
+  variants.length === 1 && variants[0].node.title === DEFAULT_VARIANT_TITLE;
 
 const variantsForMatching: Variant[] = variants.map((edge) => ({
   id: edge.node.id,
@@ -36,49 +28,42 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
   data-variant-selector
   data-variants={JSON.stringify(variantsForMatching)}
 >
-  {
-    !isSingleDefaultVariant &&
-      options.map((option) => {
-        const selectId = `${shopifyId}-${option.name.toLowerCase()}`;
-        return (
-          <fieldset class="option-fieldset">
-            <legend>{option.name}:</legend>
-            <div class="option-values">
-              {option.values.map((value) => (
-                <label
-                  class="text-link"
-                  for={selectId + "-" + value}
-                  data-active={value === option.values[0]}
-                >
-                  <input
-                    class="visually-hidden"
-                    type="radio"
-                    name={option.name}
-                    id={selectId + "-" + value}
-                    data-option-input
-                    data-option-name={option.name}
-                    value={value}
-                    checked={value === option.values[0]}
-                  />
-                  {value}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        );
-      })
-  }
-  <input type="hidden" data-variant-id data-product-id={productData.shopify.id} />
+  {!isSingleDefaultVariant &&
+    options.map((option) => {
+      const radioIdPrefix = `${shopifyId}-${option.name.toLowerCase()}`;
+      return (
+        <fieldset class="option-fieldset">
+          <legend>{option.name}:</legend>
+          <div class="option-values">
+            {option.values.map((value) => (
+              <label
+                class="text-link"
+                for={`${radioIdPrefix}-${value}`}
+                data-active={value === option.values[0] ? "" : undefined}
+              >
+                <input
+                  class="visually-hidden"
+                  type="radio"
+                  name={option.name}
+                  id={`${radioIdPrefix}-${value}`}
+                  data-option-input
+                  data-option-name={option.name}
+                  value={value}
+                  checked={value === option.values[0]}
+                />
+                {value}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      );
+    })}
+  <input type="hidden" data-variant-id />
 </div>
 
 <script>
-  import type { Variant } from "./ProductVariantSelector.astro";
-
-  export type EventDetailProductVariantChange = {
-    variantId: string;
-    availableForSale: boolean;
-  };
-  export type EventProductVariantChange = CustomEvent<EventDetailProductVariantChange>;
+  import type { Variant } from "@lib/shopify/variants";
+  import type { EventProductVariantChangeDetail } from "@lib/events";
 
   function initialiseVariantSelector(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
@@ -94,7 +79,6 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
     const variants: Variant[] = JSON.parse(variantsJson);
 
     function getSelectedOptions() {
-      // Find the checked input for each option group
       const checkedInputs = optionInputs.filter((input) => input.checked);
       return checkedInputs.map((input) => ({
         name: input.dataset.optionName!,
@@ -105,16 +89,16 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
     function findMatchingVariant() {
       const selectedOptions = getSelectedOptions();
 
-      // Check if we have a selection for every option available
-      // (This counts unique names in all optionInputs vs our selected list)
-      const uniqueOptionNames = new Set(optionInputs.map((i) => i.dataset.optionName));
+      const uniqueOptionNames = new Set(optionInputs.map((input) => input.dataset.optionName));
       if (selectedOptions.length < uniqueOptionNames.size) return null;
 
-      const variant = variants.find((v) => {
-        return selectedOptions.every((selected) =>
-          v.selectedOptions.some((vo) => vo.name === selected.name && vo.value === selected.value),
-        );
-      });
+      const variant = variants.find((candidate) =>
+        selectedOptions.every((selected) =>
+          candidate.selectedOptions.some(
+            (option) => option.name === selected.name && option.value === selected.value,
+          ),
+        ),
+      );
 
       return variant || null;
     }
@@ -125,7 +109,7 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
 
       variantIdInput.value = variant.id;
 
-      const detail: EventDetailProductVariantChange = {
+      const detail: EventProductVariantChangeDetail = {
         variantId: variant.id,
         availableForSale: variant.availableForSale,
       };
@@ -139,14 +123,7 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
 
     function updateUI() {
       optionInputs.forEach((input) => {
-        const label = input.closest("label");
-        if (label) {
-          if (input.checked) {
-            label.setAttribute("data-active", "");
-          } else {
-            label.removeAttribute("data-active");
-          }
-        }
+        input.closest("label")?.toggleAttribute("data-active", input.checked);
       });
     }
 
@@ -158,7 +135,6 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
     optionInputs.forEach((input) => input.addEventListener("change", handleOptionChange));
     productRoot.addEventListener("product:request-variant-update", updateVariantId);
 
-    // Initial sync
     updateUI();
     updateVariantId();
 
@@ -204,17 +180,5 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
 
   label {
     cursor: pointer;
-  }
-
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
   }
 </style>

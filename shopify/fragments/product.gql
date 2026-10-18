@@ -1,6 +1,7 @@
 fragment Product on Product {
   __typename
   id
+
   title
   handle
   availableForSale

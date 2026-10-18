@@ -3,11 +3,7 @@ import { pageQuery, pagesQuery } from "sanity/queries/page";
 import { productByHandleQuery, productsQuery } from "sanity/queries/product";
 import { collectionByHandleQuery, collectionsQuery } from "sanity/queries/collection";
 
-/**
- * Detail-route path builders. These live outside the pages because Astro evaluates
- * `getStaticPaths` in its own module scope, so it can only reach values it imports. Importing them
- * also lets the preview site reuse the same shape at request time, where getStaticPaths never runs.
- */
+// Outside the pages: getStaticPaths only reaches imports. load* serve request time (preview, dev).
 
 export async function buildPagePaths() {
   const pagesQueryResult = await sanityClient.request(pagesQuery);
@@ -41,8 +37,6 @@ export async function buildCollectionPaths() {
       props: { sanityCollectionData: collection },
     }));
 }
-
-// Request-time counterparts (preview, dev): one document, in the same props shape as the paths.
 
 export async function loadPageProps(slug: string) {
   const { allPage } = await sanityClient.request(pageQuery, { slug });

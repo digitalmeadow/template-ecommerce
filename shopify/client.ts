@@ -1,11 +1,7 @@
 import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { print } from "graphql";
 import { GraphQLClient, type Variables } from "graphql-request";
-import {
-  SHOPIFY_API_VERSION,
-  SHOPIFY_PUBLIC_API_TOKEN,
-  SHOPIFY_STORE_DOMAIN,
-} from "./config";
+import { SHOPIFY_API_VERSION, SHOPIFY_PUBLIC_API_TOKEN, SHOPIFY_STORE_DOMAIN } from "./config";
 
 export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 
@@ -15,7 +11,7 @@ export const shopifyClient = new GraphQLClient(SHOPIFY_STOREFRONT_URL, {
   },
 });
 
-export interface ShopifyContext {
+interface ShopifyContext {
   country?: string;
   language?: string;
 }

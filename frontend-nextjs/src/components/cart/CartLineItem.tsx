@@ -4,11 +4,10 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import type { CartLineFragment } from "shopify/generated/graphql";
 import { resolveSanityHref } from "@/lib/sanity/resolve";
-import { getStoredLocale } from "@/lib/shopify/locale.client";
-import { getCurrency } from "@/lib/shopify/locale";
 import { updateLineQuantity, removeLine } from "@/stores/cart";
 import QuantitySelector from "@/blocks/QuantitySelector";
 import PriceDisplay from "@/blocks/PriceDisplay";
+import { DEFAULT_VARIANT_TITLE } from "@/lib/shopify/variants";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -24,13 +23,12 @@ export default function CartLineItem({ line, className }: Props) {
   const { product, title: variantTitle, compareAtPrice } = merchandise;
 
   const isSingleDefaultVariant =
-    variantTitle === "Default Title" &&
-    product.variants?.edges?.length === 1;
+    variantTitle === DEFAULT_VARIANT_TITLE && product.variants?.edges?.length === 1;
 
-  const variantImage =
-    merchandise.image ?? product.variants?.edges?.[0]?.node?.image;
+  const variantImage = merchandise.image ?? product.variants?.edges?.[0]?.node?.image;
+  // Shopify CDN resize params; imgix-style ones are ignored
   const imageUrl = variantImage?.url
-    ? `${variantImage.url}?w=120&h=120&fit=crop&auto=format`
+    ? `${variantImage.url}${variantImage.url.includes("?") ? "&" : "?"}width=128&height=128&crop=center`
     : undefined;
 
   const productHref = resolveSanityHref("product", product.handle);
@@ -64,16 +62,14 @@ export default function CartLineItem({ line, className }: Props) {
     }
   }, [id]);
 
-  const compareAtAmount = compareAtPrice
-    ? Number(compareAtPrice.amount) * quantity
-    : null;
+  const compareAtAmount = compareAtPrice ? Number(compareAtPrice.amount) * quantity : null;
 
   return (
     <li
       className={cn(
         "cart-line-item",
-        "grid grid-cols-[auto_1fr] gap-[var(--gutter)] w-full",
-        isRemoving && "opacity-50 pointer-events-none",
+        "grid w-full grid-cols-[auto_1fr] gap-[var(--gutter)]",
+        isRemoving && "pointer-events-none opacity-50",
         className,
       )}
     >
@@ -84,10 +80,10 @@ export default function CartLineItem({ line, className }: Props) {
             alt=""
             width={64}
             height={64}
-            className="w-16 h-16 object-cover bg-[var(--color-text)]"
+            className="h-16 w-16 bg-foreground object-cover"
           />
         ) : (
-          <div className="w-16 h-16 bg-[var(--color-text)]" />
+          <div className="h-16 w-16 bg-foreground" />
         )}
       </Link>
 
@@ -95,26 +91,18 @@ export default function CartLineItem({ line, className }: Props) {
         <Link href={productHref} className="text-link-wrapper">
           <div className="titles flex flex-wrap gap-x-[1ch]">
             <span className="product-title">{product.title}</span>
-            <span
-              className={cn(
-                "variant-title",
-                isSingleDefaultVariant && "hidden",
-              )}
-            >
+            <span className={cn("variant-title", isSingleDefaultVariant && "hidden")}>
               {variantTitle}
             </span>
           </div>
         </Link>
 
-        <div className="inventory flex items-center gap-[var(--s16)] flex-wrap">
-          <div
-            {...(isUpdating ? { "data-state": "updating" } : {})}
-          >
-            <QuantitySelector
-              initial={quantity}
-              onChange={handleQuantityChange}
-            />
-          </div>
+        <div className="inventory flex flex-wrap items-center gap-[var(--s16)]">
+          <QuantitySelector
+            initial={quantity}
+            updating={isUpdating}
+            onChange={handleQuantityChange}
+          />
           <button
             type="button"
             className="text-link underline-color-orange remove-button self-start"
@@ -130,13 +118,13 @@ export default function CartLineItem({ line, className }: Props) {
           {compareAtAmount != null && (
             <PriceDisplay
               amount={String(compareAtAmount)}
-              currency={compareAtPrice?.currencyCode ?? getCurrency(getStoredLocale())}
+              currency={compareAtPrice?.currencyCode}
               variant="compare-at"
             />
           )}
           <PriceDisplay
             amount={String(cost.totalAmount.amount ?? 0)}
-            currency={cost.totalAmount.currencyCode ?? getCurrency(getStoredLocale())}
+            currency={cost.totalAmount.currencyCode}
           />
         </div>
       </div>

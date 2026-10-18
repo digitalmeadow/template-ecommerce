@@ -1,8 +1,8 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
 import { fetchProductShopifySanity } from "@lib/fetches/productShopifySanity";
-import ProductSection from "@sections/product/ProductSection.astro";
-import RelatedProductsSection from "@sections/product/RelatedProductsSection.astro";
+import ProductMain from "@sections/product/ProductMain.astro";
+import ProductRelated from "@sections/product/ProductRelated.astro";
 import { propsForSlug } from "@lib/sanity/staticPaths";
 import { buildProductPaths, loadProductProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
@@ -12,7 +12,6 @@ export async function getStaticPaths() {
   return buildProductPaths();
 }
 
-// Empty in server output (the preview site), where Astro skips getStaticPaths.
 const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadProductProps);
 if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
@@ -29,6 +28,6 @@ const metaData = resolveMeta(productData.sanity, { title: productData.shopify.ti
     buildBreadcrumbSchema(Astro.url.pathname, productData.shopify.title, Astro.site),
   ]}
 >
-  <ProductSection productData={productData} />
-  <RelatedProductsSection productsData={productData.relatedProducts} />
+  <ProductMain productData={productData} />
+  <ProductRelated productsData={productData.relatedProducts} />
 </PageLayout>

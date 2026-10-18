@@ -1,6 +1,7 @@
 fragment OrganisationSettings on OrganisationSettings {
   __typename
   _id
+
   type
   name
   description

@@ -12,33 +12,30 @@ const { section }: Props = Astro.props;
 const characters = (section.heading ?? "").trim().split("");
 ---
 
-<section data-color-scheme={section.colorScheme ?? undefined} class="u-container">
+<section
+  data-color-scheme={section.colorScheme ?? undefined}
+  class="section-hero u-container"
+  id={section.id ?? undefined}
+>
   <FontSizeFillWidth>
     <h1 data-text-animate-colors aria-label={section.heading}>
-      {
-        characters.map((char) => (
-          // The reset makes spans inline-flex, which collapses a lone space to zero width.
-          <span class="text-inherit" aria-hidden="true">
-            {char === " " ? "\u00a0" : char}
-          </span>
-        ))
-      }
+      {characters.map((char) => (
+        // The reset makes spans inline-flex, which collapses a lone space to zero width.
+        <span class="text-inherit" aria-hidden="true">
+          {char === " " ? "\u00a0" : char}
+        </span>
+      ))}
     </h1>
   </FontSizeFillWidth>
 </section>
 
 <style>
-  section {
+  .section-hero {
     margin-top: var(--s200);
     margin-bottom: var(--s40);
   }
   @media (max-width: 64rem) {
-    section {
-      margin-top: calc(var(--s200) + var(--s24));
-    }
-  }
-  @media (max-width: 32rem) {
-    section {
+    .section-hero {
       margin-top: calc(var(--s200) + var(--s24));
     }
   }

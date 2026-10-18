@@ -4,8 +4,9 @@ import { type CollectionFragment as ShopifyCollectionFragment } from "shopify/ge
 import type { CollectionFragment as SanityCollectionFragment } from "sanity/generated/graphql";
 import { collectionByHandleQuery as shopifyCollectionByHandleQuery } from "shopify/queries/collection";
 import { collectionByHandleQuery as sanityCollectionByHandleQuery } from "sanity/queries/collection";
+import { buildScopedByKey } from "@lib/cache";
 import {
-  fetchProductThumbnailShopifySanity,
+  fetchProductThumbnailsShopifySanity,
   type ProductThumbnailShopifySanity,
 } from "./productShopifySanity";
 
@@ -15,31 +16,39 @@ export type CollectionShopifySanity = {
   productThumbnails: ProductThumbnailShopifySanity[];
 };
 
-/** Pass `sanityCollection` when the caller already holds it (getStaticPaths) to skip a Sanity request. */
+export type ShopifyCollectionWithThumbnails = {
+  shopify: ShopifyCollectionFragment | null | undefined;
+  productThumbnails: ProductThumbnailShopifySanity[];
+};
+
+// Collection sections repeat across pages; cached per handle for the build.
+export const fetchShopifyCollectionWithThumbnails = buildScopedByKey(
+  async (handle): Promise<ShopifyCollectionWithThumbnails> => {
+    const shopifyCollectionResult = await shopifyClient.request(shopifyCollectionByHandleQuery, {
+      handle,
+    });
+    const shopifyCollection = shopifyCollectionResult.collection;
+    const productHandles = shopifyCollection?.products?.edges.map((edge) => edge.node.handle) ?? [];
+
+    return {
+      shopify: shopifyCollection,
+      productThumbnails: await fetchProductThumbnailsShopifySanity(productHandles),
+    };
+  },
+);
+
+/** Pass `sanityCollectionData` when the caller already holds it (getStaticPaths) to skip a Sanity request. */
 export async function fetchCollectionShopifySanity(
   handle: string,
   sanityCollectionData?: SanityCollectionFragment,
 ): Promise<CollectionShopifySanity> {
-  const [shopifyCollectionQuery, sanityCollection] = await Promise.all([
-    shopifyClient.request(shopifyCollectionByHandleQuery, { handle }),
+  const [{ shopify: shopifyCollection, productThumbnails }, sanityCollection] = await Promise.all([
+    fetchShopifyCollectionWithThumbnails(handle),
     sanityCollectionData ??
       sanityClient
         .request(sanityCollectionByHandleQuery, { handle })
         .then((result) => result.allCollection[0]),
   ]);
-  const shopifyCollection = shopifyCollectionQuery.collection;
-
-  const productHandles = shopifyCollection?.products?.edges.map((edge) => edge.node.handle) || [];
-  const productThumbnails = (
-    await Promise.all(
-      productHandles.map((productHandle) =>
-        fetchProductThumbnailShopifySanity(productHandle).catch((error) => {
-          console.error(`Error fetching product thumbnail for handle "${productHandle}":`, error);
-          return null;
-        }),
-      ),
-    )
-  ).filter((thumbnail): thumbnail is ProductThumbnailShopifySanity => Boolean(thumbnail));
 
   if (!shopifyCollection || !sanityCollection)
     throw new Error(`Collection with handle "${handle}" not found in Shopify or Sanity`);

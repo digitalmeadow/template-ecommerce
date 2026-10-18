@@ -1,14 +1,14 @@
 <cart-button>
-  <button class="cart-button" aria-label="Toggle cart">
+  <button class="cart-button" type="button" aria-label="Toggle cart">
     Cart<span data-cart-count></span>
   </button>
 </cart-button>
 
 <script>
-  import { $cartCount, loadCart } from "@stores/cart";
+  import { $cartCount } from "@stores/cart";
   import { setCartOpen } from "@stores/ui";
 
-  class CartButton extends HTMLElement {
+  class CartButtonElement extends HTMLElement {
     private unsubscribe?: () => void;
 
     private handleClick = () => setCartOpen(true);
@@ -19,7 +19,6 @@
         if (count) count.textContent = `(${value})`;
       });
       this.querySelector("button")?.addEventListener("click", this.handleClick);
-      loadCart();
     }
 
     disconnectedCallback() {
@@ -28,7 +27,7 @@
     }
   }
 
-  customElements.define("cart-button", CartButton);
+  customElements.define("cart-button", CartButtonElement);
 </script>
 
 <style>

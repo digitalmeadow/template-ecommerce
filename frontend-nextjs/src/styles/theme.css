@@ -1,46 +1,4 @@
-:root,
-[data-color-scheme="light"] {
-  --theme-bg: #f6f2e5;
-  --theme-fg: #3e3832;
-  --theme-accent: #b20155;
-  --theme-muted: #9c958c;
-  --theme-surface: #ffffff;
-  --theme-border: #d9d3c5;
-  --theme-focus: var(--theme-accent);
-}
-
-[data-color-scheme="dark"] {
-  --theme-bg: #1a1815;
-  --theme-fg: #ede7dc;
-}
-
-[data-theme="green"] {
-  --theme-bg: #1a332c;
-  --theme-fg: #dceee5;
-  --theme-accent: #4caf50;
-  --theme-muted: #6b8f80;
-  --theme-surface: #243d34;
-  --theme-border: #3a5c4e;
-}
-
-/*
- * @theme resolves --color-* once, at :root, so a scheme set on a subtree would never reach them.
- * Re-declaring them wherever a scheme or theme is set makes them resolve against that element.
- */
-[data-color-scheme],
-[data-theme] {
-  --color-background: var(--theme-bg);
-  --color-foreground: var(--theme-fg);
-  --color-accent: var(--theme-accent);
-  --color-muted: var(--theme-muted);
-  --color-surface: var(--theme-surface);
-  --color-border: var(--theme-border);
-  --color-focus: var(--theme-focus);
-
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-}
-
+/* Tailwind tokens; the values they point at are in colors.css. */
 @theme {
   /* Only colours are reset; wiping everything (--*) also removes spacing, breakpoints and easings. */
   --color-*: initial;
@@ -61,12 +19,4 @@
   /* Registered here so they're utilities too: `ease-out-cubic`, `ease-sweep`. */
   --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
   --ease-sweep: cubic-bezier(0.83, 0, 0.17, 1);
-}
-
-:root {
-  --color-green: #2c6469;
-  --color-purple: #b20155;
-  --color-orange: #df6536;
-  --color-blue: #3469a1;
-  --color-yellow: #ebb137;
 }

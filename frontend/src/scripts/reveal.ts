@@ -1,4 +1,4 @@
-// Opacity reveal controller. Opt in with [data-animate-reveal]; fires once at 10%
+// [data-animate-reveal] fades in once 10% is in view.
 export function initReveal(): () => void {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduceMotion) return () => {};
@@ -7,7 +7,7 @@ export function initReveal(): () => void {
     (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
-        entry.target.classList.add("is-revealed");
+        (entry.target as HTMLElement).dataset.revealed = "";
         observer.unobserve(entry.target);
       }
     },
@@ -16,7 +16,7 @@ export function initReveal(): () => void {
 
   document
     .querySelectorAll<HTMLElement>("[data-animate-reveal]")
-    .forEach((el) => observer.observe(el));
+    .forEach((element) => observer.observe(element));
 
   return () => observer.disconnect();
 }

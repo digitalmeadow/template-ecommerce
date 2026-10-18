@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useCallback } from "react";
 
-const COLUMNS = 24;
+// Matches --column-count in spacing.css
+const COLUMNS = 16;
 
 export default function Grid() {
   const visibleRef = useRef(false);

@@ -1,10 +1,11 @@
 import ChevronDownIcon from "@sanity/icons/ChevronDown";
 import { defineField, defineType } from "sanity";
-import { RICH_TEXT, richText } from "./richText";
+import { RICH_TEXT_STYLES, richText } from "./richText";
 
 export const tabItem = defineType({
   type: "object",
   name: "tabItem",
+  title: "Tab",
   icon: ChevronDownIcon,
   fields: [
     defineField({
@@ -13,7 +14,7 @@ export const tabItem = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      ...richText(RICH_TEXT.prose, { required: true }),
+      ...richText(RICH_TEXT_STYLES.extended, { required: true }),
       name: "content",
     }),
     defineField({

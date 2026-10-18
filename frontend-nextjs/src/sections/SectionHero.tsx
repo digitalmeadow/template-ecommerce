@@ -12,6 +12,7 @@ export default function SectionHero({ sectionData }: Props) {
   return (
     <section
       data-color-scheme={sectionData.colorScheme ?? undefined}
+      id={sectionData.id ?? undefined}
       className="section-hero mx-auto mt-[var(--s200)] mb-[var(--s40)] w-[var(--container-width)] max-[64rem]:mt-[calc(var(--s200)+var(--s24))]"
     >
       {sectionData.heading && (

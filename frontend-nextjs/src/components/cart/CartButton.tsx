@@ -5,7 +5,8 @@ import { $cartCount } from "@/stores/cart";
 import { setCartOpen } from "@/stores/ui";
 
 export default function CartButton() {
-  const count = useStore($cartCount);
+  // The stored cart is read before hydration; render the server's empty count until hydrated.
+  const count = useStore($cartCount, { ssr: () => 0 });
 
   return (
     <button

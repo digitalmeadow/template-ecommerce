@@ -4,10 +4,7 @@ import { resolveSanityHref } from "./resolve";
 
 export type JsonLdSchema = Record<string, unknown>;
 
-/**
- * Strips null, undefined and empty branches. Without it every unfilled CMS field would emit
- * `"name": null`, which validators read as an assertion that the value is genuinely empty.
- */
+// Strips empty branches; validators read `"name": null` as asserting the value is genuinely empty.
 function compact(value: unknown): unknown {
   if (Array.isArray(value)) {
     const items = value.map(compact).filter((item) => item !== undefined);
@@ -33,9 +30,8 @@ function compact(value: unknown): unknown {
 const absoluteUrl = (path: string | null | undefined, site: URL | undefined) =>
   path ? new URL(path, site).href : undefined;
 
-/** Every page carries the organisation node, so page schemas point at it by @id rather than repeating it. */
-const organisationId = (site: URL | undefined) =>
-  absoluteUrl("/#organisation", site);
+// Every page carries the organisation node, so page schemas point at it by @id rather than repeating it.
+const organisationId = (site: URL | undefined) => absoluteUrl("/#organisation", site);
 
 const organisationRef = (site: URL | undefined) => ({
   "@id": organisationId(site),
@@ -99,7 +95,7 @@ export function buildWebSiteSchema(
   }) as JsonLdSchema | undefined;
 }
 
-/** Breadcrumb trail from the URL path; the last crumb takes the page's own title. */
+// Breadcrumb trail from the URL path; the last crumb takes the page's own title.
 export function buildBreadcrumbSchema(
   pathname: string,
   title: string | null | undefined,
@@ -111,10 +107,7 @@ export function buildBreadcrumbSchema(
   const crumbs = [
     { name: "Home", url: absoluteUrl("/", site) },
     ...segments.map((segment, index) => ({
-      name:
-        index === segments.length - 1 && title
-          ? title
-          : segment.replace(/-/g, " "),
+      name: index === segments.length - 1 && title ? title : segment.replace(/-/g, " "),
       url: absoluteUrl(`/${segments.slice(0, index + 1).join("/")}`, site),
     })),
   ];
@@ -151,7 +144,7 @@ export function buildProductSchema(
     url,
     image: [
       sanity.mediaThumbnail?.image,
-      ...(sanity.mediaGallery ?? []).map((m) => m?.image),
+      ...(sanity.mediaGallery ?? []).map((media) => media?.image),
     ]
       .map((image) => image?.asset?.url)
       .filter(Boolean),

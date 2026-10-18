@@ -1,9 +1,6 @@
 import type { MediaFragment, MetaFragment, SanityImageFragment } from "sanity/generated/graphql";
 
-/**
- * What <Meta> actually consumes. Looser than MetaFragment so pages can synthesise metadata
- * from their own fields when an editor leaves the CMS meta blank.
- */
+/** Looser than MetaFragment so pages can synthesise meta from their own fields. */
 export interface ResolvedMeta {
   title?: string | null;
   description?: string | null;
@@ -44,10 +41,7 @@ interface MetaSource {
   mediaThumbnail?: MediaFragment | null;
 }
 
-/**
- * CMS meta wins; otherwise synthesise from the document's own fields. Without this, every page
- * an editor hasn't filled in falls through to the single global default and ships a duplicate title.
- */
+/** CMS meta wins; otherwise the document's own fields, so unfilled pages don't share one title. */
 export function resolveMeta(
   source: MetaSource | null | undefined,
   fallbacks: { title?: string | null; description?: string | null } = {},

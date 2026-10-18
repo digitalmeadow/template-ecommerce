@@ -12,7 +12,7 @@ export default function Footer({ footerData }: Props) {
 
   return (
     <>
-      <footer>
+      <footer className="footer">
         <div className="footer-content flex flex-col text-center">
           <PortableText value={footerData.textRaw} />
 

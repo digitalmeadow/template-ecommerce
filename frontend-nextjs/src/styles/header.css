@@ -1,4 +1,4 @@
-header {
+.header {
   position: relative;
   z-index: 10;
 
@@ -14,14 +14,14 @@ header {
   pointer-events: none;
 }
 
-@media (max-width: 1000px) {
-  header {
+@media (max-width: 64rem) {
+  .header {
     padding: var(--s16) 0 var(--s120);
   }
 }
 
-@media (max-width: 500px) {
-  header {
+@media (max-width: 32rem) {
+  .header {
     grid-template-columns: 1fr auto;
   }
 }
@@ -31,13 +31,13 @@ header {
   top: 0;
   left: 0;
   width: 100%;
-  height: 64px;
+  height: 4rem;
   background-color: var(--color-background);
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 64rem) {
   .header-background {
-    height: 40px;
+    height: 2.5rem;
   }
 }
 
@@ -47,13 +47,13 @@ header {
   pointer-events: auto;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 64rem) {
   .header-locale {
     top: var(--s16);
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 32rem) {
   .header-locale {
     display: none;
   }
@@ -66,13 +66,13 @@ header {
   pointer-events: auto;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 64rem) {
   .header-cart {
     top: var(--s16);
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 32rem) {
   .header-cart {
     grid-area: 1 / 2 / 2 / 3;
   }
@@ -83,13 +83,13 @@ header {
 
   grid-area: 1 / 2 / 2 / 3;
   justify-self: center;
-  width: 48px;
+  width: 3rem;
   aspect-ratio: 438 / 405;
   margin-bottom: var(--s24);
   pointer-events: auto;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 32rem) {
   .header-logo {
     grid-area: 1 / 1 / 2 / 2;
     justify-self: start;
@@ -111,13 +111,13 @@ header {
   pointer-events: auto;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 64rem) {
   .header-nav {
     top: var(--s16);
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 32rem) {
   .header-nav {
     grid-area: 1 / 1 / 2 / 2;
     justify-self: start;

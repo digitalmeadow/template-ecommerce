@@ -1,63 +1,33 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import type { ProductShopifySanity } from "@/lib/fetches/productShopifySanity";
 import { shopifyIdFromGid } from "shopify/utils/ids";
+import type { ProductShopifySanity } from "@/lib/fetches/productShopifySanity";
+import type { EventProductVariantChangeDetail } from "@/lib/events";
+import { DEFAULT_VARIANT_TITLE, type Variant } from "@/lib/shopify/variants";
 import { cn } from "@/lib/utils";
 
-interface Variant {
-  id: string;
-  selectedOptions: Array<{
-    name: string;
-    value: string;
-  }>;
-  availableForSale: boolean;
-}
-
 interface Props {
-  productData: ProductShopifySanity;
+  productData: ProductShopifySanity | null | undefined;
   className?: string;
 }
 
-export default function ProductVariantSelector({
-  productData,
-  className,
-}: Props) {
+export default function ProductVariantSelector({ productData, className }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
-
-  const options = productData.shopify.options || [];
-  const variants = productData.shopify.variants.edges;
-  const isSingleDefaultVariant =
-    variants.length === 1 && variants[0].node.title === "Default Title";
-
-  const variantsForMatching: Variant[] = variants.map((edge) => ({
-    id: edge.node.id,
-    selectedOptions: edge.node.selectedOptions,
-    availableForSale: edge.node.availableForSale,
-  }));
-
-  const shopifyId = shopifyIdFromGid(productData.shopify.id);
 
   useEffect(() => {
     const rootElement = rootRef.current;
     if (!rootElement) return;
 
-    const productRoot = rootElement.closest(
-      "[data-product-root]",
-    ) as HTMLElement | null;
-    if (!productRoot)
-      throw new Error("ProductVariantSelector: missing [data-product-root]");
+    const productRoot = rootElement.closest("[data-product-root]") as HTMLElement | null;
+    if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
 
     const optionInputs = Array.from(
       rootElement.querySelectorAll("[data-option-input]"),
     ) as HTMLInputElement[];
-    const variantIdInput = rootElement.querySelector(
-      "[data-variant-id]",
-    ) as HTMLInputElement;
+    const variantIdInput = rootElement.querySelector("[data-variant-id]") as HTMLInputElement;
 
-    const variantsData: Variant[] = JSON.parse(
-      rootElement.dataset.variants!,
-    );
+    const variantsData: Variant[] = JSON.parse(rootElement.dataset.variants!);
 
     function getSelectedOptions() {
       const checkedInputs = optionInputs.filter((input) => input.checked);
@@ -69,16 +39,15 @@ export default function ProductVariantSelector({
 
     function findMatchingVariant(): Variant | null {
       const selectedOptions = getSelectedOptions();
-      const uniqueOptionNames = new Set(
-        optionInputs.map((i) => i.dataset.optionName),
-      );
+      const uniqueOptionNames = new Set(optionInputs.map((input) => input.dataset.optionName));
       if (selectedOptions.length < uniqueOptionNames.size) return null;
 
       return (
-        variantsData.find((v) =>
+        variantsData.find((variant) =>
           selectedOptions.every((selected) =>
-            v.selectedOptions.some(
-              (vo) => vo.name === selected.name && vo.value === selected.value,
+            variant.selectedOptions.some(
+              (variantOption) =>
+                variantOption.name === selected.name && variantOption.value === selected.value,
             ),
           ),
         ) ?? null
@@ -91,32 +60,23 @@ export default function ProductVariantSelector({
 
       variantIdInput.value = variant.id;
 
+      const detail: EventProductVariantChangeDetail = {
+        variantId: variant.id,
+        availableForSale: variant.availableForSale,
+      };
       productRoot!.dispatchEvent(
-        new CustomEvent("product:variant-change", {
-          bubbles: true,
-          detail: {
-            variantId: variant.id,
-            availableForSale: variant.availableForSale,
-          },
-        }),
+        new CustomEvent("product:variant-change", { bubbles: true, detail }),
       );
     }
 
-    function updateUI() {
+    function syncActiveLabels() {
       optionInputs.forEach((input) => {
-        const label = input.closest("label");
-        if (label) {
-          if (input.checked) {
-            label.setAttribute("data-active", "");
-          } else {
-            label.removeAttribute("data-active");
-          }
-        }
+        input.closest("label")?.toggleAttribute("data-active", input.checked);
       });
     }
 
     const handleChange = () => {
-      updateUI();
+      syncActiveLabels();
       updateVariantId();
     };
 
@@ -124,25 +84,33 @@ export default function ProductVariantSelector({
       input.addEventListener("change", handleChange);
     });
 
-    productRoot.addEventListener(
-      "product:request-variant-update",
-      updateVariantId,
-    );
+    productRoot.addEventListener("product:request-variant-update", updateVariantId);
 
-    // Initial sync
-    updateUI();
+    syncActiveLabels();
     updateVariantId();
 
     return () => {
       optionInputs.forEach((input) => {
         input.removeEventListener("change", handleChange);
       });
-      productRoot.removeEventListener(
-        "product:request-variant-update",
-        updateVariantId,
-      );
+      productRoot.removeEventListener("product:request-variant-update", updateVariantId);
     };
   }, []);
+
+  if (!productData) return null;
+
+  const options = productData.shopify.options || [];
+  const variants = productData.shopify.variants.edges;
+  const isSingleDefaultVariant =
+    variants.length === 1 && variants[0].node.title === DEFAULT_VARIANT_TITLE;
+
+  const variantsForMatching: Variant[] = variants.map((edge) => ({
+    id: edge.node.id,
+    selectedOptions: edge.node.selectedOptions,
+    availableForSale: edge.node.availableForSale,
+  }));
+
+  const shopifyId = shopifyIdFromGid(productData.shopify.id);
 
   return (
     <div
@@ -153,30 +121,27 @@ export default function ProductVariantSelector({
     >
       {!isSingleDefaultVariant &&
         options.map((option) => {
-          const selectId = `${shopifyId}-${option.name.toLowerCase()}`;
+          const radioIdPrefix = `${shopifyId}-${option.name.toLowerCase()}`;
           return (
-            <fieldset
-              key={option.name}
-              className="option-fieldset border-none p-0 m-0"
-            >
+            <fieldset key={option.name} className="option-fieldset m-0 border-none p-0">
               <legend>{option.name}:</legend>
               <div className="option-values flex flex-wrap gap-[var(--s8)]">
-                {option.values.map((value, idx) => (
+                {option.values.map((value, valueIndex) => (
                   <label
                     key={value}
                     className="text-link cursor-pointer"
-                    htmlFor={`${selectId}-${value}`}
-                    data-active={idx === 0 ? "" : undefined}
+                    htmlFor={`${radioIdPrefix}-${value}`}
+                    data-active={valueIndex === 0 ? "" : undefined}
                   >
                     <input
-                      className="sr-only"
+                      className="visually-hidden"
                       type="radio"
                       name={option.name}
-                      id={`${selectId}-${value}`}
+                      id={`${radioIdPrefix}-${value}`}
                       data-option-input
                       data-option-name={option.name}
                       value={value}
-                      defaultChecked={idx === 0}
+                      defaultChecked={valueIndex === 0}
                     />
                     {value}
                   </label>
@@ -185,11 +150,7 @@ export default function ProductVariantSelector({
             </fieldset>
           );
         })}
-      <input
-        type="hidden"
-        data-variant-id
-        data-product-id={productData.shopify.id}
-      />
+      <input type="hidden" data-variant-id />
     </div>
   );
 }

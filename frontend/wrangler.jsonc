@@ -6,9 +6,7 @@
   // Capped by the workerd that miniflare bundles for prerendering; raising this past it fails
   // the build, not just the deploy.
   "compatibility_date": "2026-09-30",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
@@ -27,10 +25,10 @@
       "secrets": {
         "required": [
           "SANITY_WEBHOOK_SECRET",
+          "SHOPIFY_SANITY_SYNC_SECRET",
           "SANITY_VIEWER_API_TOKEN",
           "SANITY_EDITOR_API_TOKEN",
           "GIT_API_TOKEN",
-          "SHOPIFY_PRIVATE_API_TOKEN"
         ],
       },
     },
@@ -38,10 +36,10 @@
       "secrets": {
         "required": [
           "SANITY_WEBHOOK_SECRET",
+          "SHOPIFY_SANITY_SYNC_SECRET",
           "SANITY_VIEWER_API_TOKEN",
           "SANITY_EDITOR_API_TOKEN",
           "GIT_API_TOKEN",
-          "SHOPIFY_PRIVATE_API_TOKEN"
         ],
       },
     },
@@ -49,10 +47,10 @@
       "secrets": {
         "required": [
           "SANITY_WEBHOOK_SECRET",
+          "SHOPIFY_SANITY_SYNC_SECRET",
           "SANITY_VIEWER_API_TOKEN",
           "SANITY_EDITOR_API_TOKEN",
           "GIT_API_TOKEN",
-          "SHOPIFY_PRIVATE_API_TOKEN"
         ],
       },
     },
@@ -60,10 +58,10 @@
       "secrets": {
         "required": [
           "SANITY_WEBHOOK_SECRET",
+          "SHOPIFY_SANITY_SYNC_SECRET",
           "SANITY_VIEWER_API_TOKEN",
           "SANITY_EDITOR_API_TOKEN",
           "GIT_API_TOKEN",
-          "SHOPIFY_PRIVATE_API_TOKEN"
         ],
       },
     },

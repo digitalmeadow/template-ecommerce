@@ -2,6 +2,7 @@ fragment SectionAccordions on SectionAccordions {
   __typename
   _key
   colorScheme
+  id
 
   accordions {
     ...Accordion

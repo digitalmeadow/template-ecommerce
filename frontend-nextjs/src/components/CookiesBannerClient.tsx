@@ -1,11 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  getConsent,
-  setConsent,
-  subscribeToConsent,
-} from "@/lib/consent/consent";
+import { getConsent, setConsent, subscribeToConsent } from "@/lib/consent/consent";
 import { useBrowserValue } from "@/lib/useBrowserValue";
 import { cn } from "@/lib/utils";
 
@@ -23,11 +19,7 @@ export default function CookiesBannerClient({
   declineLabel,
   className,
 }: Props) {
-  const visible = useBrowserValue(
-    () => getConsent() === null,
-    false,
-    subscribeToConsent,
-  );
+  const visible = useBrowserValue(() => getConsent() === null, false, subscribeToConsent);
 
   if (!visible) return null;
 

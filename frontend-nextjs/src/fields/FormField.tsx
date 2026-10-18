@@ -19,8 +19,7 @@ function resolveAutoComplete({ type, name }: FormFieldDefinition) {
   if (type === "tel") return "tel";
 
   const normalised = name.toLowerCase();
-  if (normalised.includes("company") || normalised.includes("organisation"))
-    return "organization";
+  if (normalised.includes("company") || normalised.includes("organisation")) return "organization";
   if (normalised.includes("name")) return "name";
   return undefined;
 }
@@ -40,31 +39,14 @@ export default function FormField({ field, prefix, error }: Props) {
   };
 
   return (
-    <FieldWrapper
-      type={type}
-      width={field.width}
-      errorId={errorId}
-      error={error}
-    >
-      {type === "textarea" && (
-        <FieldTextarea {...shared} placeholder={placeholder} />
-      )}
-      {type === "select" && (
-        <FieldSelect {...shared} placeholder={placeholder} options={options} />
-      )}
+    <FieldWrapper type={type} width={field.width} errorId={errorId} error={error}>
+      {type === "textarea" && <FieldTextarea {...shared} placeholder={placeholder} />}
+      {type === "select" && <FieldSelect {...shared} placeholder={placeholder} options={options} />}
       {(type === "file" || type === "files") && (
-        <FieldFile
-          {...shared}
-          placeholder={placeholder}
-          multiple={type === "files"}
-        />
+        <FieldFile {...shared} placeholder={placeholder} multiple={type === "files"} />
       )}
-      {type === "checkboxGroup" && (
-        <FieldCheckboxGroup {...shared} options={options} />
-      )}
-      {type === "radioGroup" && (
-        <FieldRadioGroup {...shared} options={options} />
-      )}
+      {type === "checkboxGroup" && <FieldCheckboxGroup {...shared} options={options} />}
+      {type === "radioGroup" && <FieldRadioGroup {...shared} options={options} />}
       {(type === "text" || type === "email" || type === "tel") && (
         <FieldText
           {...shared}

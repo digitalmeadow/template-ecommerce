@@ -1,6 +1,6 @@
 ---
 import type { MuxVideoFragment } from "sanity/generated/graphql";
-import { createBlurUp } from "@mux/blurup";
+import { fetchMuxBlurUp } from "@lib/video";
 
 interface Props {
   videoData: MuxVideoFragment | null | undefined;
@@ -13,24 +13,26 @@ const { videoData, layout = "width", loading = "lazy", mediaId }: Props = Astro.
 
 const aspectRatio = videoData?.asset?.data?.aspect_ratio?.replace(":", "/");
 const playbackId = videoData?.asset?.playbackId;
-const posterURL = `https://image.mux.com/${playbackId}/thumbnail.jpg?fit_mode=crop&time=0`;
-
-const { imageDataURL } = playbackId
-  ? await createBlurUp(playbackId, {})
-  : { imageDataURL: undefined };
+const posterURL = playbackId
+  ? `https://image.mux.com/${playbackId}/thumbnail.jpg?fit_mode=crop&time=0`
+  : undefined;
+const placeholderSrc = playbackId ? (await fetchMuxBlurUp(playbackId)).imageDataURL : undefined;
 ---
 
 <script>
   import "@mux/mux-player";
 </script>
 
-<div class:list={["mux-video", `layout-${layout}`]} style=`aspect-ratio: ${aspectRatio};`>
-  <img class="mux-video-placeholder" src={imageDataURL} alt="" />
+<div
+  class:list={["mux-video", `layout-${layout}`]}
+  style={aspectRatio ? `aspect-ratio: ${aspectRatio};` : undefined}
+>
+  {placeholderSrc && <img class="placeholder" src={placeholderSrc} alt="" aria-hidden="true" />}
 
   <mux-player
     class="video"
     data-media-id={mediaId}
-    playback-id={videoData?.asset?.playbackId}
+    playback-id={playbackId}
     layout={layout}
     loading={loading}
     poster={posterURL}
@@ -39,8 +41,7 @@ const { imageDataURL } = playbackId
     title={videoData?.asset?.filename}
     min_resolution="720p"
     oncanplay="this.dataset.loaded = ''"
-  >
-  </mux-player>
+  ></mux-player>
 </div>
 
 <style>
@@ -60,7 +61,7 @@ const { imageDataURL } = playbackId
     position: relative;
   }
 
-  .mux-video-placeholder {
+  .placeholder {
     position: absolute;
     top: 0;
     left: 0;

@@ -22,34 +22,23 @@ async function fetchGeoCountry(): Promise<string | null> {
 
 function localeForCountry(country: string): LocaleCode | null {
   const locales = Object.keys(LOCALE_CONFIG) as LocaleCode[];
-  return (
-    locales.find((locale) => LOCALE_CONFIG[locale].country === country) ?? null
-  );
+  return locales.find((locale) => LOCALE_CONFIG[locale].country === country) ?? null;
 }
 
-/** The store to suggest, or null when the visitor is in it, has no store, or said no to it. */
-export async function suggestedLocale(
-  current: LocaleCode,
-): Promise<LocaleCode | null> {
+// The store to suggest, or null when the visitor is in it, has no store, or said no to it.
+export async function suggestedLocale(current: LocaleCode): Promise<LocaleCode | null> {
   const country = await fetchGeoCountry();
   if (!country) return null;
-  if (localStorage.getItem(LOCATION_NOTICE_DISMISSED_STORAGE_KEY) === country)
-    return null;
+  if (localStorage.getItem(LOCATION_NOTICE_DISMISSED_STORAGE_KEY) === country) return null;
 
   const locale = localeForCountry(country);
   return locale && locale !== current ? locale : null;
 }
 
 export function dismissLocationNotice(locale: LocaleCode) {
-  localStorage.setItem(
-    LOCATION_NOTICE_DISMISSED_STORAGE_KEY,
-    LOCALE_CONFIG[locale].country,
-  );
+  localStorage.setItem(LOCATION_NOTICE_DISMISSED_STORAGE_KEY, LOCALE_CONFIG[locale].country);
 }
 
-export function fillMarket(
-  template: string | null | undefined,
-  locale: LocaleCode,
-): string {
+export function fillMarket(template: string | null | undefined, locale: LocaleCode): string {
   return (template ?? "").replaceAll("{market}", LOCALE_CONFIG[locale].label);
 }

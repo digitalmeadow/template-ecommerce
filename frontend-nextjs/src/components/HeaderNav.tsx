@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 interface NavItem {
   label: string | null | undefined;
   href: string | undefined;
@@ -9,7 +10,6 @@ interface NavItem {
   rel?: string;
   download?: string;
   isInternal: boolean;
-  isCollection: boolean;
 }
 
 interface Props {
@@ -29,42 +29,38 @@ export default function HeaderNav({ navItems }: Props) {
 
   return (
     <nav className="header-nav">
-      {navItems.map((item, index) => (
-        <div
-          key={index}
-          className={item.isCollection ? "nav-item collection" : "nav-item"}
-        >
-          {item.href === undefined ? (
-            <span
-              className={`text-link ${underlineStyles[index % underlineStyles.length]}`}
-            >
-              {item.label}
-            </span>
-          ) : item.isInternal ? (
-            <Link
-              href={item.href}
-              className={`text-link ${underlineStyles[index % underlineStyles.length]}`}
-              data-active={pathname === item.href ? "" : undefined}
-              target={item.target}
-              rel={item.rel}
-              download={item.download}
-            >
-              {item.label}
-            </Link>
-          ) : (
-            <a
-              href={item.href}
-              className={`text-link ${underlineStyles[index % underlineStyles.length]}`}
-              data-active={pathname === item.href ? "" : undefined}
-              target={item.target}
-              rel={item.rel}
-              download={item.download}
-            >
-              {item.label}
-            </a>
-          )}
-        </div>
-      ))}
+      {navItems.map((item, index) => {
+        const linkClassName = `text-link ${underlineStyles[index % underlineStyles.length]}`;
+        return (
+          <div key={index} className="nav-item">
+            {item.href === undefined ? (
+              <span className={linkClassName}>{item.label}</span>
+            ) : item.isInternal ? (
+              <Link
+                href={item.href}
+                className={linkClassName}
+                data-active={pathname === item.href ? "" : undefined}
+                target={item.target}
+                rel={item.rel}
+                download={item.download}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                href={item.href}
+                className={linkClassName}
+                data-active={pathname === item.href ? "" : undefined}
+                target={item.target}
+                rel={item.rel}
+                download={item.download}
+              >
+                {item.label}
+              </a>
+            )}
+          </div>
+        );
+      })}
     </nav>
   );
 }

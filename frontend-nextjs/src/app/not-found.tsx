@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { buildMetadata } from "@/meta/metadata";
+import { getGlobals } from "@/lib/sanity/globals";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({ metaData: { title: "404 - Page Not Found" } });
+  const { metaSettingsData, organisationSettingsData } = await getGlobals();
+  const title = metaSettingsData?.meta?.title || organisationSettingsData?.name || "Page not found";
+  return buildMetadata({ metaData: { title } });
 }
 
 export default function NotFound() {

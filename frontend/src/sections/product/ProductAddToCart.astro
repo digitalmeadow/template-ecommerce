@@ -1,13 +1,17 @@
 <div class="product-add-to-cart" data-product-add-to-cart>
-  <button type="button" class="text-link" data-add-to-cart-button data-available-for-sale="true"
+  <button
+    type="button"
+    class="text-link"
+    data-add-to-cart-button
+    data-available-for-sale="true"
   ></button>
 </div>
 
 <script>
   import { addToCart } from "@stores/cart";
   import { setCartOpen } from "@stores/ui";
-  import type { Variant } from "@sections/product/ProductVariantSelector.astro";
-  import type { EventProductVariantChange } from "./ProductVariantSelector.astro.0.mts";
+  import type { Variant } from "@lib/shopify/variants";
+  import type { EventProductVariantChange } from "@lib/events";
 
   function initialiseProductAddToCart(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
@@ -29,10 +33,10 @@
     if (!variantSelector)
       throw new Error("ProductAddToCart: missing [data-variant-selector] inside product root");
 
-    const variants = JSON.parse(variantSelector.dataset.variants!);
-    const selectedVariantAvailableForSale = variants.find(
-      (variant: Variant) => variant.id === getSelectedVariantId(),
-    )?.availableForSale;
+    const variants: Variant[] = JSON.parse(variantSelector.dataset.variants ?? "[]");
+    let selectedVariantAvailableForSale = Boolean(
+      variants.find((variant) => variant.id === getSelectedVariantId())?.availableForSale,
+    );
 
     function getSelectedQuantity() {
       if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
@@ -72,12 +76,11 @@
     }
 
     function handleVariantChange(event: Event) {
-      const eventProductVariantChange = event as EventProductVariantChange;
-      const availableForSale = eventProductVariantChange.detail.availableForSale;
-      handleVariantAvailability(availableForSale);
+      handleVariantAvailability((event as EventProductVariantChange).detail.availableForSale);
     }
 
     function handleVariantAvailability(available: boolean) {
+      selectedVariantAvailableForSale = available;
       button.setAttribute("data-available-for-sale", String(available));
       button.disabled = !available;
     }

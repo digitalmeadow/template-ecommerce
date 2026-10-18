@@ -4,7 +4,6 @@
 
   --s4: 4px;
   --s8: 8px;
-  --s10: 10px;
   --s12: 12px;
   --s16: 16px;
   --s20: 20px;
@@ -15,27 +14,21 @@
   --s80: 80px;
   --s120: 120px;
   --s200: 200px;
-  --s300: 300px;
-  --s400: 400px;
 
   --column-count: 16;
   --margin: 20px;
   --gutter: 20px;
 
   --container-max-width: 1400px;
-  --container-width: min(
-    calc((100 * var(--vw)) - (2 * var(--margin))),
-    var(--container-max-width)
-  );
+  --container-width: min(calc((100 * var(--vw)) - (2 * var(--margin))), var(--container-max-width));
 
   --column: calc(
     (1 / var(--column-count)) *
       (var(--container-width) - ((var(--column-count) - 1) * (var(--gutter))))
   );
-  --margin-dynamic: calc((100 * var(--vw) - var(--container-width)) / 2);
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 64rem) {
   :root {
     --s16: 8px;
     --s24: 16px;
@@ -45,10 +38,16 @@
     --s80: 64px;
     --s120: 80px;
     --s200: 120px;
-    --s300: 200px;
-    --s400: 300px;
 
     --margin: 16px;
     --gutter: 16px;
   }
+}
+
+/* Centres content at container width — use on the element itself rather than nesting a wrapper. */
+@utility u-container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin-left: auto;
+  margin-right: auto;
 }

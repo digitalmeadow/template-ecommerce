@@ -3,6 +3,8 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { addToCart } from "@/stores/cart";
 import { setCartOpen } from "@/stores/ui";
+import type { EventProductVariantChange } from "@/lib/events";
+import type { Variant } from "@/lib/shopify/variants";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -18,11 +20,8 @@ export default function ProductAddToCart({ className }: Props) {
     const rootElement = rootRef.current;
     if (!rootElement) return;
 
-    const productRoot = rootElement.closest(
-      "[data-product-root]",
-    ) as HTMLElement | null;
-    if (!productRoot)
-      throw new Error("ProductAddToCart: missing [data-product-root]");
+    const productRoot = rootElement.closest("[data-product-root]") as HTMLElement | null;
+    if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
     function getSelectedVariantId(): string {
       const variantIdInput = productRoot!.querySelector(
@@ -33,36 +32,27 @@ export default function ProductAddToCart({ className }: Props) {
       return variantIdInput.value;
     }
 
-    // Get initial availability
     const variantSelector = productRoot.querySelector(
       "[data-variant-selector]",
     ) as HTMLElement | null;
     if (variantSelector) {
-      const variants = JSON.parse(variantSelector.dataset.variants!);
+      const variants: Variant[] = JSON.parse(variantSelector.dataset.variants ?? "[]");
       const selectedId = getSelectedVariantId();
-      const selectedVariant = variants.find(
-        (v: { id: string; availableForSale: boolean }) => v.id === selectedId,
-      );
+      const selectedVariant = variants.find((variant) => variant.id === selectedId);
       if (selectedVariant) {
         setAvailable(selectedVariant.availableForSale);
       }
     }
 
     function handleVariantChange(event: Event) {
-      const { availableForSale } = (event as CustomEvent).detail;
-      setAvailable(Boolean(availableForSale));
+      const { availableForSale } = (event as EventProductVariantChange).detail;
+      setAvailable(availableForSale);
     }
 
-    productRoot.addEventListener(
-      "product:variant-change",
-      handleVariantChange,
-    );
+    productRoot.addEventListener("product:variant-change", handleVariantChange);
 
     return () => {
-      productRoot.removeEventListener(
-        "product:variant-change",
-        handleVariantChange,
-      );
+      productRoot.removeEventListener("product:variant-change", handleVariantChange);
     };
   }, []);
 
@@ -70,9 +60,7 @@ export default function ProductAddToCart({ className }: Props) {
     const rootElement = rootRef.current;
     if (!rootElement) return;
 
-    const productRoot = rootElement.closest(
-      "[data-product-root]",
-    ) as HTMLElement | null;
+    const productRoot = rootElement.closest("[data-product-root]") as HTMLElement | null;
     if (!productRoot) return;
 
     const variantIdInput = productRoot.querySelector(
@@ -83,16 +71,11 @@ export default function ProductAddToCart({ className }: Props) {
     const variantId = variantIdInput.value;
     if (!variantId) return;
 
-    // Read quantity from the DOM
-    const quantityContainer = productRoot.querySelector(
-      "[data-quantity-selector]",
-    );
-    const qtyInput = quantityContainer
-      ? (quantityContainer.querySelector(
-          'input[type="number"]',
-        ) as HTMLInputElement)
+    const quantityContainer = productRoot.querySelector("[data-quantity-selector]");
+    const quantityInput = quantityContainer
+      ? (quantityContainer.querySelector('input[type="number"]') as HTMLInputElement)
       : null;
-    const quantity = qtyInput ? Number(qtyInput.value) || 1 : 1;
+    const quantity = quantityInput ? Number(quantityInput.value) || 1 : 1;
 
     setLoading(true);
     document.body.style.cursor = "wait";
@@ -109,17 +92,10 @@ export default function ProductAddToCart({ className }: Props) {
   }, []);
 
   return (
-    <div
-      ref={rootRef}
-      className={cn("product-add-to-cart", className)}
-      data-product-add-to-cart
-    >
+    <div ref={rootRef} className={cn("product-add-to-cart", className)} data-product-add-to-cart>
       <button
         type="button"
-        className={cn(
-          "text-link",
-          !available && "opacity-50 cursor-not-allowed",
-        )}
+        className={cn("text-link", !available && "cursor-not-allowed opacity-50")}
         data-add-to-cart-button
         data-available-for-sale={String(available)}
         data-loading={loading ? "true" : undefined}

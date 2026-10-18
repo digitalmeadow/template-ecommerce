@@ -1,7 +1,7 @@
 import ComposeIcon from "@sanity/icons/Compose";
 import { colorSchemeField } from "../fields/colorScheme";
+import { sectionIdField } from "../fields/sectionId";
 import { defineField, defineType } from "sanity";
-import { validateSlugId } from "../../utils/validation";
 
 export const sectionForm = defineType({
   type: "object",
@@ -10,13 +10,7 @@ export const sectionForm = defineType({
   icon: ComposeIcon,
   fields: [
     colorSchemeField,
-    defineField({
-      type: "string",
-      name: "id",
-      title: "Section ID",
-      description: "Optional. Used as an anchor so links can scroll directly to this section.",
-      validation: validateSlugId,
-    }),
+    sectionIdField,
     defineField({ type: "string", name: "heading" }),
     defineField({
       type: "reference",
@@ -27,11 +21,11 @@ export const sectionForm = defineType({
     }),
   ],
   preview: {
-    select: { title: "heading", form: "form.title" },
-    prepare({ title, form }) {
+    select: { form: "form.title" },
+    prepare({ form }) {
       return {
-        title: title || "Section: Form",
-        subtitle: form ? `Form: ${form}` : "No form selected",
+        title: "Section: Form",
+        subtitle: form ?? "No form selected",
       };
     },
   },

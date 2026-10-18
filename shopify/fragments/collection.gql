@@ -1,6 +1,7 @@
 fragment CollectionCore on Collection {
   __typename
   id
+
   handle
   title
 }

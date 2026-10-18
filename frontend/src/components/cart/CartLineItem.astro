@@ -30,7 +30,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       </div>
 
       <div class="prices">
-        <div style="display: none;" data-compare-at-wrapper>
+        <div data-compare-at-wrapper hidden>
           <PriceDisplay variant="compare-at" data-compare-at-price />
         </div>
         <PriceDisplay data-price />
@@ -43,21 +43,21 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
   import { resolveSanityHref } from "@lib/sanity/resolve";
   import { getCurrency } from "@lib/shopify/locale";
   import { updateLineQuantity, removeLine } from "@stores/cart";
-  import type { QuantitySelectorElement } from "@blocks/QuantitySelector.astro.0.mts";
-  import type { PriceDisplayElement } from "@blocks/PriceDisplay.astro.0.mts";
+  import { DEFAULT_VARIANT_TITLE } from "@lib/shopify/variants";
+  import type { EventQuantityChanged } from "@lib/events";
   import type { CartLineFragment } from "shopify/generated/graphql";
 
-  export class CartLineItemElement extends HTMLElement {
+  class CartLineItemElement extends HTMLElement {
     linkElements: NodeListOf<HTMLAnchorElement> | undefined;
     imageElement!: HTMLImageElement;
     titleElement!: HTMLElement;
     variantTitleElement!: HTMLElement;
     removeButton!: HTMLButtonElement;
-    quantitySelector!: QuantitySelectorElement;
+    quantitySelector!: HTMLElement;
 
-    priceDisplay!: PriceDisplayElement;
+    priceDisplay!: HTMLElement;
     compareAtWrapper!: HTMLElement;
-    compareAtDisplay!: PriceDisplayElement;
+    compareAtDisplay!: HTMLElement;
 
     line?: CartLineFragment;
 
@@ -116,12 +116,12 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       this.variantTitleElement.textContent = variantTitle;
 
       const isSingleDefaultVariant =
-        variantTitle === "Default Title" && product.variants?.edges?.length === 1;
+        variantTitle === DEFAULT_VARIANT_TITLE && product.variants?.edges?.length === 1;
       this.dataset.singleDefaultVariant = String(isSingleDefaultVariant);
 
       const imageUrl = variantImage?.url ?? product.variants?.edges?.[0]?.node?.image?.url;
       if (imageUrl) {
-        this.imageElement.src = `${imageUrl}?w=120&h=120&fit=crop&auto=format`;
+        this.imageElement.src = `${imageUrl}?width=128&height=128&crop=center`;
         this.imageElement.dataset.loaded = "true";
       }
 
@@ -137,10 +137,8 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
           "currency",
           compareAtPrice.currencyCode ?? getCurrency(),
         );
-        this.compareAtWrapper.style.display = "";
-      } else {
-        this.compareAtWrapper.style.display = "none";
       }
+      this.compareAtWrapper.hidden = !compareAtPrice;
     }
 
     private handleRemove = async () => {
@@ -159,13 +157,13 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       }
     };
 
-    private handleQuantityChange = async (e: Event) => {
-      const event = e as CustomEvent<{ value: number }>;
-      const quantitySelectorElement = event.target as QuantitySelectorElement;
+    private handleQuantityChange = async (event: Event) => {
+      const { detail, target } = event as EventQuantityChanged;
+      const quantitySelectorElement = target as HTMLElement;
 
       if (!this.line) return;
 
-      const newQuantity = event.detail.value;
+      const newQuantity = detail.value;
 
       quantitySelectorElement.setAttribute("data-state", "updating");
       document.body.style.cursor = "wait";
@@ -197,8 +195,8 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
   }
 
   .thumbnail {
-    width: 64px;
-    height: 64px;
+    width: 4rem;
+    height: 4rem;
     object-fit: cover;
     background-color: var(--color-text);
   }

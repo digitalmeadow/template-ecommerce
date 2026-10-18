@@ -5,7 +5,8 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { createClient } from "sanity";
 import { SANITY_PROJECT_ID, SANITY_DATASET } from "astro:env/client";
-import { SANITY_EDITOR_API_TOKEN } from "astro:env/server";
+import { SANITY_EDITOR_API_TOKEN, SHOPIFY_SANITY_SYNC_SECRET } from "astro:env/server";
+import { shopifyIdFromGid } from "shopify/utils/ids";
 
 const PRODUCT_DOCUMENT_TYPE = "product";
 const PRODUCT_VARIANT_DOCUMENT_TYPE = "productVariant";
@@ -23,9 +24,35 @@ const sanityClient = createClient({
   token: SANITY_EDITOR_API_TOKEN,
 });
 
+// Sanity Connect can't send custom headers, so its sync URL carries `?secret=`; a Bearer header also works.
+function getProvidedSecret(request: Request): string | null {
+  const bearer = request.headers.get("Authorization")?.match(/^Bearer (.+)$/)?.[1];
+  return bearer ?? new URL(request.url).searchParams.get("secret");
+}
+
+// Hashing first gives equal-length inputs, so the comparison time doesn't leak the secret.
+async function isSecretEqual(provided: string, expected: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const [providedHash, expectedHash] = await Promise.all(
+    [provided, expected].map(
+      async (value) => new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(value))),
+    ),
+  );
+  let difference = 0;
+  for (let index = 0; index < expectedHash.length; index++) {
+    difference |= providedHash[index] ^ expectedHash[index];
+  }
+  return difference === 0;
+}
+
 export const POST: APIRoute = async ({ request }) => {
+  const providedSecret = getProvidedSecret(request);
+  if (!providedSecret || !(await isSecretEqual(providedSecret, SHOPIFY_SANITY_SYNC_SECRET))) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   try {
-    const body = (await request.json()) as requestPayload;
+    const body = (await request.json()) as RequestPayload;
 
     switch (body.action) {
       case "create":
@@ -59,12 +86,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 };
 
-type createOrUpdatePayload = payloadProductsSync | payloadCollectionsSync;
-type deletePayload = payloadProductsDelete | payloadCollectionsDelete;
+type CreateOrUpdatePayload = PayloadProductsSync | PayloadCollectionsSync;
+type DeletePayload = PayloadProductsDelete | PayloadCollectionsDelete;
 
-async function syncCreateOrUpdate(body: requestPayload) {
+async function syncCreateOrUpdate(body: RequestPayload) {
   const transaction = sanityClient.transaction();
-  const payload = body as createOrUpdatePayload;
+  const payload = body as CreateOrUpdatePayload;
 
   if ("products" in payload && payload.products?.length) {
     await createOrUpdateProducts(transaction, payload.products);
@@ -78,8 +105,8 @@ async function syncCreateOrUpdate(body: requestPayload) {
   await transaction.commit();
 }
 
-async function syncDelete(body: requestPayload) {
-  const payload = body as deletePayload;
+async function syncDelete(body: RequestPayload) {
+  const payload = body as DeletePayload;
 
   const transaction = sanityClient.transaction();
 
@@ -95,9 +122,9 @@ async function syncDelete(body: requestPayload) {
 
 async function getExistingDocumentIds(ids: string[]): Promise<Set<string>> {
   if (!ids.length) return new Set();
-  const docs = await sanityClient.getDocuments(ids);
-  const existingIds = docs
-    .map((doc) => doc?._id)
+  const documents = await sanityClient.getDocuments(ids);
+  const existingIds = documents
+    .map((document) => document?._id)
     .filter((id): id is string => typeof id === "string");
   return new Set(existingIds);
 }
@@ -107,7 +134,7 @@ async function createOrUpdateProducts(
   products: Product[],
 ) {
   const draftDocumentIds = products.map((product) => {
-    const productShopifyId = extractIdFromGid(product.id);
+    const productShopifyId = shopifyIdFromGid(product.id);
     const productSanityId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productShopifyId}`;
     return `drafts.${productSanityId}`;
   });
@@ -129,7 +156,7 @@ async function createOrUpdateProducts(
         );
       }
     } catch (error) {
-      console.error(`❌ Failed to process product ${product.id}:`, {
+      console.error(`Failed to process product ${product.id}:`, {
         title: product.title,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -143,8 +170,8 @@ async function deleteProducts(
   productIds: number[],
 ) {
   for (const productId of productIds) {
-    const docId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productId}`;
-    transaction.delete(docId).delete(`drafts.${docId}`);
+    const documentId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productId}`;
+    transaction.delete(documentId).delete(`drafts.${documentId}`);
   }
 }
 
@@ -153,7 +180,7 @@ async function createOrUpdateCollections(
   collections: Collection[],
 ) {
   const draftDocumentIds = collections.map((collection) => {
-    const collectionShopifyId = extractIdFromGid(collection.id);
+    const collectionShopifyId = shopifyIdFromGid(collection.id);
     const collectionSanityId = `${SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX}${collectionShopifyId}`;
     return `drafts.${collectionSanityId}`;
   });
@@ -176,7 +203,7 @@ async function createOrUpdateCollections(
         );
       }
     } catch (error) {
-      console.error(`❌ Failed to process collection ${collection.id}:`, {
+      console.error(`Failed to process collection ${collection.id}:`, {
         title: collection.title,
         handle: collection.handle,
         error: error instanceof Error ? error.message : String(error),
@@ -191,8 +218,8 @@ async function deleteCollections(
   collectionIds: number[],
 ) {
   for (const collectionId of collectionIds) {
-    const docId = `${SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX}${collectionId}`;
-    transaction.delete(docId).delete(`drafts.${docId}`);
+    const documentId = `${SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX}${collectionId}`;
+    transaction.delete(documentId).delete(`drafts.${documentId}`);
   }
 }
 
@@ -206,7 +233,7 @@ async function createOrUpdateProductVariants(
   if (!variants.length) return;
 
   const draftIds = variants.map(({ variant }) => {
-    const variantShopifyId = extractIdFromGid(variant.id);
+    const variantShopifyId = shopifyIdFromGid(variant.id);
     const variantSanityId = `${SHOPIFY_PRODUCT_VARIANT_DOCUMENT_ID_PREFIX}${variantShopifyId}`;
     return `drafts.${variantSanityId}`;
   });
@@ -228,7 +255,7 @@ async function createOrUpdateProductVariants(
         );
       }
     } catch (error) {
-      console.error(`❌ Failed to process variant ${variant.id}:`, {
+      console.error(`Failed to process variant ${variant.id}:`, {
         title: variant.title,
         productId: product.id,
         error: error instanceof Error ? error.message : String(error),
@@ -239,7 +266,7 @@ async function createOrUpdateProductVariants(
 }
 
 async function buildProductDocument(product: Product) {
-  const productShopifyId = extractIdFromGid(product.id);
+  const productShopifyId = shopifyIdFromGid(product.id);
   const productSanityId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productShopifyId}`;
 
   const productDocument = {
@@ -257,9 +284,9 @@ async function buildProductDocument(product: Product) {
 }
 
 function buildProductVariantDocument(product: Product, variant: ProductVariant) {
-  const variantShopifyId = extractIdFromGid(variant.id);
+  const variantShopifyId = shopifyIdFromGid(variant.id);
   const variantSanityId = `${SHOPIFY_PRODUCT_VARIANT_DOCUMENT_ID_PREFIX}${variantShopifyId}`;
-  const productShopifyId = extractIdFromGid(product.id);
+  const productShopifyId = shopifyIdFromGid(product.id);
   const productSanityId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productShopifyId}`;
 
   return {
@@ -279,7 +306,7 @@ function buildProductVariantDocument(product: Product, variant: ProductVariant) 
 }
 
 function buildCollectionDocument(collection: Collection) {
-  const collectionShopifyId = extractIdFromGid(collection.id);
+  const collectionShopifyId = shopifyIdFromGid(collection.id);
   const collectionSanityId = `${SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX}${collectionShopifyId}`;
 
   const collectionDocument = {
@@ -295,13 +322,7 @@ function buildCollectionDocument(collection: Collection) {
   return collectionDocument;
 }
 
-// Utils
-function extractIdFromGid(gid: `gid://shopify/${string}/${string}`): string {
-  const parts = gid.split("/");
-  return parts[parts.length - 1];
-}
-
-// Types (https://www.sanity.io/docs/sanity-connect-for-shopify-reference)
+// Payload shapes: https://www.sanity.io/docs/sanity-connect-for-shopify-reference
 export type Product = {
   id: `gid://shopify/Product/${string}`;
   title: string;
@@ -389,31 +410,28 @@ export type CollectionImage = {
 };
 
 // When products are created, updated or manually synced
-export type payloadProductsSync = {
+export type PayloadProductsSync = {
   action: "create" | "update" | "sync";
   products: Product[];
 };
 
 // When products are deleted
-export type payloadProductsDelete = {
+export type PayloadProductsDelete = {
   action: "delete";
   productIds: number[];
 };
 
 // When collections are created, updated or manually synced
-export type payloadCollectionsSync = {
+export type PayloadCollectionsSync = {
   action: "create" | "update" | "sync";
   collections: Collection[];
 };
 
 // When collections are deleted
-export type payloadCollectionsDelete = {
+export type PayloadCollectionsDelete = {
   action: "delete";
   collectionIds: number[];
 };
 
-export type requestPayload =
-  | payloadProductsDelete
-  | payloadProductsSync
-  | payloadCollectionsDelete
-  | payloadCollectionsSync;
+export type RequestPayload =
+  PayloadProductsDelete | PayloadProductsSync | PayloadCollectionsDelete | PayloadCollectionsSync;

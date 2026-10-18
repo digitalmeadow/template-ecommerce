@@ -24,8 +24,8 @@ fragment Cart on Cart {
 
 fragment CartLine on CartLine {
   __typename
-
   id
+
   quantity
   discountAllocations {
     discountedAmount {
@@ -39,7 +39,7 @@ fragment CartLine on CartLine {
   }
   merchandise {
     ... on ProductVariant {
-      ...MerchandiseFields
+      ...Merchandise
     }
   }
 }

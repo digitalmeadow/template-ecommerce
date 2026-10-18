@@ -57,10 +57,7 @@ export default function FieldFile({
         aria-hidden="true"
       >
         <span
-          className={cn(
-            "overflow-hidden text-ellipsis whitespace-nowrap",
-            !chosen && "opacity-50",
-          )}
+          className={cn("overflow-hidden text-ellipsis whitespace-nowrap", !chosen && "opacity-50")}
         >
           {chosen || placeholder}
         </span>

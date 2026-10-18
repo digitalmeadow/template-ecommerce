@@ -39,71 +39,69 @@ const lastGroupIndex = groups.length - 1;
 const GroupHeadingTag = section.heading ? "h3" : "h2";
 ---
 
-{
-  form && formId && (
-    <section
-      data-color-scheme={section.colorScheme ?? undefined}
-      class="section-form u-container"
-      id={section.id ?? undefined}
-    >
-      {section.heading && <h2 class="heading">{section.heading}</h2>}
+{form && formId && (
+  <section
+    data-color-scheme={section.colorScheme ?? undefined}
+    class="section-form u-container"
+    id={section.id ?? undefined}
+  >
+    {section.heading && <h2 class="heading">{section.heading}</h2>}
 
-      <sanity-form class="form" data-form-id={formId}>
-        <form class="groups" data-form novalidate>
-          {groups.map((group, index) => (
-            <div class="group">
-              {group.heading && (
-                <GroupHeadingTag class="group-heading">{group.heading}</GroupHeadingTag>
-              )}
+    <sanity-form class="form" data-form-id={formId}>
+      <form class="groups" data-form novalidate>
+        {groups.map((group, index) => (
+          <div class="group">
+            {group.heading && (
+              <GroupHeadingTag class="group-heading">{group.heading}</GroupHeadingTag>
+            )}
 
-              <div class="fields">
-                {group.fields.map((field) => (
-                  <FormField field={field} prefix={formId} />
-                ))}
-
-                {index === lastGroupIndex && (
-                  <div class="actions">
-                    <ButtonSubmit
-                      label={form.submitLabel ?? "Submit"}
-                      variant="filled"
-                      mutedUntilReady
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {terms.length > 0 && (
-            <div class="terms">
-              {terms.map((term) => (
-                <FormTerm term={term} prefix={formId} />
+            <div class="fields">
+              {group.fields.map((field) => (
+                <FormField field={field} prefix={formId} />
               ))}
+
+              {index === lastGroupIndex && (
+                <div class="actions">
+                  <ButtonSubmit
+                    label={form.submitLabel ?? "Submit"}
+                    variant="filled"
+                    mutedUntilReady
+                  />
+                </div>
+              )}
             </div>
-          )}
-
-          <div class="honeypot" aria-hidden="true">
-            <label for={`${HONEYPOT_FIELD_NAME}-${formId}`}>Leave this field empty</label>
-            <input
-              id={`${HONEYPOT_FIELD_NAME}-${formId}`}
-              name={HONEYPOT_FIELD_NAME}
-              type="text"
-              tabindex="-1"
-              autocomplete="off"
-            />
           </div>
-        </form>
+        ))}
 
-        <div class="messages" aria-live="polite">
-          <p class="message" data-form-message />
-          <div class="message" data-form-success hidden>
-            <PortableText value={form.successMessageRaw} />
+        {terms.length > 0 && (
+          <div class="terms">
+            {terms.map((term) => (
+              <FormTerm term={term} prefix={formId} />
+            ))}
           </div>
+        )}
+
+        <div class="honeypot" aria-hidden="true">
+          <label for={`${HONEYPOT_FIELD_NAME}-${formId}`}>Leave this field empty</label>
+          <input
+            id={`${HONEYPOT_FIELD_NAME}-${formId}`}
+            name={HONEYPOT_FIELD_NAME}
+            type="text"
+            tabindex="-1"
+            autocomplete="off"
+          />
         </div>
-      </sanity-form>
-    </section>
-  )
-}
+      </form>
+
+      <div class="messages" aria-live="polite">
+        <p class="message" data-form-message />
+        <div class="message" data-form-success hidden>
+          <PortableText value={form.successMessageRaw} />
+        </div>
+      </div>
+    </sanity-form>
+  </section>
+)}
 
 <style>
   .section-form {
@@ -212,7 +210,7 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
   import { FORM_ID_FIELD_NAME } from "@lib/forms/constants";
   import type { FormSubmissionResponse } from "@lib/forms/types";
 
-  class SanityForm extends HTMLElement {
+  class SanityFormElement extends HTMLElement {
     private form: HTMLFormElement | null = null;
     private message: HTMLElement | null = null;
     private success: HTMLElement | null = null;
@@ -260,17 +258,17 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
     }
 
     private clearErrors() {
-      this.querySelectorAll<HTMLElement>("[data-error-for]").forEach((el) => {
-        el.textContent = "";
-        const name = el.dataset.errorFor;
+      this.querySelectorAll<HTMLElement>("[data-error-for]").forEach((errorElement) => {
+        errorElement.textContent = "";
+        const name = errorElement.dataset.errorFor;
         if (name) this.controlFor(name)?.removeAttribute("aria-invalid");
       });
     }
 
     private showErrors(errors: Record<string, string>) {
       Object.entries(errors).forEach(([name, error]) => {
-        const el = this.querySelector(`[data-error-for="${name}"]`);
-        if (el) el.textContent = error;
+        const errorElement = this.querySelector(`[data-error-for="${name}"]`);
+        if (errorElement) errorElement.textContent = error;
         this.controlFor(name)?.setAttribute("aria-invalid", "true");
       });
     }
@@ -412,5 +410,5 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
     };
   }
 
-  customElements.define("sanity-form", SanityForm);
+  customElements.define("sanity-form", SanityFormElement);
 </script>

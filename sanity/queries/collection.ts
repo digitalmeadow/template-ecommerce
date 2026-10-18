@@ -2,9 +2,7 @@ import { graphql } from "../generated";
 
 export const collectionByHandleQuery = graphql(`
   query CollectionByHandleQuery($handle: String!) {
-    allCollection(
-      where: { shopify: { handle: { current: { eq: $handle } } } }
-    ) {
+    allCollection(where: { shopify: { handle: { current: { eq: $handle } } } }) {
       ...Collection
     }
   }

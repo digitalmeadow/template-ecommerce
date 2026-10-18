@@ -10,26 +10,27 @@ interface Props {
 const { section }: Props = Astro.props;
 ---
 
-<section data-color-scheme={section.colorScheme ?? undefined} class="u-container">
-  {
-    section.accordions?.map((accordion) => {
-      if (!accordion) return null;
-      return (
-        <div class="accordion">
-          <Accordion group="default">
-            <h2 slot="summary">{accordion.summary}</h2>
-            <div class="content" slot="content">
-              <PortableText value={accordion.contentRaw} />
-            </div>
-          </Accordion>
-        </div>
-      );
-    })
-  }
+<section
+  data-color-scheme={section.colorScheme ?? undefined}
+  class="section-accordions u-container"
+  id={section.id ?? undefined}
+>
+  {section.accordions?.map((accordion) => {
+    if (!accordion) return null;
+    return (
+      <div class="accordion">
+        <Accordion group="default" summary={accordion.summary}>
+          <div class="content" slot="content">
+            <PortableText value={accordion.contentRaw} />
+          </div>
+        </Accordion>
+      </div>
+    );
+  })}
 </section>
 
 <style>
-  section {
+  .section-accordions {
     margin-top: var(--s120);
     margin-bottom: var(--s64);
 

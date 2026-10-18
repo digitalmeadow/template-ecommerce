@@ -1,22 +1,17 @@
 import { colorSchemeField } from "../fields/colorScheme";
+import { sectionIdField } from "../fields/sectionId";
+import { pluralize } from "../../utils/preview";
 import { defineArrayMember, defineField, defineType } from "sanity";
-import DoubleChevronDownIcon from "@sanity/icons/DoubleChevronDown";
-import { validateSlugId } from "../../utils/validation";
+import SplitHorizontalIcon from "@sanity/icons/SplitHorizontal";
 
 export const sectionTabs = defineType({
   type: "object",
   name: "sectionTabs",
   title: "Section: Tabs",
-  icon: DoubleChevronDownIcon,
+  icon: SplitHorizontalIcon,
   fields: [
     colorSchemeField,
-    defineField({
-      type: "string",
-      name: "id",
-      title: "Section ID",
-      description: "Optional. Used as an anchor so links can scroll directly to this section.",
-      validation: validateSlugId,
-    }),
+    sectionIdField,
     defineField({
       type: "array",
       name: "tabItems",
@@ -25,10 +20,11 @@ export const sectionTabs = defineType({
     }),
   ],
   preview: {
-    select: {},
-    prepare() {
+    select: { tabItems: "tabItems" },
+    prepare({ tabItems }) {
       return {
         title: "Section: Tabs",
+        subtitle: pluralize("tab", tabItems?.length ?? 0),
       };
     },
   },

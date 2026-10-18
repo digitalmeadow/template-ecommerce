@@ -1,6 +1,7 @@
 import ClipboardIcon from "@sanity/icons/Clipboard";
 import { defineArrayMember, defineField, defineType } from "sanity";
-import { RICH_TEXT, richText } from "../fields/richText";
+import { pluralize } from "../../utils/preview";
+import { RICH_TEXT_STYLES, richText } from "../fields/richText";
 
 type FieldValue = { name?: string; type?: string };
 type GroupValue = { fields?: FieldValue[] };
@@ -8,7 +9,7 @@ type GroupValue = { fields?: FieldValue[] };
 // Caps the request size, not the document shape.
 const MAX_FILE_FIELDS = 4;
 
-const flatten = (groups: GroupValue[]) => groups.flatMap((group) => group?.fields ?? []);
+const flattenFields = (groups: GroupValue[]) => groups.flatMap((group) => group?.fields ?? []);
 
 export const form = defineType({
   type: "document",
@@ -39,7 +40,7 @@ export const form = defineType({
           .custom((groups: GroupValue[] | undefined, context) => {
             if (!groups) return true;
 
-            const fields = flatten(groups);
+            const fields = flattenFields(groups);
             const terms = (context.document?.terms ?? []) as FieldValue[];
 
             const names = [...fields, ...terms].map((field) => field?.name).filter(Boolean);
@@ -69,7 +70,7 @@ export const form = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      ...richText(RICH_TEXT.rich, { required: true }),
+      ...richText(RICH_TEXT_STYLES.default, { required: true }),
       name: "successMessage",
       description: "Shown below the form once it has been submitted.",
       initialValue: [
@@ -95,7 +96,7 @@ export const form = defineType({
     prepare({ title, groups }) {
       return {
         title,
-        subtitle: `${flatten(groups ?? []).length} fields`,
+        subtitle: pluralize("field", flattenFields(groups ?? []).length),
       };
     },
   },

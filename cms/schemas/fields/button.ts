@@ -25,9 +25,11 @@ export const button = defineType({
   ],
   preview: {
     select: { label: "label", ...linkSelection("link.") },
-    prepare: ({ label, ...link }) => ({
-      title: label || "(no label)",
-      subtitle: linkSubtitle(link),
-    }),
+    prepare({ label, ...link }) {
+      return {
+        title: label || "(no label)",
+        subtitle: linkSubtitle(link),
+      };
+    },
   },
 });

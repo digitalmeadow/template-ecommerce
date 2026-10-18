@@ -39,10 +39,7 @@ export default async function CollectionPage({ params }: Props) {
   const sanityCollection = await getCollection(slug);
   if (!sanityCollection) notFound();
 
-  const collectionData = await fetchCollectionShopifySanity(
-    slug,
-    sanityCollection,
-  );
+  const collectionData = await fetchCollectionShopifySanity(slug, sanityCollection);
 
   return (
     <>
@@ -58,9 +55,10 @@ export default async function CollectionPage({ params }: Props) {
           __typename: "SectionHero",
           _key: null,
           colorScheme: null,
+          id: null,
           heading: collectionData.shopify.title,
           textRaw: null,
-          backgroundMedia: null,
+          mediaBackground: null,
         }}
       />
       <ProductThumbnailsGrid productsData={collectionData.productThumbnails} />

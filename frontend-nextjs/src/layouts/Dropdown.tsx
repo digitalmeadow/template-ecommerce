@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -35,24 +36,25 @@ export default function Dropdown({
   const panelRef = useRef<HTMLDivElement>(null);
   const panelId = `${id}-panel`;
 
-  function setOpen(open: boolean) {
-    setIsOpen(open);
-    onToggle?.(open);
-  }
+  const setOpen = useCallback(
+    (open: boolean) => {
+      setIsOpen(open);
+      onToggle?.(open);
+    },
+    [onToggle],
+  );
 
   useEffect(() => {
     if (!isOpen) return;
 
     const handleClick = (event: MouseEvent) => {
       if (rootRef.current?.contains(event.target as Node)) return;
-      setIsOpen(false);
-      onToggle?.(false);
+      setOpen(false);
     };
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key !== "Escape") return;
       event.preventDefault();
-      setIsOpen(false);
-      onToggle?.(false);
+      setOpen(false);
       triggerRef.current?.focus();
     };
 
@@ -62,7 +64,7 @@ export default function Dropdown({
       document.removeEventListener("click", handleClick);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onToggle]);
+  }, [isOpen, setOpen]);
 
   // A <button> never receives arrow keys natively, so without this there is no keyboard way in.
   function handleTriggerKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
@@ -73,9 +75,7 @@ export default function Dropdown({
     flushSync(() => setOpen(true));
     const panel = panelRef.current;
     const current = panel?.querySelector<HTMLElement>("input:checked");
-    const fallback = panel?.querySelector<HTMLElement>(
-      "input, button, [href], [tabindex]",
-    );
+    const fallback = panel?.querySelector<HTMLElement>("input, button, [href], [tabindex]");
     (current ?? fallback)?.focus();
   }
 

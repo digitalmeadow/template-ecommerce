@@ -26,7 +26,6 @@ export const LOCALE_STORAGE_KEY = "preferred-locale";
 
 export type LocaleCode = keyof typeof LOCALE_CONFIG;
 
-// Client
 export function getStoredLocale(): LocaleCode {
   if (typeof localStorage === "undefined") return DEFAULT_LOCALE;
 

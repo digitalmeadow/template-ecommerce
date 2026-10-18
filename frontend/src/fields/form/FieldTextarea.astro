@@ -11,14 +11,17 @@ interface Props {
 const { id, name, label, placeholder, required, errorId }: Props = Astro.props;
 ---
 
-<label class="visually-hidden" for={id}>{label}</label>
+<label class="visually-hidden" for={id}>
+  {label}
+</label>
 <textarea
   id={id}
   name={name}
   placeholder={placeholder}
   required={required}
   aria-describedby={errorId}
-  rows="4"></textarea>
+  rows="4"
+></textarea>
 
 <style>
   textarea {

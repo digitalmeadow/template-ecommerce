@@ -1,9 +1,9 @@
 import { DocumentActionComponent, DocumentActionsContext } from "sanity";
-import { ActionShopifyLink } from "./actions/ActionShopify";
+import { ActionShopify } from "./actions/ActionShopify";
 import { SINGLETON_DOCUMENT_TYPES, UNPREVIEWABLE_DOCUMENT_TYPES } from "../config";
 import { ActionPreview } from "./actions/ActionPreview";
 
-export default function resolveDocumentActions(
+export function resolveDocumentActions(
   previous: DocumentActionComponent[],
   context: DocumentActionsContext,
 ): DocumentActionComponent[] {
@@ -26,8 +26,8 @@ export default function resolveDocumentActions(
   });
 
   if (UNPREVIEWABLE_DOCUMENT_TYPES.includes(schemaType)) {
-    return [...actions, ActionShopifyLink];
+    return [...actions, ActionShopify];
   }
 
-  return [...actions, ActionShopifyLink, ActionPreview];
+  return [...actions, ActionShopify, ActionPreview];
 }

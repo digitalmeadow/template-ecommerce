@@ -11,21 +11,17 @@ interface Props {
 const { footerData }: Props = Astro.props;
 ---
 
-<footer class="u-container">
+<footer class="footer u-container">
   <div class="footer-content">
     <PortableText value={footerData?.textRaw} />
 
     <div class="nav">
-      {
-        footerData?.navigationItems?.map((navigationItem) => {
-          if (!navigationItem?.link) return null;
-          return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
-        })
-      }
+      {footerData?.navigationItems?.map((navigationItem) => {
+        if (!navigationItem?.link) return null;
+        return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
+      })}
     </div>
   </div>
-
-  <!-- <NewsletterSignup /> -->
 </footer>
 
 <div class="media">
@@ -35,7 +31,7 @@ const { footerData }: Props = Astro.props;
 </div>
 
 <style>
-  footer {
+  .footer {
     position: relative;
 
     padding: var(--s200) 0 0;

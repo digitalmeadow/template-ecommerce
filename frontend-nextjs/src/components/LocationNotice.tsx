@@ -5,15 +5,8 @@ import type { LocationNoticeFragment } from "sanity-nextjs/generated/graphql";
 import { getConsent, subscribeToConsent } from "@/lib/consent/consent";
 import { useBrowserValue } from "@/lib/useBrowserValue";
 import { type LocaleCode } from "@/lib/shopify/locale";
-import {
-  getStoredLocale,
-  LOCALE_STORAGE_KEY,
-} from "@/lib/shopify/locale.client";
-import {
-  dismissLocationNotice,
-  fillMarket,
-  suggestedLocale,
-} from "@/lib/shopify/geo";
+import { getStoredLocale, setStoredLocale } from "@/lib/shopify/locale.client";
+import { dismissLocationNotice, fillMarket, suggestedLocale } from "@/lib/shopify/geo";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -24,11 +17,7 @@ interface Props {
 }
 
 // Suggests the visitor's own store; never redirects.
-export default function LocationNotice({
-  locationNoticeData,
-  waitForConsent,
-  className,
-}: Props) {
+export default function LocationNotice({ locationNoticeData, waitForConsent, className }: Props) {
   const [suggestion, setSuggestion] = useState<LocaleCode | null>(null);
   const consentDecided = useBrowserValue(
     () => !waitForConsent || getConsent() !== null,
@@ -50,7 +39,7 @@ export default function LocationNotice({
   if (!locationNoticeData || !suggestion) return null;
 
   function handleSwitch() {
-    localStorage.setItem(LOCALE_STORAGE_KEY, suggestion!);
+    setStoredLocale(suggestion!);
     window.location.reload();
   }
 
@@ -69,18 +58,10 @@ export default function LocationNotice({
     >
       <p>{fillMarket(locationNoticeData.message, suggestion)}</p>
       <div className="flex flex-wrap gap-4">
-        <button
-          type="button"
-          className="text-link underline-color-orange"
-          onClick={handleDismiss}
-        >
+        <button type="button" className="text-link underline-color-orange" onClick={handleDismiss}>
           {locationNoticeData.dismissLabel}
         </button>
-        <button
-          type="button"
-          className="text-link underline-color-green"
-          onClick={handleSwitch}
-        >
+        <button type="button" className="text-link underline-color-green" onClick={handleSwitch}>
           {fillMarket(locationNoticeData.switchLabel, suggestion)}
         </button>
       </div>

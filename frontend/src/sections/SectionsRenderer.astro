@@ -29,34 +29,32 @@ interface Props {
 const { sections }: Props = Astro.props;
 ---
 
-{
-  sections?.map((section) => {
-    if (!section) return null;
+{sections?.map((section) => {
+  if (!section) return null;
 
-    if (section.__typename === "SectionHero") {
-      return <SectionHero section={section} />;
-    }
+  if (section.__typename === "SectionHero") {
+    return <SectionHero section={section} />;
+  }
 
-    if (section.__typename === "SectionText") {
-      return <SectionText section={section} />;
-    }
+  if (section.__typename === "SectionText") {
+    return <SectionText section={section} />;
+  }
 
-    if (section.__typename === "SectionCollection") {
-      return <SectionCollection section={section} />;
-    }
+  if (section.__typename === "SectionCollection") {
+    return <SectionCollection section={section} />;
+  }
 
-    if (section.__typename === "SectionAccordions") {
-      return <SectionAccordions section={section} />;
-    }
+  if (section.__typename === "SectionAccordions") {
+    return <SectionAccordions section={section} />;
+  }
 
-    if (section.__typename === "SectionTabs") {
-      return <SectionTabs section={section} />;
-    }
+  if (section.__typename === "SectionTabs") {
+    return <SectionTabs section={section} />;
+  }
 
-    if (section.__typename === "SectionForm") {
-      return <SectionForm section={section} />;
-    }
+  if (section.__typename === "SectionForm") {
+    return <SectionForm section={section} />;
+  }
 
-    return null;
-  })
-}
+  return null;
+})}

@@ -7,7 +7,7 @@ interface Props {
   initialIndex?: number;
 }
 
-const { id, class: className, initialIndex = 0 } = Astro.props;
+const { id, class: className, initialIndex = 0 }: Props = Astro.props;
 ---
 
 <tabs-root id={id} class={className} data-initial-index={initialIndex}>
@@ -38,8 +38,7 @@ const { id, class: className, initialIndex = 0 } = Astro.props;
 </style>
 
 <script>
-  export type EventTabsChangeDetail = { index: number };
-  export type EventTabsChange = CustomEvent<EventTabsChangeDetail>;
+  import type { EventTabsChangeDetail } from "@lib/events";
 
   class TabsElement extends HTMLElement {
     private triggersContainer: HTMLElement | null = null;
@@ -62,10 +61,7 @@ const { id, class: className, initialIndex = 0 } = Astro.props;
       this.activate(this.activeIndex);
     }
 
-    /**
-     * Clicking the active tab falls back to the default panel, but only where that panel has no
-     * trigger of its own — otherwise deselected is not a state this tabset can show.
-     */
+    // Clicking the active tab falls back to the default panel only when that panel has no trigger.
     private clickTarget(index: number) {
       if (index !== this.activeIndex) return index;
 
@@ -86,8 +82,7 @@ const { id, class: className, initialIndex = 0 } = Astro.props;
       this.activate(this.clickTarget(index));
     };
 
-    private handleKeydown = (event: Event) => {
-      const keyboardEvent = event as KeyboardEvent;
+    private handleKeydown = (event: KeyboardEvent) => {
       const count = this.triggers.length;
       if (count === 0) return;
 
@@ -99,19 +94,19 @@ const { id, class: className, initialIndex = 0 } = Astro.props;
 
       let nextIndex: number | null = null;
 
-      if (keyboardEvent.key === "ArrowDown") {
+      if (event.key === "ArrowDown") {
         nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % count;
-      } else if (keyboardEvent.key === "ArrowUp") {
+      } else if (event.key === "ArrowUp") {
         nextIndex = currentIndex === -1 ? count - 1 : (currentIndex - 1 + count) % count;
-      } else if (keyboardEvent.key === "Home") {
+      } else if (event.key === "Home") {
         nextIndex = 0;
-      } else if (keyboardEvent.key === "End") {
+      } else if (event.key === "End") {
         nextIndex = count - 1;
       }
 
       if (nextIndex === null) return;
 
-      keyboardEvent.preventDefault();
+      event.preventDefault();
       this.activate(nextIndex);
       this.triggers[nextIndex].focus();
     };
@@ -121,8 +116,8 @@ const { id, class: className, initialIndex = 0 } = Astro.props;
       this.activeIndex = index;
 
       // No roving tabindex, so inactive tabs stay reachable with plain Tab.
-      this.triggers.forEach((trigger, i) => {
-        const isActive = i === index;
+      this.triggers.forEach((trigger, triggerIndex) => {
+        const isActive = triggerIndex === index;
         trigger.setAttribute("aria-selected", String(isActive));
         if (isActive) {
           trigger.dataset.state = "active";
@@ -131,8 +126,8 @@ const { id, class: className, initialIndex = 0 } = Astro.props;
         }
       });
 
-      this.panels.forEach((panel, i) => {
-        const isActive = i === index;
+      this.panels.forEach((panel, panelIndex) => {
+        const isActive = panelIndex === index;
         if (isActive) {
           panel.dataset.state = "active";
           panel.removeAttribute("inert");

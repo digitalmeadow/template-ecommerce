@@ -1,7 +1,7 @@
 import { sanityClientGroq } from "sanity-nextjs/client.server";
 import type { LinkFragment } from "sanity-nextjs/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@/config";
-import { buildScoped } from "./cache";
+import { buildScoped } from "@/lib/cache";
 import { resolveLink, type ResolvedLink } from "./resolve";
 
 interface ReferenceTarget {
@@ -25,12 +25,11 @@ const getReferenceMap = buildScoped(async () => {
 });
 
 // Only required because GraphQL doesn't resolve references in Portable Text.
-async function resolveLinkReference(
-  linkData: LinkFragment,
-): Promise<LinkFragment | null> {
+async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragment | null> {
   if (linkData?.type === "page" && linkData.page?._type === "reference") {
     if (!("_ref" in linkData.page) || !linkData.page._ref) {
-      throw new Error("Page reference is missing _ref");
+      console.warn("Page reference is missing _ref; rendering without a link.");
+      return { ...linkData, page: null };
     }
 
     const referenceMap = await getReferenceMap();

@@ -1,5 +1,6 @@
 ---
 import type { VimeoVideoFragment } from "sanity/generated/graphql";
+import { fetchVimeoOEmbed } from "@lib/video";
 
 interface Props {
   videoData: VimeoVideoFragment | null | undefined;
@@ -25,32 +26,10 @@ const embedParams = new URLSearchParams({
 
 const embedUrl = `https://player.vimeo.com/video/${videoId}?${embedParams.toString()}`;
 
-let thumbnailUrl: string | undefined;
-let videoTitle: string | undefined;
-let videoWidth: number | undefined;
-let videoHeight: number | undefined;
-if (videoData?.url) {
-  try {
-    const res = await fetch(
-      `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(videoData.url)}`,
-    );
-    if (res.ok) {
-      ({
-        thumbnail_url: thumbnailUrl,
-        title: videoTitle,
-        width: videoWidth,
-        height: videoHeight,
-      } = (await res.json()) as {
-        thumbnail_url?: string;
-        title?: string;
-        width?: number;
-        height?: number;
-      });
-    }
-  } catch {
-    console.error("Failed to fetch Vimeo thumbnail for", videoData.url);
-  }
-}
+const oEmbed = videoData?.url ? await fetchVimeoOEmbed(videoData.url) : null;
+const thumbnailUrl = oEmbed?.thumbnail_url;
+const videoWidth = oEmbed?.width;
+const videoHeight = oEmbed?.height;
 
 // The player letterboxes inside its iframe, so cropping needs the source ratio.
 const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefined;
@@ -61,19 +40,18 @@ const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefi
   data-vimeo-video
   style={videoRatio ? `--video-ratio: ${videoRatio};` : undefined}
 >
-  {
-    thumbnailUrl && (
-      <img class="blurhash" src={thumbnailUrl} alt="" loading="eager" aria-hidden="true" />
-    )
-  }
+  {thumbnailUrl && (
+    <img class="placeholder" src={thumbnailUrl} alt="" loading="eager" aria-hidden="true" />
+  )}
   <iframe
     class="video"
     data-media-id={mediaId}
     src={embedUrl}
-    title={videoTitle || "Video"}
+    title={oEmbed?.title || "Video"}
     loading={loading}
     allow="autoplay; fullscreen; picture-in-picture"
-    allowfullscreen></iframe>
+    allowfullscreen
+  ></iframe>
 </div>
 
 <script>
@@ -127,7 +105,7 @@ const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefi
     min-height: 0;
   }
 
-  .blurhash {
+  .placeholder {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -137,7 +115,7 @@ const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefi
     filter: blur(100px);
   }
 
-  .vimeo-video:has(.video[data-loaded]) .blurhash {
+  .vimeo-video:has(.video[data-loaded]) .placeholder {
     opacity: 0;
   }
 

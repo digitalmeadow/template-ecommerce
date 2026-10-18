@@ -5,22 +5,16 @@ import { homeQuery } from "sanity/queries/home";
 import SectionsRenderer from "@sections/SectionsRenderer.astro";
 import { resolveMeta } from "@lib/sanity/meta";
 import { getGlobals } from "@lib/sanity/globals";
+import { hasHeroHeading } from "@lib/sanity/sections";
 
 const homeQueryResult = await sanityClient.request(homeQuery);
 const pageData = homeQueryResult.allHome[0];
-
-// Every page needs an h1; the hero section provides one when present.
-const hasHeroHeading = pageData?.sections?.some(
-  (section) => section?.__typename === "SectionHero" && section.heading,
-);
 const { organisationSettingsData } = await getGlobals();
 ---
 
 <PageLayout metaData={resolveMeta(pageData)}>
-  {
-    !hasHeroHeading && organisationSettingsData?.name && (
-      <h1 class="visually-hidden">{organisationSettingsData.name}</h1>
-    )
-  }
+  {!hasHeroHeading(pageData?.sections) && organisationSettingsData?.name && (
+    <h1 class="visually-hidden">{organisationSettingsData.name}</h1>
+  )}
   <SectionsRenderer sections={pageData?.sections} />
 </PageLayout>

@@ -1,8 +1,7 @@
 {
   "name": "cms",
+  "type": "module",
   "private": true,
-  "version": "1.0.0",
-  "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
     "dev": "sanity dev",
@@ -15,9 +14,6 @@
     "typecheck": "tsc --noEmit",
     "validate-documents": "tsx --env-file=.env scripts/validateDocuments.mts"
   },
-  "keywords": [
-    "sanity"
-  ],
   "dependencies": {
     "@sanity/icons": "5.2.3",
     "@sanity/ui": "4.3.0",
@@ -35,14 +31,7 @@
     "@sanity/eslint-config-studio": "7.0.0",
     "@types/react": "19.3.0",
     "eslint": "10.12.0",
-    "prettier": "3.9.9",
     "tsx": "4.23.15",
     "typescript": "6.0.3"
-  },
-  "prettier": {
-    "semi": true,
-    "printWidth": 100,
-    "bracketSpacing": true,
-    "singleQuote": false
   }
 }

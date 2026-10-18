@@ -1,24 +1,31 @@
+/* Easings live in theme.css (@theme) so they are utilities too. */
 :root {
   --transition-default-duration: 0.25s;
   --transition-default: var(--transition-default-duration) var(--ease-out-cubic);
 
   --transition-media-load-duration: 0.6s;
-  --transition-media-load: var(--transition-media-load-duration)
-    var(--ease-out-cubic);
+  --transition-media-load: var(--transition-media-load-duration) var(--ease-out-cubic);
 
   --transition-page-duration: 0.6s;
   --transition-page: var(--transition-page-duration) var(--ease-out-cubic);
+
+  --transition-reveal-duration: 0.6s;
+  --transition-reveal: var(--transition-reveal-duration) var(--ease-out-cubic);
+
+  --parallax-scale: 1.12;
+  --parallax-travel: 2%;
+  --parallax-travel-wrapper: 1%;
 }
 
 main {
   view-transition-name: main;
 }
 
-header {
+.header {
   view-transition-name: header;
 }
 
-footer {
+.footer {
   view-transition-name: footer;
 }
 
@@ -46,4 +53,73 @@ footer {
 ::view-transition-new(footer) {
   animation: var(--transition-page) both fade-in;
   mix-blend-mode: plus-lighter;
+}
+
+/* An animation, not a transition: the shorthand would clobber an element's own transition. */
+html[data-js] [data-animate-reveal] {
+  opacity: 0;
+}
+
+html[data-js] [data-animate-reveal][data-revealed] {
+  opacity: 1;
+  animation: reveal-fade var(--transition-reveal);
+}
+
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* PageTransition's sentinel is empty; it only exists to trigger the view transition. */
+::view-transition-old(.page-transition),
+::view-transition-new(.page-transition) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-js] [data-animate-reveal] {
+    opacity: 1;
+    animation: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Hero heading colour cycle, staggered per character. */
+@keyframes hero-char-colors {
+  0%,
+  100% {
+    color: var(--color-foreground);
+  }
+  16% {
+    color: var(--color-green);
+  }
+  33% {
+    color: var(--color-blue);
+  }
+  50% {
+    color: var(--color-purple);
+  }
+  66% {
+    color: var(--color-yellow);
+  }
+  83% {
+    color: var(--color-orange);
+  }
+}
+
+.hero-char {
+  animation: hero-char-colors 2000ms linear both;
+  animation-delay: calc(500ms + var(--char-index) * 50ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-char {
+    animation: none;
+  }
 }

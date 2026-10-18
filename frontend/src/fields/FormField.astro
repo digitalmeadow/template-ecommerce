@@ -51,24 +51,15 @@ const autocomplete = resolveAutocomplete();
 
   {type === "select" && <FieldSelect {...shared} placeholder={placeholder} options={options} />}
 
-  {
-    (type === "file" || type === "files") && (
-      <FieldFile {...shared} placeholder={placeholder} multiple={type === "files"} />
-    )
-  }
+  {(type === "file" || type === "files") && (
+    <FieldFile {...shared} placeholder={placeholder} multiple={type === "files"} />
+  )}
 
   {type === "checkboxGroup" && <FieldCheckboxGroup {...shared} options={options} />}
 
   {type === "radioGroup" && <FieldRadioGroup {...shared} options={options} />}
 
-  {
-    !["textarea", "select", "file", "files", "checkboxGroup", "radioGroup"].includes(type) && (
-      <FieldText
-        {...shared}
-        type={inputType}
-        placeholder={placeholder}
-        autocomplete={autocomplete}
-      />
-    )
-  }
+  {!["textarea", "select", "file", "files", "checkboxGroup", "radioGroup"].includes(type) && (
+    <FieldText {...shared} type={inputType} placeholder={placeholder} autocomplete={autocomplete} />
+  )}
 </FieldWrapper>

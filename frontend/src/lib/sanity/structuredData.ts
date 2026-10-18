@@ -4,10 +4,7 @@ import { resolveSanityHref } from "./resolve";
 
 export type JsonLdSchema = Record<string, unknown>;
 
-/**
- * Strips null, undefined and empty branches. Without it every unfilled CMS field would emit
- * `"name": null`, which validators read as an assertion that the value is genuinely empty.
- */
+// Strips null/empty branches; validators read `"name": null` as an assertion the value is empty.
 function compact(value: unknown): unknown {
   if (Array.isArray(value)) {
     const items = value.map(compact).filter((item) => item !== undefined);
@@ -140,7 +137,10 @@ export function buildProductSchema(
     name: shopify.title,
     description,
     url,
-    image: [sanity.mediaThumbnail?.image, ...(sanity.mediaGallery ?? []).map((m) => m?.image)]
+    image: [
+      sanity.mediaThumbnail?.image,
+      ...(sanity.mediaGallery ?? []).map((media) => media?.image),
+    ]
       .map((image) => image?.asset?.url)
       .filter(Boolean),
     brand: organisationRef(site),

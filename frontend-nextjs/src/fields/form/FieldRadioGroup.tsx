@@ -30,7 +30,7 @@ export default function FieldRadioGroup({
       aria-required={required || undefined}
       aria-invalid={invalid || undefined}
     >
-      <span className="mr-auto" id={labelId}>
+      <span className="question mr-auto" id={labelId}>
         {label}
       </span>
 

@@ -7,11 +7,7 @@ interface SanityImageLoaderProps {
 }
 
 // Keeps params already on `src` (e.g. the crop rect) and adds the width Next asks for.
-export function sanityImageLoader({
-  src,
-  width,
-  quality,
-}: SanityImageLoaderProps): string {
+export function sanityImageLoader({ src, width, quality }: SanityImageLoaderProps): string {
   const url = new URL(src);
   url.searchParams.set("w", String(width));
   url.searchParams.set("fit", "max");
@@ -20,9 +16,7 @@ export function sanityImageLoader({
   return url.href;
 }
 
-export function getSizesAttr(
-  sizes: [number, number, number] = [100, 100, 100],
-): string {
+export function getSizesAttr(sizes: [number, number, number] = [100, 100, 100]): string {
   const [desktop, tablet, mobile] = sizes;
   return `(min-width: 64rem) ${desktop}vw, (min-width: 32rem) ${tablet}vw, ${mobile}vw`;
 }
@@ -48,12 +42,9 @@ function getCropRect(sanityImage: SanityImageFragment) {
 const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
 
 // Hotspot coordinates are relative to the whole asset, so they shift once a crop is applied.
-export function getSanityImageFocalPoint(
-  sanityImage: SanityImageFragment | null | undefined,
-) {
+export function getSanityImageFocalPoint(sanityImage: SanityImageFragment | null | undefined) {
   const hotspot = sanityImage?.hotspot;
-  if (typeof hotspot?.x !== "number" || typeof hotspot?.y !== "number")
-    return null;
+  if (typeof hotspot?.x !== "number" || typeof hotspot?.y !== "number") return null;
 
   const crop = sanityImage?.crop;
   const left = crop?.left ?? 0;
@@ -68,9 +59,7 @@ export function getSanityImageFocalPoint(
   return `${(x * 100).toFixed(2)}% ${(y * 100).toFixed(2)}%`;
 }
 
-export function getSanityImageProps(
-  sanityImage: SanityImageFragment | null | undefined,
-) {
+export function getSanityImageProps(sanityImage: SanityImageFragment | null | undefined) {
   if (!sanityImage?.asset?.url) return null;
 
   const rect = getCropRect(sanityImage);

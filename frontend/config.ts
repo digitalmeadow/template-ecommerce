@@ -24,3 +24,6 @@ export const SANITY_DOCUMENT_ROUTE_PATTERNS: Record<string, string> = {
 
 // Form submissions POST here as multipart FormData. Unset renders forms that validate but can't send.
 export const FORM_ENDPOINT: string | undefined = undefined;
+
+// Browser UI and web app manifest colour; mirrors `--color-background` in src/styles/colors.css.
+export const THEME_COLOR = "#f6f2e5";

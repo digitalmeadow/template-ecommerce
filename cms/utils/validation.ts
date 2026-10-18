@@ -10,9 +10,7 @@ export function validateSlugId(Rule: StringRule) {
 
 type MetaField = "title" | "description";
 
-// `meta` is one shared type, so per-document requirements live here rather than in the type itself.
-// Descriptions are never required — they fall back to the organisation description. Only a title
-// has no last resort, so only `metaSettings` uses this.
+// Per-document meta requirements; only `metaSettings` needs it, as a title has no fallback.
 export function requireMetaFields(rule: Rule, fields: MetaField[]) {
   return rule.custom((meta) => {
     const value = meta as Partial<Record<MetaField, string>> | undefined;

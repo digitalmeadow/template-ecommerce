@@ -14,18 +14,13 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
   <div class:list={["panel", layout]}>
     <slot name="header" />
     <slot name="content" />
-    <slot name="footer" />
   </div>
 </overlay-root>
 
 <script>
   import { trapFocus } from "@lib/focus";
 
-  export type EventOverlayOpenDetail = { id: string };
-  export type EventOverlayOpen = CustomEvent<EventOverlayOpenDetail>;
-  export type EventOverlayClose = CustomEvent<null>;
-
-  export class OverlayElement extends HTMLElement {
+  class OverlayElement extends HTMLElement {
     private backdrop!: HTMLElement;
     private panel!: HTMLElement;
     private previouslyFocused: HTMLElement | null = null;
@@ -168,7 +163,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 </script>
 
 <script>
-  import type { OverlayElement } from "@layouts/Overlay.astro.0.mjs";
+  import type { OverlayElement } from "@lib/elements";
 
   const TRIGGERS = {
     "data-trigger-overlay-open": "open",
@@ -259,7 +254,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     top: 0;
     right: 0;
     height: 100%;
-    width: 480px;
+    width: 30rem;
     padding: var(--margin);
 
     transform: translateX(100%);
@@ -277,8 +272,8 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
       height: calc(100svh - var(--s120));
       padding: var(--s20) var(--margin) var(--s40) var(--margin);
 
-      border-top-left-radius: var(--border-radius--large);
-      border-top-right-radius: var(--border-radius--large);
+      border-top-left-radius: var(--border-radius);
+      border-top-right-radius: var(--border-radius);
 
       transform: translateY(100%);
     }

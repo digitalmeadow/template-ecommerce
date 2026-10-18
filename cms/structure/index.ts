@@ -7,17 +7,16 @@ import { products } from "./products";
 import { library } from "./library";
 
 export const structure: StructureResolver = (S) => {
-  // prettier-ignore
   return S.list()
-		.title('Content')
-		.items([
-			settings(S),
-			S.divider(),
-			home(S),
-			pages(S),
-			library(S),
-			S.divider(),
-			products(S),
-			collections(S),
-		])
+    .title("Content")
+    .items([
+      settings(S),
+      S.divider(),
+      home(S),
+      pages(S),
+      library(S),
+      S.divider(),
+      products(S),
+      collections(S),
+    ]);
 };

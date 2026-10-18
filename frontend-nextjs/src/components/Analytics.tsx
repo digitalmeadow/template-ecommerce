@@ -29,8 +29,7 @@ function loadGoogleTagManager(gtmId: string) {
   document.head.appendChild(script);
 }
 
-// GTM loads only once a visitor accepts cookies. Next router navigations are pushState, which
-// GTM's History Change trigger already reports as page views.
+// GTM loads only after cookie consent; router pushState navigations reach it via its History Change trigger.
 export default function Analytics({ analyticsSettingsData }: Props) {
   const gtmId = analyticsSettingsData?.gtmId;
 
@@ -48,8 +47,7 @@ export default function Analytics({ analyticsSettingsData }: Props) {
     };
 
     window.addEventListener(COOKIE_CONSENT_EVENT, handleConsentChange);
-    return () =>
-      window.removeEventListener(COOKIE_CONSENT_EVENT, handleConsentChange);
+    return () => window.removeEventListener(COOKIE_CONSENT_EVENT, handleConsentChange);
   }, [gtmId]);
 
   return null;

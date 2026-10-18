@@ -2,7 +2,7 @@ import type { LinkFragment } from "sanity/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
 import { sanityClientGroq } from "sanity/client";
 import { resolveLink, type ResolvedLink } from "./resolve";
-import { buildScoped } from "./cache";
+import { buildScoped } from "@lib/cache";
 
 interface ReferenceTarget {
   _id: string;
@@ -24,11 +24,12 @@ const getReferenceMap = buildScoped(async () => {
   return new Map(documents.map((document) => [document._id, document]));
 });
 
-// This is only required because GraphQL doesn't resolve references in Portable Text
+// GraphQL doesn't resolve references inside Portable Text, so those arrive as bare `_ref`s.
 async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragment | null> {
   if (linkData?.type === "page" && linkData.page?._type === "reference") {
     if (!("_ref" in linkData.page) || !linkData.page._ref) {
-      throw new Error("Page reference is missing _ref");
+      console.warn("Link reference is missing _ref; rendering without a link.");
+      return null;
     }
 
     const referenceMap = await getReferenceMap();
@@ -49,7 +50,6 @@ async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragmen
     return { ...linkData, page: null };
   }
 
-  // Already resolved or not a page link
   return linkData;
 }
 

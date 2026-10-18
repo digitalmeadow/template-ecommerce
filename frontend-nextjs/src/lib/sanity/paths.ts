@@ -1,21 +1,11 @@
 import { sanityClient } from "sanity-nextjs/client.server";
 import { homeQuery } from "sanity-nextjs/queries/home";
 import { pageQuery, pagesQuery } from "sanity-nextjs/queries/page";
-import {
-  productByHandleQuery,
-  productsQuery,
-} from "sanity-nextjs/queries/product";
-import {
-  collectionByHandleQuery,
-  collectionsQuery,
-} from "sanity-nextjs/queries/collection";
-import { buildCacheEnabled, buildScoped, buildScopedByKey } from "./cache";
+import { productByHandleQuery, productsQuery } from "sanity-nextjs/queries/product";
+import { collectionByHandleQuery, collectionsQuery } from "sanity-nextjs/queries/collection";
+import { buildCacheEnabled, buildScoped, buildScopedByKey } from "@/lib/cache";
 
-/**
- * Next can't pass props from generateStaticParams, so during the build pages look their document
- * up in the same cached bulk query instead of issuing a second per-slug request.
- */
-
+// Next can't pass props from generateStaticParams, so build-time pages look up their document in a cached bulk query.
 export const getHome = buildScoped(async () => {
   const result = await sanityClient.request(homeQuery);
   return result.allHome[0] ?? null;
@@ -29,16 +19,13 @@ export const getPages = buildScoped(async () => {
 export const getProducts = buildScoped(async () => {
   const result = await sanityClient.request(productsQuery);
   return result.allProduct.filter(
-    (product) =>
-      product.shopify?.status === "active" && product.shopify.handle?.current,
+    (product) => product.shopify?.status === "active" && product.shopify.handle?.current,
   );
 });
 
 export const getCollections = buildScoped(async () => {
   const result = await sanityClient.request(collectionsQuery);
-  return result.allCollection.filter(
-    (collection) => collection.shopify?.handle?.current,
-  );
+  return result.allCollection.filter((collection) => collection.shopify?.handle?.current);
 });
 
 // Outside the build the bulk queries aren't shared, so a request fetches only its own document.
@@ -69,18 +56,11 @@ export async function getPage(slug: string) {
 export async function getProduct(handle: string) {
   if (!buildCacheEnabled) return getProductByHandle(handle);
   const products = await getProducts();
-  return (
-    products.find((product) => product.shopify?.handle?.current === handle) ??
-    null
-  );
+  return products.find((product) => product.shopify?.handle?.current === handle) ?? null;
 }
 
 export async function getCollection(handle: string) {
   if (!buildCacheEnabled) return getCollectionByHandle(handle);
   const collections = await getCollections();
-  return (
-    collections.find(
-      (collection) => collection.shopify?.handle?.current === handle,
-    ) ?? null
-  );
+  return collections.find((collection) => collection.shopify?.handle?.current === handle) ?? null;
 }

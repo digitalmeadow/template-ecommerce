@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useId,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type ReactNode,
-} from "react";
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export interface TabItem {
@@ -64,21 +58,15 @@ export default function Tabs({
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (count === 0) return;
 
-    const focusedIndex = triggerRefs.current.indexOf(
-      document.activeElement as HTMLButtonElement,
-    );
+    const focusedIndex = triggerRefs.current.indexOf(document.activeElement as HTMLButtonElement);
     const hasActiveTrigger = activeIndex >= 0 && activeIndex < count;
     // -1 when nothing is focused or selected, so the arrows enter from either end.
-    const current =
-      focusedIndex !== -1 ? focusedIndex : hasActiveTrigger ? activeIndex : -1;
+    const current = focusedIndex !== -1 ? focusedIndex : hasActiveTrigger ? activeIndex : -1;
     const [prevKey, nextKey] =
-      orientation === "vertical"
-        ? ["ArrowUp", "ArrowDown"]
-        : ["ArrowLeft", "ArrowRight"];
+      orientation === "vertical" ? ["ArrowUp", "ArrowDown"] : ["ArrowLeft", "ArrowRight"];
 
     let next: number | null = null;
-    if (event.key === nextKey)
-      next = current === -1 ? 0 : (current + 1) % count;
+    if (event.key === nextKey) next = current === -1 ? 0 : (current + 1) % count;
     else if (event.key === prevKey)
       next = current === -1 ? count - 1 : (current - 1 + count) % count;
     else if (event.key === "Home") next = 0;

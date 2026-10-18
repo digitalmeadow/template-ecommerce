@@ -5,6 +5,7 @@ import { requireMetaFields } from "../../utils/validation";
 export const metaSettings = defineType({
   type: "document",
   name: "metaSettings",
+  title: "Meta Settings",
   icon: JsonIcon,
   fields: [
     defineField({

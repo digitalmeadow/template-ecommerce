@@ -10,9 +10,6 @@ export type FormFieldType =
   | "file"
   | "files";
 
-// Posted as repeated keys, so they must be read with getAll().
-export const MULTI_VALUE_TYPES = new Set<string>(["checkboxGroup", "files"]);
-
 export const FILE_TYPES = new Set<string>(["file", "files"]);
 
 export interface FormFieldDefinition {

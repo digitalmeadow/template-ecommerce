@@ -5,6 +5,7 @@ import { mediaSelection, previewMedia } from "../../utils/preview";
 export const product = defineType({
   type: "document",
   name: "product",
+  title: "Product",
   icon: TagIcon,
   fields: [
     defineField({
@@ -14,17 +15,17 @@ export const product = defineType({
     defineField({
       type: "array",
       name: "mediaGallery",
-      of: [{ type: "media" }],
+      of: [defineArrayMember({ type: "media" })],
     }),
     defineField({
       type: "array",
       name: "accordions",
-      of: [defineArrayMember({ type: "reference", to: { type: "accordion" } })],
+      of: [defineArrayMember({ type: "reference", to: [{ type: "accordion" }] })],
     }),
     defineField({
       type: "array",
       name: "relatedProducts",
-      of: [defineArrayMember({ type: "reference", to: { type: "product" } })],
+      of: [defineArrayMember({ type: "reference", to: [{ type: "product" }] })],
     }),
     defineField({
       type: "meta",

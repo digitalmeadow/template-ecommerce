@@ -1,3 +1,3 @@
 # Sanity CMS
 
-[GraphQL Documentation](https://iqfm6q7t.api.sanity.io/v1/graphql/production/default)
+GraphQL playground: `https://<SANITY_PROJECT_ID>.api.sanity.io/v1/graphql/<SANITY_DATASET>/default`

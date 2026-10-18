@@ -27,17 +27,13 @@ export function normaliseForm(form: FormFragment): FormDefinition {
       heading: group?.heading,
       fields: (group?.fields ?? []).flatMap((field) => {
         if (!field?.name) return [];
-        const type = FIELD_TYPES.has(field.type ?? "")
-          ? (field.type as FormFieldType)
-          : "text";
+        const type = FIELD_TYPES.has(field.type ?? "") ? (field.type as FormFieldType) : "text";
         return {
           name: field.name,
           label: field.label ?? "",
           type,
           placeholder: field.placeholder,
-          options: (field.options ?? []).filter((option): option is string =>
-            Boolean(option),
-          ),
+          options: (field.options ?? []).filter((option): option is string => Boolean(option)),
           required: field.required,
           width: field.width === "half" ? ("half" as const) : ("full" as const),
         };

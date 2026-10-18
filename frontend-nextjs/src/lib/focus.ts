@@ -12,8 +12,7 @@ const FOCUSABLE = [
 
 function focusableWithin(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-    (element) =>
-      element.getClientRects().length > 0 && !element.closest("[inert]"),
+    (element) => element.getClientRects().length > 0 && !element.closest("[inert]"),
   );
 }
 

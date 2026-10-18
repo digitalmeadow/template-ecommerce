@@ -20,22 +20,20 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
   }));
 ---
 
-<locale-selector data-current={currentLocale}>
+<locale-selector>
   <select aria-label="Select market">
-    {
-      localeOptions.map((option) => (
-        <option value={option.locale} selected={option.locale === currentLocale}>
-          {option.label}
-        </option>
-      ))
-    }
+    {localeOptions.map((option) => (
+      <option value={option.locale} selected={option.locale === currentLocale}>
+        {option.label}
+      </option>
+    ))}
   </select>
 </locale-selector>
 
 <script>
   import { isValidLocale, LOCALE_STORAGE_KEY } from "@lib/shopify/locale";
 
-  export class LocaleSelectorElement extends HTMLElement {
+  class LocaleSelectorElement extends HTMLElement {
     private select!: HTMLSelectElement;
 
     connectedCallback() {

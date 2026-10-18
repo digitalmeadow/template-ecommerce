@@ -2,6 +2,7 @@ fragment SectionText on SectionText {
   __typename
   _key
   colorScheme
+  id
 
   textRaw
 }

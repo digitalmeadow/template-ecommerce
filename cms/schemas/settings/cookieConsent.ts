@@ -1,6 +1,6 @@
 import LockIcon from "@sanity/icons/Lock";
 import { defineField, defineType } from "sanity";
-import { RICH_TEXT, richText } from "../fields/richText";
+import { RICH_TEXT_STYLES, richText } from "../fields/richText";
 
 export const cookieConsent = defineType({
   type: "document",
@@ -10,7 +10,7 @@ export const cookieConsent = defineType({
   description: "Analytics load only after a visitor accepts.",
   fields: [
     defineField({
-      ...richText(RICH_TEXT.rich, { required: true }),
+      ...richText(RICH_TEXT_STYLES.default, { required: true }),
       name: "message",
       description: "Link to the privacy policy from here.",
     }),

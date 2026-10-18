@@ -19,7 +19,7 @@ import {
 } from "sanity/queries/product";
 
 import { LOCALE_CONFIG, type LocaleCode } from "@lib/shopify/locale";
-import { buildScopedByKey } from "@lib/sanity/cache";
+import { buildScopedByKey } from "@lib/cache";
 
 // Locales whose market Shopify doesn't serve are omitted; readers fall back to the default locale.
 export type PricesPerLocale = Partial<Record<LocaleCode, ShopifyProductPriceFragment>>;
@@ -33,13 +33,13 @@ export type ProductThumbnailShopifySanity = {
 // Thumbnails recur across related products and collections; cached per handle for the build.
 export const fetchProductThumbnailShopifySanity = buildScopedByKey(
   async (handle): Promise<ProductThumbnailShopifySanity> => {
-    const [shopifyProductQuery, sanityProductQuery, pricesPerLocale] = await Promise.all([
+    const [shopifyProductResult, sanityProductResult, pricesPerLocale] = await Promise.all([
       shopifyClient.request(shopifyProductByHandleQuery, { handle }),
       sanityClient.request(sanityProductThumbnailByHandleQuery, { handle }),
       fetchPricesPerLocale(handle),
     ]);
-    const shopifyProduct = shopifyProductQuery.product;
-    const sanityProduct = sanityProductQuery.allProduct[0];
+    const shopifyProduct = shopifyProductResult.product;
+    const sanityProduct = sanityProductResult.allProduct[0];
 
     if (!shopifyProduct || !sanityProduct) {
       throw new Error(`Product with handle "${handle}" not found in Shopify or Sanity`);
@@ -53,6 +53,23 @@ export const fetchProductThumbnailShopifySanity = buildScopedByKey(
   },
 );
 
+// A product missing from either API is logged and skipped rather than failing the page.
+export async function fetchProductThumbnailsShopifySanity(
+  handles: string[],
+): Promise<ProductThumbnailShopifySanity[]> {
+  const thumbnails = await Promise.all(
+    handles.map((handle) =>
+      fetchProductThumbnailShopifySanity(handle).catch((error) => {
+        console.error(`Error fetching product thumbnail for handle "${handle}":`, error);
+        return null;
+      }),
+    ),
+  );
+  return thumbnails.filter((thumbnail): thumbnail is ProductThumbnailShopifySanity =>
+    Boolean(thumbnail),
+  );
+}
+
 export type ProductShopifySanity = {
   shopify: ShopifyProductFragment;
   sanity: SanityProductFragment;
@@ -60,12 +77,12 @@ export type ProductShopifySanity = {
   pricesPerLocale: PricesPerLocale;
 };
 
-/** Pass `sanityProduct` when the caller already holds it (getStaticPaths) to skip a Sanity request. */
+/** Pass `sanityProductData` when the caller already holds it (getStaticPaths) to skip a Sanity request. */
 export async function fetchProductShopifySanity(
   handle: string,
   sanityProductData?: SanityProductFragment,
 ): Promise<ProductShopifySanity> {
-  const [shopifyProductQuery, sanityProduct, pricesPerLocale] = await Promise.all([
+  const [shopifyProductResult, sanityProduct, pricesPerLocale] = await Promise.all([
     shopifyClient.request(shopifyProductByHandleQuery, { handle }),
     sanityProductData ??
       sanityClient
@@ -73,7 +90,7 @@ export async function fetchProductShopifySanity(
         .then((result) => result.allProduct[0]),
     fetchPricesPerLocale(handle),
   ]);
-  const shopifyProduct = shopifyProductQuery.product;
+  const shopifyProduct = shopifyProductResult.product;
 
   if (!shopifyProduct || !sanityProduct)
     throw new Error(`Product with handle "${handle}" not found in Shopify or Sanity`);
@@ -81,7 +98,7 @@ export async function fetchProductShopifySanity(
   const relatedHandles = (sanityProduct.relatedProducts ?? [])
     .map((relatedProduct) => relatedProduct?.shopify?.handle?.current)
     .filter((relatedHandle): relatedHandle is string => Boolean(relatedHandle));
-  const relatedProducts = await Promise.all(relatedHandles.map(fetchProductThumbnailShopifySanity));
+  const relatedProducts = await fetchProductThumbnailsShopifySanity(relatedHandles);
 
   return {
     shopify: shopifyProduct,

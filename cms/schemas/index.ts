@@ -30,7 +30,6 @@ import { cookieConsent } from "./settings/cookieConsent";
 import { locationNotice } from "./settings/locationNotice";
 
 export const schemaTypes = [
-  // Fields
   link,
   meta,
   media,
@@ -46,10 +45,8 @@ export const schemaTypes = [
   formGroup,
   formConsent,
 
-  // Sections
   ...sectionSchemas,
 
-  // Documents
   home,
   page,
   product,
@@ -57,7 +54,6 @@ export const schemaTypes = [
   collection,
   form,
 
-  // Settings
   metaSettings,
   organisationSettings,
   analyticsSettings,

@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { initReveal } from "@/scripts/motion/reveal";
-import { initParallax } from "@/scripts/motion/parallax";
-import { initWordsReveal } from "@/scripts/motion/wordsReveal";
+import { initReveal } from "@/scripts/reveal";
+import { initParallax } from "@/scripts/parallax";
+import { initWordsReveal } from "@/scripts/wordsReveal";
 
 // Runs before paint so hidden reveal states only apply once JS is confirmed present.
 const JS_FLAG_SCRIPT = "document.documentElement.dataset.js=''";

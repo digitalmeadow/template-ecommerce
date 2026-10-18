@@ -9,13 +9,11 @@ import { GIT_OWNER, GIT_REPO, GIT_WORKFLOW_ID_DEPLOY } from "@config";
 
 const GITHUB_API_VERSION = "2026-03-10";
 
-// A run this young hasn't reached its content fetch yet (install, lint and typecheck come first),
-// so it will already carry this publish. Dispatching again only queues a duplicate deploy.
+// A run this young hasn't fetched content yet, so it already carries this publish.
 const DEBOUNCE_MS = 30_000;
 
-// Dispatch inputs can't be read back from the API, so runs are matched on branch and event
-// instead — enough, since only this worker dispatches from its branch.
-async function runPending(octokit: Octokit) {
+// Dispatch inputs can't be read back, so match on branch + event; only this worker dispatches.
+async function findPendingRun(octokit: Octokit) {
   const { data } = await octokit.request(
     `GET /repos/${GIT_OWNER}/${GIT_REPO}/actions/workflows/${GIT_WORKFLOW_ID_DEPLOY}/runs`,
     {
@@ -43,14 +41,14 @@ export const POST: APIRoute = async ({ request }) => {
   const validSignature = await isValidSignature(body, signature, SANITY_WEBHOOK_SECRET!);
 
   if (!validSignature) {
-    return new Response("Invalid secret", { status: 401 });
+    return new Response("Invalid signature", { status: 401 });
   }
 
   const octokit = new Octokit({
     auth: GIT_API_TOKEN,
   });
 
-  const pending = await runPending(octokit);
+  const pending = await findPendingRun(octokit);
   if (pending) {
     return new Response(JSON.stringify({ coalesced: true, run_url: pending.html_url }), {
       status: 202,

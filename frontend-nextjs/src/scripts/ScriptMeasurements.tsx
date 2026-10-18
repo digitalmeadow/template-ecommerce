@@ -6,13 +6,9 @@ export default function ScriptMeasurements() {
   useEffect(() => {
     const setDimensions = () => {
       const vw = document.documentElement.clientWidth / 100;
-      const scrollbar =
-        window.innerWidth - document.documentElement.clientWidth;
+      const scrollbar = window.innerWidth - document.documentElement.clientWidth;
       document.documentElement.style.setProperty("--vw", `${vw}px`);
-      document.documentElement.style.setProperty(
-        "--scrollbar",
-        `${scrollbar}px`,
-      );
+      document.documentElement.style.setProperty("--scrollbar", `${scrollbar}px`);
     };
 
     setDimensions();

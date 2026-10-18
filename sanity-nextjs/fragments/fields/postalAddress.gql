@@ -1,5 +1,4 @@
 fragment PostalAddress on PostalAddress {
-  __typename
   streetAddress
   addressLocality
   addressRegion

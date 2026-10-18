@@ -3,6 +3,7 @@ import { defineField, defineType } from "sanity";
 export const postalAddress = defineType({
   type: "object",
   name: "postalAddress",
+  title: "Postal Address",
   options: { collapsible: true, collapsed: false },
   fields: [
     defineField({ type: "string", name: "streetAddress" }),

@@ -1,7 +1,7 @@
 import { graphql } from "../generated";
 
-export const localizationsQuery = graphql(`
-  query AllLocalizations {
+export const localizationQuery = graphql(`
+  query LocalizationQuery {
     localization {
       availableCountries {
         isoCode

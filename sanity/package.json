@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "gen": "tsx --env-file='.env' codegen.ts",
+    "gen": "tsx --env-file=.env codegen.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

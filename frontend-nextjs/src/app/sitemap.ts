@@ -15,9 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paths = [
     resolveSanityHref("home"),
     ...pages.map((page) => resolveSanityHref("page", page.slug?.current)),
-    ...products.map((product) =>
-      resolveSanityHref("product", product.shopify?.handle?.current),
-    ),
+    ...products.map((product) => resolveSanityHref("product", product.shopify?.handle?.current)),
     ...collections.map((collection) =>
       resolveSanityHref("collection", collection.shopify?.handle?.current),
     ),

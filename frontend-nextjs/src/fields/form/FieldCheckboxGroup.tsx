@@ -30,7 +30,7 @@ export default function FieldCheckboxGroup({
       data-required={required || undefined}
       data-invalid={invalid || undefined}
     >
-      <span className="mb-[var(--s8)] block opacity-50" id={labelId}>
+      <span className="question mb-[var(--s8)] block opacity-50" id={labelId}>
         {label}
       </span>
 
@@ -57,7 +57,7 @@ export default function FieldCheckboxGroup({
                 value={option}
               />
               <label
-                className="peer-checked:text-accent cursor-pointer leading-[1.1] opacity-50 transition-[color,opacity] duration-[var(--transition-default-duration)] peer-checked:opacity-100 peer-focus-visible:outline peer-focus-visible:outline-offset-[var(--s4)] hover:opacity-100"
+                className="cursor-pointer leading-[1.1] opacity-50 transition-[color,opacity] duration-[var(--transition-default-duration)] peer-checked:text-accent peer-checked:opacity-100 peer-focus-visible:outline peer-focus-visible:outline-offset-[var(--s4)] hover:opacity-100"
                 htmlFor={`${id}-${index}`}
               >
                 {option}

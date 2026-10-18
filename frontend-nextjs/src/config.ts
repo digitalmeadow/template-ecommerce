@@ -1,10 +1,5 @@
 // Document types a `link` can point at. Each needs a route below; the Studio reads this list too.
-export const LINKABLE_DOCUMENT_TYPES = [
-  "home",
-  "page",
-  "product",
-  "collection",
-] as const;
+export const LINKABLE_DOCUMENT_TYPES = ["home", "page", "product", "collection"] as const;
 export type LinkableDocumentType = (typeof LINKABLE_DOCUMENT_TYPES)[number];
 
 const LINKABLE_ROUTE_PATTERNS = {
@@ -22,3 +17,9 @@ export const SANITY_DOCUMENT_ROUTE_PATTERNS: Record<string, string> = {
   locationNotice: "/",
   ...LINKABLE_ROUTE_PATTERNS,
 };
+
+// Form submissions POST here as multipart FormData. Unset renders forms that validate but can't send.
+export const FORM_ENDPOINT: string | undefined = undefined;
+
+// Browser UI and web app manifest colour; mirrors `--color-background` in src/styles/colors.css.
+export const THEME_COLOR = "#f6f2e5";

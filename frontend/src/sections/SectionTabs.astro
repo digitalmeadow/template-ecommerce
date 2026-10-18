@@ -19,41 +19,37 @@ const tabItems = section.tabItems ?? [];
   id={section.id ?? undefined}
 >
   <Tabs id={section._key ?? undefined} class="u-container">
-    {
-      tabItems.map(
-        (item, index) =>
-          item && (
-            <button
-              slot="triggers"
-              type="button"
-              role="tab"
-              data-tab-trigger
-              id={`tab-${section._key}-trigger-${index}`}
-              aria-controls={`tab-${section._key}-panel-${index}`}
-            >
-              {item.title}
-            </button>
-          ),
-      )
-    }
-    {
-      tabItems.map(
-        (item, index) =>
-          item && (
-            <div
-              slot="panels"
-              role="tabpanel"
-              data-tab-panel
-              id={`tab-${section._key}-panel-${index}`}
-              aria-labelledby={`tab-${section._key}-trigger-${index}`}
-              class="panel"
-            >
-              <PortableText value={item.contentRaw} />
-              {item.media && <SanityMedia mediaData={item.media} sizes={[50, 100, 100]} />}
-            </div>
-          ),
-      )
-    }
+    {tabItems.map(
+      (item, index) =>
+        item && (
+          <button
+            slot="triggers"
+            type="button"
+            role="tab"
+            data-tab-trigger
+            id={`tab-${section._key}-trigger-${index}`}
+            aria-controls={`tab-${section._key}-panel-${index}`}
+          >
+            {item.title}
+          </button>
+        ),
+    )}
+    {tabItems.map(
+      (item, index) =>
+        item && (
+          <div
+            slot="panels"
+            role="tabpanel"
+            data-tab-panel
+            id={`tab-${section._key}-panel-${index}`}
+            aria-labelledby={`tab-${section._key}-trigger-${index}`}
+            class="panel"
+          >
+            <PortableText value={item.contentRaw} />
+            {item.media && <SanityMedia mediaData={item.media} sizes={[50, 100, 100]} />}
+          </div>
+        ),
+    )}
   </Tabs>
 </section>
 

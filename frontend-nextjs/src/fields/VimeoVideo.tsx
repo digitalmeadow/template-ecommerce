@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Player from "@vimeo/player";
 import { cn } from "@/lib/utils";
 
@@ -44,8 +44,7 @@ const frameClasses: Record<string, string> = {
 
 function embedUrl(url: string) {
   // Unlisted videos carry a privacy hash after the id.
-  const [, id, hash] =
-    url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([a-z0-9]+))?/i) ?? [];
+  const [, id, hash] = url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([a-z0-9]+))?/i) ?? [];
   const params = new URLSearchParams(EMBED_PARAMS);
   if (hash) params.set("h", hash);
   return `https://player.vimeo.com/video/${id ?? url.split("/").pop()}?${params}`;
@@ -84,7 +83,7 @@ export default function VimeoVideo({
   return (
     <div
       className={cn("vimeo-video overflow-hidden", containerClasses[layout])}
-      style={{ "--video-ratio": aspectRatio } as React.CSSProperties}
+      style={{ "--video-ratio": aspectRatio } as CSSProperties}
       data-media-id={mediaId ?? undefined}
     >
       <div
@@ -96,7 +95,7 @@ export default function VimeoVideo({
         {thumbnailUrl && (
           <img
             className={cn(
-              "pointer-events-none absolute inset-[0] h-full w-full object-cover blur-[100px] transition-opacity duration-[var(--transition-media-load-duration)]",
+              "placeholder pointer-events-none absolute inset-[0] h-full w-full object-cover blur-[100px] transition-opacity duration-[var(--transition-media-load-duration)]",
               loaded && "opacity-0",
             )}
             src={thumbnailUrl}

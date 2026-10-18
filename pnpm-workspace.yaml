@@ -1,10 +1,10 @@
 packages:
-  - 'frontend'
-  - 'frontend-nextjs'
-  - 'cms'
-  - 'sanity'
-  - 'sanity-nextjs'
-  - 'shopify'
+  - "frontend"
+  - "frontend-nextjs"
+  - "cms"
+  - "sanity"
+  - "sanity-nextjs"
+  - "shopify"
 
 allowBuilds:
   esbuild: true

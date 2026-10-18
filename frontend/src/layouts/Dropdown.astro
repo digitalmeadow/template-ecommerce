@@ -5,7 +5,7 @@ interface Props {
   class?: string;
 }
 
-const { id, class: className } = Astro.props;
+const { id, class: className }: Props = Astro.props;
 ---
 
 <dropdown-root id={id} class={className}>
@@ -18,10 +18,9 @@ const { id, class: className } = Astro.props;
 </dropdown-root>
 
 <script>
-  export type EventDropdownToggleDetail = { open: boolean };
-  export type EventDropdownToggle = CustomEvent<EventDropdownToggleDetail>;
+  import type { EventDropdownToggleDetail } from "@lib/events";
 
-  export class DropdownElement extends HTMLElement {
+  class DropdownElement extends HTMLElement {
     private trigger: HTMLElement | null = null;
     private panel: HTMLElement | null = null;
     private isOpen = false;

@@ -1,7 +1,7 @@
 import { colorSchemeField } from "../fields/colorScheme";
+import { sectionIdField } from "../fields/sectionId";
 import { defineField, defineType } from "sanity";
 import BlockElementIcon from "@sanity/icons/BlockElement";
-import { validateSlugId } from "../../utils/validation";
 
 export const sectionCollection = defineType({
   type: "object",
@@ -10,16 +10,12 @@ export const sectionCollection = defineType({
   icon: BlockElementIcon,
   fields: [
     colorSchemeField,
-    defineField({
-      type: "string",
-      name: "id",
-      title: "Section ID",
-      validation: (Rule) => validateSlugId(Rule),
-    }),
+    sectionIdField,
     defineField({
       type: "reference",
       name: "collection",
       to: [{ type: "collection" }],
+      validation: (Rule) => Rule.required(),
     }),
   ],
   preview: {

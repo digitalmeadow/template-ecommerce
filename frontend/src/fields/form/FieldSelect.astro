@@ -12,10 +12,14 @@ interface Props {
 const { id, name, label, placeholder, required, options, errorId }: Props = Astro.props;
 ---
 
-<label class="visually-hidden" for={id}>{label}</label>
+<label class="visually-hidden" for={id}>
+  {label}
+</label>
 <select id={id} name={name} required={required} aria-describedby={errorId}>
   <option value="">{placeholder}</option>
-  {options.map((option) => <option value={option}>{option}</option>)}
+  {options.map((option) => (
+    <option value={option}>{option}</option>
+  ))}
 </select>
 
 <style>

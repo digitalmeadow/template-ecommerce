@@ -1,0 +1,75 @@
+---
+import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
+import Carousel from "@layouts/Carousel.astro";
+import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
+
+interface Props {
+  productsData: ProductThumbnailShopifySanity[] | null | undefined;
+}
+
+const { productsData }: Props = Astro.props;
+---
+
+{productsData && productsData.length > 0 && (
+  <section class="product-related u-container">
+    <div class="top">
+      <h2>Related Products</h2>
+
+      <div class="carousel-controls">
+        <button
+          type="button"
+          data-carousel-trigger-prev="product-related-carousel"
+          aria-label="Previous related products"
+        >
+          ←
+        </button>
+        <button
+          type="button"
+          data-carousel-trigger-next="product-related-carousel"
+          aria-label="Next related products"
+        >
+          →
+        </button>
+      </div>
+    </div>
+
+    <Carousel id="product-related-carousel">
+      <Fragment slot="content">
+        {productsData.map((productData) => (
+          <div class="carousel-item">
+            <ProductThumbnail productData={productData} />
+          </div>
+        ))}
+      </Fragment>
+    </Carousel>
+  </section>
+)}
+
+<style>
+  .product-related {
+    margin-top: var(--s80);
+  }
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--s16);
+    column-gap: var(--s4);
+  }
+
+  .carousel-controls {
+    display: flex;
+    gap: var(--s4);
+  }
+
+  .carousel-item {
+    width: calc(4 * var(--column) + 3 * var(--gutter));
+    margin-right: var(--gutter);
+  }
+  @media (max-width: 64rem) {
+    .carousel-item {
+      width: calc(8 * var(--column) + 7 * var(--gutter));
+    }
+  }
+</style>

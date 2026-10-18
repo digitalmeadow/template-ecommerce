@@ -9,12 +9,13 @@ interface Props {
 }
 
 const { productData }: Props = Astro.props;
+
+const handle = productData.sanity.shopify?.handle?.current ?? productData.shopify.handle;
 ---
 
-<a href={resolveSanityHref("product", productData.sanity.shopify!.handle!.current!)}>
+<a href={resolveSanityHref("product", handle)}>
   <article
     class="product-thumbnail"
-    data-product-thumbnail
     data-product-root
     data-prices={JSON.stringify(productData.pricesPerLocale)}
   >
@@ -50,10 +51,6 @@ const { productData }: Props = Astro.props;
 
   .product-thumbnail:hover {
     filter: grayscale(0%) !important;
-  }
-
-  .product-thumbnail.inactive {
-    filter: grayscale(100%);
   }
 
   .media {

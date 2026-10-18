@@ -1,7 +1,8 @@
 "use client";
 
 import { getStoredLocale } from "@/lib/shopify/locale.client";
-import { getCurrency } from "@/lib/shopify/locale";
+import { DEFAULT_LOCALE, getCurrency } from "@/lib/shopify/locale";
+import { useBrowserValue } from "@/lib/useBrowserValue";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -19,7 +20,7 @@ export default function PriceDisplay({
   prefix,
   className,
 }: Props) {
-  const locale = getStoredLocale();
+  const locale = useBrowserValue(getStoredLocale, DEFAULT_LOCALE);
   const currencyCode = currency || getCurrency(locale);
 
   const numericAmount = Number(amount || 0);
@@ -32,19 +33,12 @@ export default function PriceDisplay({
 
   return (
     <span
-      suppressHydrationWarning
       className={cn("inline-flex gap-[1ch]", className)}
       data-variant={variant}
       data-prefixed={prefix ? "true" : undefined}
     >
       {prefix && <span data-price-prefix>{prefix}</span>}
-      <span
-        data-price-value
-        suppressHydrationWarning
-        className={cn(
-          variant === "compare-at" && "line-through opacity-70",
-        )}
-      >
+      <span data-price-value className={cn(variant === "compare-at" && "line-through opacity-70")}>
         {formatted}
       </span>
     </span>

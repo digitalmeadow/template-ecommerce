@@ -22,7 +22,7 @@ if (!process.env.CI) {
 // https://astro.build/config
 export default defineConfig({
   // Per environment. Drives canonicals, the sitemap, robots.txt and JSON-LD @ids via Astro.site.
-  site: process.env.WEBSITE_URL ?? "http://localhost:3001",
+  site: process.env.WEBSITE_URL ?? "http://localhost:3000",
 
   i18n: {
     locales: ["en-AU"],
@@ -60,6 +60,10 @@ export default defineConfig({
         context: "server",
         access: "secret",
       }),
+      SHOPIFY_SANITY_SYNC_SECRET: envField.string({
+        context: "server",
+        access: "secret",
+      }),
 
       GIT_API_TOKEN: envField.string({
         context: "server",
@@ -72,11 +76,6 @@ export default defineConfig({
       DEPLOY_ENVIRONMENT: envField.string({
         context: "client",
         access: "public",
-      }),
-
-      SHOPIFY_PRIVATE_API_TOKEN: envField.string({
-        context: "server",
-        access: "secret",
       }),
     },
   },

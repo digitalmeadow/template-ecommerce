@@ -1,15 +1,15 @@
-<div data-text-fill-width>
+<div data-font-size-fill-width>
   <slot />
 </div>
 
 <style is:inline>
   /* The scaled text must never size its container, or the fit feeds back into the grid/flex track. */
-  [data-text-fill-width] {
+  [data-font-size-fill-width] {
     width: 100%;
     contain: inline-size;
   }
 
-  [data-text-fill-width] > * {
+  [data-font-size-fill-width] > * {
     display: inline-block;
     font-size: 1px;
     line-height: 0.8;
@@ -50,8 +50,8 @@
   }
 
   function adjustFontSizeForElement(textElement: HTMLElement) {
-    const section = textElement.parentElement;
-    if (!section) return;
+    const container = textElement.parentElement;
+    if (!container) return;
 
     textElement.style.marginLeft = "0px";
     textElement.style.marginRight = "0px";
@@ -61,8 +61,8 @@
     if (!ink || ink.right <= ink.left) return;
 
     // getBoundingClientRect on both, so an ancestor scale transform cancels out of the ratio.
-    const sectionWidth = section.getBoundingClientRect().width;
-    const scale = sectionWidth / (ink.right - ink.left);
+    const containerWidth = container.getBoundingClientRect().width;
+    const scale = containerWidth / (ink.right - ink.left);
 
     textElement.style.fontSize = `${REFERENCE_FONT_SIZE * scale}px`;
     // Negative margins pull the bearings out; the right one reserves the tracking overhang.
@@ -71,7 +71,7 @@
   }
 
   function adjustFontSize() {
-    document.querySelectorAll("[data-text-fill-width]").forEach((wrapper) => {
+    document.querySelectorAll("[data-font-size-fill-width]").forEach((wrapper) => {
       const textElement = wrapper.firstElementChild;
       if (textElement instanceof HTMLElement) adjustFontSizeForElement(textElement);
     });

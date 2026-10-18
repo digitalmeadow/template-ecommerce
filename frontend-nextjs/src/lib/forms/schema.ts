@@ -45,8 +45,7 @@ function formatError(field: FormFieldDefinition, values: Values) {
       if (strings.length) return `${label} must be a file.`;
       if (type === "files" && files.length > MAX_FILES)
         return `${label} accepts at most ${MAX_FILES} files.`;
-      if (!files.every(isAcceptedFile))
-        return `${label} must be a PDF or Word document.`;
+      if (!files.every(isAcceptedFile)) return `${label} must be a PDF or Word document.`;
       if (files.some((file) => file.size > MAX_FILE_BYTES))
         return `${label} must be smaller than ${MAX_FILE_MB}MB.`;
       return null;
@@ -57,28 +56,19 @@ function formatError(field: FormFieldDefinition, values: Values) {
     case "consent":
       return strings[0] === CONSENT_VALUE ? null : `${label} must be accepted.`;
     case "email":
-      return EMAIL_PATTERN.test(strings[0])
-        ? null
-        : `${label} must be a valid email address.`;
+      return EMAIL_PATTERN.test(strings[0]) ? null : `${label} must be a valid email address.`;
     case "tel":
-      return PHONE_PATTERN.test(strings[0])
-        ? null
-        : `${label} must be a valid phone number.`;
+      return PHONE_PATTERN.test(strings[0]) ? null : `${label} must be a valid phone number.`;
     case "select":
     case "radioGroup":
-      return options.includes(strings[0])
-        ? null
-        : `Select an option for ${label}.`;
+      return options.includes(strings[0]) ? null : `Select an option for ${label}.`;
     default:
       return null;
   }
 }
 
 // Blank is checked first, so a required field reports "required", not a format error.
-export function validateSubmission(
-  fields: FormFieldDefinition[],
-  data: FormData,
-) {
+export function validateSubmission(fields: FormFieldDefinition[], data: FormData) {
   const errors: Record<string, string> = {};
 
   for (const field of fields) {
@@ -97,10 +87,7 @@ export function validateSubmission(
 }
 
 // Per-file limits can still add up past what the endpoint accepts.
-export function validateTotalUploadSize(
-  fields: FormFieldDefinition[],
-  data: FormData,
-) {
+export function validateTotalUploadSize(fields: FormFieldDefinition[], data: FormData) {
   const total = fields
     .filter((field) => FILE_TYPES.has(field.type))
     .flatMap((field) => data.getAll(field.name))

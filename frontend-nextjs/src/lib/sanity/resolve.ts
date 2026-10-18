@@ -1,8 +1,7 @@
 import type { LinkFragment } from "sanity-nextjs/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@/config";
 
-export type LinkKind =
-  "internal" | "anchor" | "external" | "email" | "phone" | "download";
+export type LinkKind = "internal" | "anchor" | "external" | "email" | "phone" | "download";
 
 export interface ResolvedLink {
   href: string;
@@ -11,10 +10,7 @@ export interface ResolvedLink {
   download?: string;
 }
 
-export function resolveSanityHref(
-  documentType: string,
-  slug?: string | null,
-): string {
+export function resolveSanityHref(documentType: string, slug?: string | null): string {
   if (!(documentType in SANITY_DOCUMENT_ROUTE_PATTERNS)) {
     throw new Error("Invalid document type");
   }
@@ -41,16 +37,13 @@ export function sanityFileUrlFromRef(source: string | undefined): string {
   }
 
   const lastDashIndex = id.lastIndexOf("-");
-  const sourceUrl =
-    id.slice(0, lastDashIndex) + "." + id.slice(lastDashIndex + 1);
+  const sourceUrl = id.slice(0, lastDashIndex) + "." + id.slice(lastDashIndex + 1);
 
   return `https://cdn.sanity.io/files/${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}/${process.env.NEXT_PUBLIC_SANITY_DATASET}/${sourceUrl}`;
 }
 
-/** Pure, so it runs anywhere; page references must already be resolved (`resolveSanityLink`). */
-export function resolveLink(
-  link: LinkFragment | null | undefined,
-): ResolvedLink | null {
+// Pure, so it runs anywhere; page references must already be resolved (`resolveSanityLink`).
+export function resolveLink(link: LinkFragment | null | undefined): ResolvedLink | null {
   if (!link) return null;
   const newTab = !!link.newTab;
 
@@ -62,23 +55,15 @@ export function resolveLink(
       return { href: href + anchor, kind: "internal", newTab };
     }
     case "section":
-      return link.section
-        ? { href: `#${link.section}`, kind: "anchor", newTab: false }
-        : null;
+      return link.section ? { href: `#${link.section}`, kind: "anchor", newTab: false } : null;
     case "url":
-      return link.url
-        ? { href: link.url, kind: urlKind(link.url), newTab }
-        : null;
+      return link.url ? { href: link.url, kind: urlKind(link.url), newTab } : null;
     case "email":
-      return link.email
-        ? { href: `mailto:${link.email}`, kind: "email", newTab: false }
-        : null;
+      return link.email ? { href: `mailto:${link.email}`, kind: "email", newTab: false } : null;
     case "phone": {
       // Editors type numbers as they read them: "+61 (0)4 1234 5678".
       const number = link.phone?.replace(/\(0\)|[^\d+]/g, "");
-      return number
-        ? { href: `tel:${number}`, kind: "phone", newTab: false }
-        : null;
+      return number ? { href: `tel:${number}`, kind: "phone", newTab: false } : null;
     }
     case "file": {
       const href = fileHref(link.file);
@@ -114,13 +99,9 @@ function fileHref(file: LinkFragment["file"]): string | undefined {
 }
 
 // Unresolvable targets (unpublished or deleted documents) must degrade to no link, not fail the build.
-function resolveReferenceHref(
-  reference: LinkFragment["page"],
-): string | undefined {
+function resolveReferenceHref(reference: LinkFragment["page"]): string | undefined {
   if (!reference?._type) {
-    console.warn(
-      "Link target is unpublished or deleted; rendering without a link.",
-    );
+    console.warn("Link target is unpublished or deleted; rendering without a link.");
     return undefined;
   }
 

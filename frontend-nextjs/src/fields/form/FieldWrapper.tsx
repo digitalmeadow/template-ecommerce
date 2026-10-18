@@ -12,13 +12,7 @@ interface Props {
 // Group types lay out their own label, so the single-line control styling would fight them.
 const GROUP_TYPES = ["checkboxGroup", "radioGroup", "consent"];
 
-export default function FieldWrapper({
-  type,
-  width = "full",
-  errorId,
-  error,
-  children,
-}: Props) {
+export default function FieldWrapper({ type, width = "full", errorId, error, children }: Props) {
   const isFile = type === "file" || type === "files";
 
   return (
@@ -40,7 +34,7 @@ export default function FieldWrapper({
 
       <p
         id={errorId}
-        className="error text-accent mt-[var(--s4)] mb-[var(--s8)] empty:hidden"
+        className="error mt-[var(--s4)] mb-[var(--s8)] text-accent empty:hidden"
         aria-live="polite"
       >
         {error}

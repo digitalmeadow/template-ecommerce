@@ -6,20 +6,18 @@ import { anchorAttributes } from "@lib/sanity/resolve";
 interface Props {
   linkData: LinkFragment | null | undefined;
   class?: string;
-  [prop: string]: unknown;
+  [attribute: string]: unknown;
 }
 
-const { linkData, class: className, ...rest } = Astro.props;
+const { linkData, class: className, ...rest }: Props = Astro.props;
 
 const link = await resolveSanityLink(linkData);
 ---
 
-{
-  link ? (
-    <a class={className} href={link.href} {...anchorAttributes(link)} {...rest}>
-      <slot />
-    </a>
-  ) : (
+{link ? (
+  <a class={className} href={link.href} {...anchorAttributes(link)} {...rest}>
     <slot />
-  )
-}
+  </a>
+) : (
+  <slot />
+)}

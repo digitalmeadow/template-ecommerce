@@ -10,23 +10,21 @@ interface Props {
 const { cookieConsentData }: Props = Astro.props;
 ---
 
-{
-  cookieConsentData?.messageRaw && (
-    <cookie-banner>
-      <div class="cookie-banner" data-banner>
-        <PortableText value={cookieConsentData.messageRaw} />
-        <div class="actions" data-actions>
-          <button class="text-link underline-color-orange" type="button" data-decline-button>
-            {cookieConsentData.declineLabel}
-          </button>
-          <button class="text-link underline-color-green" type="button" data-accept-button>
-            {cookieConsentData.acceptLabel}
-          </button>
-        </div>
+{cookieConsentData?.messageRaw && (
+  <cookie-banner>
+    <div class="cookie-banner" data-banner>
+      <PortableText value={cookieConsentData.messageRaw} />
+      <div class="actions" data-actions>
+        <button class="text-link underline-color-orange" type="button" data-decline-button>
+          {cookieConsentData.declineLabel}
+        </button>
+        <button class="text-link underline-color-green" type="button" data-accept-button>
+          {cookieConsentData.acceptLabel}
+        </button>
       </div>
-    </cookie-banner>
-  )
-}
+    </div>
+  </cookie-banner>
+)}
 
 <script>
   import { getConsent, setConsent } from "@lib/consent/consent";
@@ -85,7 +83,7 @@ const { cookieConsentData }: Props = Astro.props;
     display: none;
   }
 
-  cookie-banner[data-visible]:not([data-visible="false"]) {
+  cookie-banner[data-visible] {
     display: block;
   }
 

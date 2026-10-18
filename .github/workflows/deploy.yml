@@ -124,16 +124,15 @@ jobs:
           WEBSITE_URL: ${{ matrix.target.website_url }}
 
           SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
-          SANITY_DATASET: production
+          SANITY_DATASET: ${{ vars.SANITY_DATASET }}
           SANITY_VIEWER_API_TOKEN: ${{ secrets.SANITY_VIEWER_API_TOKEN }}
           SANITY_EDITOR_API_TOKEN: ${{ secrets.SANITY_EDITOR_API_TOKEN }}
           SANITY_WEBHOOK_SECRET: ${{ secrets.SANITY_WEBHOOK_SECRET }}
+          SHOPIFY_SANITY_SYNC_SECRET: ${{ secrets.SHOPIFY_SANITY_SYNC_SECRET }}
 
           GIT_API_TOKEN: ${{ secrets.GIT_API_TOKEN }}
           GIT_BRANCH: ${{ matrix.target.git_branch }}
           DEPLOY_ENVIRONMENT: ${{ matrix.target.deploy_environment }}
-
-          SHOPIFY_PRIVATE_API_TOKEN: ${{ secrets.SHOPIFY_PRIVATE_API_TOKEN }}
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v4
@@ -144,13 +143,13 @@ jobs:
           wranglerVersion: "4.147.0"
           secrets: |
             SANITY_WEBHOOK_SECRET
+            SHOPIFY_SANITY_SYNC_SECRET
             SANITY_VIEWER_API_TOKEN
             SANITY_EDITOR_API_TOKEN
             GIT_API_TOKEN
-            SHOPIFY_PRIVATE_API_TOKEN
         env:
           SANITY_WEBHOOK_SECRET: ${{ secrets.SANITY_WEBHOOK_SECRET }}
+          SHOPIFY_SANITY_SYNC_SECRET: ${{ secrets.SHOPIFY_SANITY_SYNC_SECRET }}
           SANITY_VIEWER_API_TOKEN: ${{ secrets.SANITY_VIEWER_API_TOKEN }}
           SANITY_EDITOR_API_TOKEN: ${{ secrets.SANITY_EDITOR_API_TOKEN }}
           GIT_API_TOKEN: ${{ secrets.GIT_API_TOKEN }}
-          SHOPIFY_PRIVATE_API_TOKEN: ${{ secrets.SHOPIFY_PRIVATE_API_TOKEN }}

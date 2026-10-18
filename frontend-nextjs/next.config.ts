@@ -8,8 +8,6 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SANITY_PROJECT_ID: process.env.SANITY_PROJECT_ID ?? "",
     NEXT_PUBLIC_SANITY_DATASET: process.env.SANITY_DATASET ?? "",
-    NEXT_PUBLIC_PREVIEW: process.env.PREVIEW ?? "",
-    NEXT_PUBLIC_WEBSITE_URL: process.env.WEBSITE_URL ?? "",
   },
   images: {
     deviceSizes: [400, 600, 800, 1000, 1400, 1800, 2200],

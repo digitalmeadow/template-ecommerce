@@ -1,9 +1,9 @@
 import { colorSchemeField } from "../fields/colorScheme";
+import { sectionIdField } from "../fields/sectionId";
 import { defineField, defineType } from "sanity";
 import BlockElementIcon from "@sanity/icons/BlockElement";
 import { previewText } from "../../utils/preview";
-import { validateSlugId } from "../../utils/validation";
-import { RICH_TEXT, richText } from "../fields/richText";
+import { RICH_TEXT_STYLES, richText } from "../fields/richText";
 
 export const sectionText = defineType({
   type: "object",
@@ -12,14 +12,9 @@ export const sectionText = defineType({
   icon: BlockElementIcon,
   fields: [
     colorSchemeField,
+    sectionIdField,
     defineField({
-      type: "string",
-      name: "id",
-      title: "Section ID",
-      validation: (Rule) => validateSlugId(Rule),
-    }),
-    defineField({
-      ...richText(RICH_TEXT.longform, { required: true }),
+      ...richText(RICH_TEXT_STYLES.full, { required: true }),
       name: "text",
     }),
   ],

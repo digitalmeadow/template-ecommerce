@@ -4,10 +4,10 @@ Shared rules for every package. This repo is a starter: it gets copied into new 
 
 **Also read the file for the area you're working in:**
 
-| Working in | Read |
-| --- | --- |
-| `frontend/` (Astro) | `AGENTS_ASTRO.md` |
-| `frontend-nextjs/` (Next.js) | `AGENTS_NEXTJS.md` |
+| Working in                                                      | Read                  |
+| --------------------------------------------------------------- | --------------------- |
+| `frontend/` (Astro)                                             | `AGENTS_ASTRO.md`     |
+| `frontend-nextjs/` (Next.js)                                    | `AGENTS_NEXTJS.md`    |
 | Anything touching Shopify, cart, products, collections, locales | `AGENTS_ECOMMERCE.md` |
 
 ## Workspace layout
@@ -27,6 +27,7 @@ shopify/         Shopify Storefront API fragments/queries + client
 
 ```
 pnpm dev | build | lint | typecheck   # fan out to every package
+pnpm format | format:check            # prettier, root config; frontends extend it with their plugin
 pnpm gen                              # cms graphql deploy → sanity, sanity-nextjs, shopify codegen
 pnpm --filter cms validate-documents [id]   # run Studio validation over the dataset, with full paths
 ```
@@ -35,7 +36,7 @@ Run `pnpm gen` after changing `cms/schemas/**`, `sanity*/fragments/**` or `sanit
 
 ## Philosophy
 
-- **Comments are rare.** One line, *why* not *what*. No banners or decoration.
+- **Comments are rare.** One line, _why_ not _what_. No banners or decoration.
 - **Files are short and do one thing.** Split by responsibility.
 - **Flat, literal naming** — `SectionText`, not `TextSectionRenderer`.
 - **Copy the conventions, not just the logic.** Match the nearest existing file.
@@ -46,7 +47,7 @@ Run `pnpm gen` after changing `cms/schemas/**`, `sanity*/fragments/**` or `sanit
 One real file, the root `.env` (gitignored; copy `.env.example`). Every package symlinks its own `.env` to it (`frontend/.env -> ../.env`, etc.); the symlinks are committed. In CI nothing is read from files — values come from `.github/workflows/deploy.yml`.
 
 - The Sanity dataset is **private**: `SANITY_VIEWER_API_TOKEN` and other tokens are server-only. Never expose them as Astro `context: "client"` or `NEXT_PUBLIC_*`.
-- `SANITY_PROJECT_ID` is duplicated as `SANITY_STUDIO_PROJECT_ID` because the Studio bundle only sees the `SANITY_STUDIO_` prefix.
+- `SANITY_PROJECT_ID` / `SANITY_DATASET` are duplicated as `SANITY_STUDIO_PROJECT_ID` / `SANITY_STUDIO_DATASET` because the Studio bundle only sees the `SANITY_STUDIO_` prefix.
 - `WEBSITE_URL` drives canonicals, sitemap, robots and JSON-LD `@id`s.
 - Adding a runtime secret: `frontend/astro.config.mjs` env schema, `.env.example`, `deploy.yml` (build env + wrangler `secrets`), and `frontend/wrangler.jsonc` `secrets.required` per environment.
 
@@ -56,7 +57,7 @@ A static build renders every page in one process, so **a query in the wrong plac
 
 - **Site-wide data goes in one query.** `queries/globals.ts` fetches header, footer, cart, meta, organisation, analytics, announcement banner, cookie consent and location notice settings in one request via `getGlobals()`. Layout passes results down as props; components never fetch for themselves.
 - **Route-wide data is fetched once per route**, then handed to each page (Astro: `getStaticPaths` props; Next: cached bulk query looked up by slug). Detail pages make no per-page Sanity request for their own document.
-- **Build-wide values are memoised** by `buildScoped` / `buildScopedByKey` (`lib/sanity/cache.ts` in each frontend). They cache the *promise* so concurrent renders share one request, and are inert in dev and on the preview (drafts) site so content stays live.
+- **Build-wide values are memoised** by `buildScoped` / `buildScopedByKey` (`lib/cache.ts` in each frontend; shared by Sanity and Shopify fetches). They cache the _promise_ so concurrent renders share one request, and are inert in dev and on the preview (drafts) site so content stays live.
 - **Links** resolve against one cached `_id → {_type, slug}` map — never a query per link. Unpublished/unknown targets warn and render without a link instead of failing the build.
 - If a bulk query grows too large, paginate (`limit`/`offset`) rather than reverting to per-page queries.
 
@@ -74,7 +75,7 @@ GTM only. `analyticsSettings.gtmId` in the CMS; banner copy is the `cookieConsen
 ## CMS (`cms/`)
 
 - `schemas/` organised `documents/`, `fields/`, `sections/`, `settings/`.
-- **Rich text** is the `richText(RICH_TEXT.rich | prose | longform, { required })` field factory, not a named type. Prefer a preset over raw options; pass `required` to the factory rather than adding `validation`. The stored shape is always a block array, so changing presets needs no migration.
+- **Rich text** is the `richText(RICH_TEXT_STYLES.default | extended | full, { required })` field factory, not a named type. Prefer a preset over raw options; pass `required` to the factory rather than adding `validation`. The stored shape is always a block array, so changing presets needs no migration.
 - **Nested objects must be named types** in `schemas/fields/` (e.g. `postalAddress`) — Sanity's GraphQL deploy rejects anonymous inline objects.
 - **Optional object validation**: use the helpers in `utils/validation.ts` so untouched optional fields don't demand inner required values. Inner fields: `Rule.custom(requiredInUse({ isEmpty, hasValue, message }))`. A required `media`/`link` field: `Rule.required().custom(requiredMedia | requiredLink)` (required alone passes a seeded, empty object).
 - **Previews**: every type says what it is. Use `utils/preview.tsx` (`previewText`, `pluralize`, `mediaSelection` + `previewMedia`, `linkSelection` + `linkSubtitle`); select media through `mediaSelection` so Mux thumbnails resolve.
@@ -97,10 +98,23 @@ staging             staging  static, published
 api                 api      hosts /api/deploy + /api/shopify-sanity-sync
 ```
 
+`/api/shopify-sanity-sync` requires `SHOPIFY_SANITY_SYNC_SECRET`: set the Sanity Connect custom sync URL to `…/api/shopify-sanity-sync?secret=<value>` (or send `Authorization: Bearer <value>`); anything else gets 401.
+
 - Push to `main` deploys production + production-preview; `staging`/`api` deploy themselves; manual dispatch picks one or `all`.
 - Sanity publish webhook → api worker `/api/deploy` → dispatches `deploy.yml` with `environment: all`. Dispatches within 30s of a queued/running run are coalesced.
 - Each environment deploys one at a time (concurrency group) because Wrangler can't write secrets while a version is pending.
-- To add an environment: add it to the `TABLE` in `deploy.yml`, the `options` list, and `env` in `wrangler.jsonc`.
+- To add an environment: add it to the `TABLE` in `deploy.yml`, the `options` list, the `all` case if it carries content, and `env` in `wrangler.jsonc`.
+
+## New project checklist
+
+Replace the template's values:
+
+- `frontend/wrangler.jsonc`: `name` (worker names derive from it) + `account_id`.
+- `shopify/config.ts`: `SHOPIFY_STORE_DOMAIN` + `SHOPIFY_PUBLIC_API_TOKEN`.
+- `*.workers.dev` URLs: `website_url` per target in `deploy.yml`, `SANITY_STUDIO_PREVIEW_URL` in `.env.example`.
+- `THEME_COLOR` in both frontends' config (browser UI + manifest, which is generated with the organisation name) and the `web-app-manifest-*.png` / favicon icons in each `public/`.
+- GitHub vars `SANITY_PROJECT_ID`, `SANITY_DATASET`; secrets `SANITY_VIEWER_API_TOKEN`, `SANITY_EDITOR_API_TOKEN`, `SANITY_WEBHOOK_SECRET`, `SHOPIFY_SANITY_SYNC_SECRET`, `GIT_API_TOKEN`, `CLOUDFLARE_API_TOKEN`.
+- Sanity project + dataset: `.env` (`SANITY_*` and `SANITY_STUDIO_*`), then `pnpm gen`.
 
 ## What NOT to do
 

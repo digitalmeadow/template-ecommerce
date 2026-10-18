@@ -1,18 +1,19 @@
 import BasketIcon from "@sanity/icons/Basket";
 import { defineField, defineType } from "sanity";
-import { RICH_TEXT, richText } from "../fields/richText";
+import { RICH_TEXT_STYLES, richText } from "../fields/richText";
 
 export const cart = defineType({
   type: "document",
   name: "cart",
+  title: "Cart",
   icon: BasketIcon,
   fields: [
     defineField({
-      ...richText(RICH_TEXT.rich, { required: true }),
+      ...richText(RICH_TEXT_STYLES.default, { required: true }),
       name: "emptyMessage",
     }),
     defineField({
-      ...richText(RICH_TEXT.rich),
+      ...richText(RICH_TEXT_STYLES.default),
       name: "note",
     }),
   ],

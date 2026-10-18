@@ -10,8 +10,8 @@ export function getConsent(): ConsentStatus | null {
   if (!stored) return null;
 
   try {
-    const data = JSON.parse(stored);
-    const expiryDate = new Date(data.timestamp);
+    const storedConsent = JSON.parse(stored);
+    const expiryDate = new Date(storedConsent.timestamp);
     expiryDate.setDate(expiryDate.getDate() + COOKIE_CONSENT_EXPIRY_DAYS);
 
     if (new Date() > expiryDate) {
@@ -19,8 +19,8 @@ export function getConsent(): ConsentStatus | null {
       return null;
     }
 
-    if (data.status === "accepted" || data.status === "declined") {
-      return data.status;
+    if (storedConsent.status === "accepted" || storedConsent.status === "declined") {
+      return storedConsent.status;
     }
   } catch {
     localStorage.removeItem(COOKIE_CONSENT_STORAGE_KEY);

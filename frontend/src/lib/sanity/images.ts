@@ -55,7 +55,7 @@ export function getSanityImageProps({
   const crop = rect ? `&rect=${rect.left},${rect.top},${rect.width},${rect.height}` : "";
 
   const srcset = widths
-    .map((w) => `${sanityImage.asset!.url}?w=${w}&fit=max&auto=format${crop} ${w}w`)
+    .map((width) => `${sanityImage.asset!.url}?w=${width}&fit=max&auto=format${crop} ${width}w`)
     .join(", ");
 
   const fallbackWidth = 1000;

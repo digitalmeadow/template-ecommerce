@@ -11,6 +11,7 @@ interface Props {
   slidesToScroll?: EmblaOptionsType["slidesToScroll"];
   breakpoints?: EmblaOptionsType["breakpoints"];
   watchResize?: boolean;
+  [attribute: string]: unknown;
 }
 
 const {
@@ -24,7 +25,7 @@ const {
   breakpoints,
   watchResize,
   ...rest
-} = Astro.props;
+}: Props = Astro.props;
 ---
 
 <carousel-root
@@ -69,7 +70,7 @@ const {
 <script>
   import EmblaCarousel, { type EmblaOptionsType, type EmblaCarouselType } from "embla-carousel";
 
-  export class CarouselElement extends HTMLElement {
+  class CarouselElement extends HTMLElement {
     public api: EmblaCarouselType | undefined;
     private viewport: HTMLElement | null = null;
 
@@ -110,7 +111,7 @@ const {
 
       const options: EmblaOptionsType = {
         align: (this.getAttribute("align") as EmblaOptionsType["align"]) || "start",
-        dragFree: this.getAttribute("drag-free") !== null, // Only check for existence for boolean props
+        dragFree: this.getAttribute("drag-free") !== null,
         loop: this.getAttribute("loop") !== null,
         skipSnaps: this.getAttribute("skip-snaps") !== null,
         slidesToScroll:
@@ -126,4 +127,20 @@ const {
   }
 
   customElements.define("carousel-root", CarouselElement);
+
+  // Delegated so prev/next buttons anywhere on later client-router pages work without rebinding.
+  document.addEventListener("click", (event) => {
+    const trigger = (event.target as Element | null)?.closest<HTMLElement>(
+      "[data-carousel-trigger-prev], [data-carousel-trigger-next]",
+    );
+    if (!trigger) return;
+
+    const prevId = trigger.dataset.carouselTriggerPrev;
+    const carousel = document.querySelector<CarouselElement>(
+      `carousel-root[id="${prevId ?? trigger.dataset.carouselTriggerNext}"]`,
+    );
+
+    if (prevId) carousel?.api?.scrollPrev();
+    else carousel?.api?.scrollNext();
+  });
 </script>

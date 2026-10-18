@@ -10,24 +10,21 @@ const { productsData }: Props = Astro.props;
 ---
 
 <div class="grid hover-group">
-  {
-    productsData.map((productData) => (
-      <div class="grid-item">
-        <ProductThumbnail productData={productData} />
-      </div>
-    ))
-  }
+  {productsData.map((productData) => (
+    <div class="grid-item">
+      <ProductThumbnail productData={productData} />
+    </div>
+  ))}
 </div>
 
 <style>
   .grid {
     width: min(100%, var(--container-width));
-    margin: 0 auto;
+    margin: var(--s40) auto 0;
 
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: var(--gutter);
-    margin-top: var(--s40);
   }
   @media (max-width: 32rem) {
     .grid {

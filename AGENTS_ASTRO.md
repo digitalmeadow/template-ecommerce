@@ -31,6 +31,7 @@ For behaviour scoped to one subtree (tabs, carousel, dropdown, filter, form, qua
 - `connectedCallback` re-runs per navigation; everything bound there must be released in `disconnectedCallback`.
 - State lives in `data-*` / `data-state` attributes, not class toggling.
 - Cross-element coordination is a `CustomEvent` on `window` or a shared ancestor.
+- Types other files need (event details, element APIs) live in `lib/events.ts` / `lib/elements.ts`, never imported from a `.astro` file or its `.astro.0.mts` virtual module.
 
 ### 2. Lifecycle `<script>` — page-wide effects that query the DOM
 
@@ -69,16 +70,16 @@ Header, cart overlay, cookie banner + analytics, and `PageTransition` are wrappe
 
 ```
 blocks/       Small reusable UI (ButtonSubmit, PriceDisplay, QuantitySelector, LocaleSelector)
-components/   Page chrome (Header, Footer, Cart, CookiesBanner, Analytics, NewsletterSignup)
+components/   Page chrome (Header, Footer, AnnouncementBanner, CookiesBanner, LocationNotice, Analytics, cart/Cart, cart/CartButton, cart/CartLineItem)
 decorations/  Non-content visual layers (PageTransition)
 dev/          Dev-only overlays (Grid)
 fields/       Sanity value renderers (SanityImage, SanityMedia, MuxVideo, VimeoVideo, SanityLink, PortableText, FormField, FormTerm, form/*)
 layouts/      Primitives (PageLayout, Accordion, Carousel, Dropdown, Filter, FontSizeFillWidth, Overlay, Tabs)
-lib/          sanity/ (cache, globals, links, images, meta, structuredData, paths, staticPaths), shopify/, fetches/, forms/, consent/
+lib/          cache, sanity/ (globals, links, resolve, images, meta, structuredData, paths, staticPaths, sections), shopify/, fetches/, forms/, consent/, announcement, focus, video, events, elements
 meta/         Meta, JsonLd
 pages/        Routes (+ robots.txt.ts, api/)
 scripts/      ScriptMeasurements, ScriptAnimations + motion controllers (reveal, parallax, wordsReveal)
-sections/     SectionsRenderer + one file per section type, product/ sections
+sections/     SectionsRenderer + one file per section type; product/ (ProductMain, ProductRelated + their parts)
 stores/       nanostores
 styles/       Global CSS + animations.ts
 svgs/         Inline SVGs
@@ -120,15 +121,15 @@ Detail routes build paths in `lib/sanity/paths.ts` and pass whole documents as p
 export async function getStaticPaths() {
   return buildPagePaths();
 }
-const resolved = await propsForSlug(Astro.props, Astro.params.slug, buildPagePaths);
+const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadPageProps);
 if (!resolved) return Astro.rewrite("/404");
 ```
 
-Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `PageLayout` (`<slot />` renders in `<main>`, not `<head>`). Every page needs an `<h1>` — render a `.visually-hidden` one when no hero provides it.
+Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `PageLayout` (`<slot />` renders in `<main>`, not `<head>`). Every page needs an `<h1>` — render a `.visually-hidden` one when no hero provides it (`hasHeroHeading()` in `lib/sanity/sections.ts`).
 
 ### Fields
 
-- `SanityImage` — `getSanityImageProps()` builds `srcset`/`sizes` (widths 64–2200), applies crop as a pixel rect and hotspot as `object-position`, emits width/height. LQIP fades out on load. `priority` for above-the-fold images.
+- `SanityImage` — `getSanityImageProps()` builds `srcset`/`sizes` (widths 64–2200), applies crop as a pixel rect and hotspot as `object-position`, emits width/height. The LQIP placeholder fades out on load. `priority` for above-the-fold images.
 - `SanityMedia` — `image` → SanityImage, `video` → MuxVideo (looping image replacement), `vimeo` → VimeoVideo.
 - `SanityLink` — resolves any link type; renders a bare `<slot/>` when the target can't resolve.
 - `PortableText` — wraps `astro-portabletext`; custom marks in `portableTextComponents/`.
@@ -139,8 +140,9 @@ Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `Pa
 - `Dropdown` — slots `trigger` (contains `[data-dropdown-trigger]`) and `panel`; `open()/close()/toggle()`; emits `dropdown:toggle`.
 - `Filter` — contract in the file's frontmatter: `[data-filter-option]` radios + optional `[data-filter-search]`, `[data-filter-card]` with `data-{facet}`, syncs to the URL query, emits `filter:change`.
 - `FontSizeFillWidth` — wraps one child and scales its font so the glyphs exactly fill the parent width.
-- `Carousel` — Embla; `align`, `dragFree`, `loop`, `skipSnaps` (default true), `slidesToScroll`, `breakpoints`, `watchResize`.
-- `Accordion`, `Overlay` (`fullscreen` | `right`; the cart uses `right`). Traps focus (`lib/focus.ts`), restores it on close, and is `inert` while closed. Open with `data-trigger-overlay-open|close|toggle="<id>"` (delegated) or the element's `open()`/`close()`.
+- `Carousel` — Embla; `align`, `dragFree`, `loop`, `skipSnaps` (default true), `slidesToScroll`, `breakpoints`, `watchResize`. Buttons anywhere with `data-carousel-trigger-prev|next="<id>"` scroll it (delegated).
+- `Accordion` — `summary` prop renders a heading (`headingLevel`, default 2) wrapping a `<button aria-expanded>`; content in slot `content`; `group` closes siblings.
+- `Overlay` (`fullscreen` | `right`; the cart uses `right`). Traps focus (`lib/focus.ts`), restores it on close, and is `inert` while closed. Open with `data-trigger-overlay-open|close|toggle="<id>"` (delegated) or the element's `open()`/`close()`.
 
 ### Forms
 
@@ -148,10 +150,10 @@ Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `Pa
 
 ## Styles — plain CSS + custom properties
 
-Global sheets imported in order by `PageLayout.astro`: `reset, base, colors, spacing, text, elements, forms, animations, aspects, fonts`.
+Global sheets imported in order by `PageLayout.astro`: `reset, base, colors, spacing, text, elements, forms, animations, fonts`.
 
 - **Colors**: palette + semantic tokens (`--color-background`, `--color-text`, `--color-shape-stroke`, `--color-error`). Style against semantic tokens.
-- **Spacing**: `--s4 … --s400`, overridden under `@media (max-width: 64rem)`.
+- **Spacing**: `--s4 … --s200`, overridden under `@media (max-width: 64rem)`.
 - **Grid**: `--column-count`, `--margin`, `--gutter`, `--container-width` (from JS-set `--vw`), `--column`. Span N columns with `calc(N * var(--column) + (N - 1) * var(--gutter))`.
 - **`.u-container`** on the element itself centres it at container width — don't nest a wrapper.
 - **`.visually-hidden`** for screen-reader-only content.
@@ -159,12 +161,12 @@ Global sheets imported in order by `PageLayout.astro`: `reset, base, colors, spa
 
 ## Motion
 
-`motion` package (`animate`, `scroll`). Tokens live in `animations.css` (`--ease-out-cubic`, `--transition-default`, `--transition-slow`, reveal/parallax tokens); `animations.ts` mirrors the numbers JS needs (`easeOutCubic`, durations).
+`motion` package (`animate`, `scroll`). Tokens live in `animations.css` (`--ease-out-cubic`, `--ease-sweep`, `--transition-default`, `--transition-media-load`, reveal/parallax tokens); `animations.ts` mirrors the numbers JS needs (`easeOutCubic`, durations).
 
 Attribute-driven, wired globally by `ScriptAnimations` (init on `astro:page-load`, teardown on `astro:before-swap`):
 
-- `data-animate-reveal` — opacity reveal once in view. Hidden state gated on `html[data-js]`, so no-JS and reduced-motion always show content.
-- `data-animate-words-reveal` — word-by-word reveal.
+- `data-animate-reveal` — opacity reveal once in view (sets `data-revealed`). Hidden state gated on `html[data-js]`, so no-JS and reduced-motion always show content.
+- `data-animate-words` — word-by-word reveal.
 - `data-animate-parallax` — media drift inside its overflow-hidden frame (SanityImage, VimeoVideo).
 - `data-animate-parallax-wrapper` — drifts the element itself.
 

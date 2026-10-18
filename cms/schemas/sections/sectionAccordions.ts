@@ -1,7 +1,8 @@
 import { colorSchemeField } from "../fields/colorScheme";
+import { sectionIdField } from "../fields/sectionId";
+import { pluralize } from "../../utils/preview";
 import { defineArrayMember, defineField, defineType } from "sanity";
 import DoubleChevronDownIcon from "@sanity/icons/DoubleChevronDown";
-import { validateSlugId } from "../../utils/validation";
 
 export const sectionAccordions = defineType({
   type: "object",
@@ -10,24 +11,20 @@ export const sectionAccordions = defineType({
   icon: DoubleChevronDownIcon,
   fields: [
     colorSchemeField,
-    defineField({
-      type: "string",
-      name: "id",
-      title: "Section ID",
-      validation: (Rule) => validateSlugId(Rule),
-    }),
+    sectionIdField,
     defineField({
       type: "array",
       name: "accordions",
-      of: [defineArrayMember({ type: "reference", to: { type: "accordion" } })],
+      of: [defineArrayMember({ type: "reference", to: [{ type: "accordion" }] })],
       validation: (Rule) => Rule.required(),
     }),
   ],
   preview: {
-    select: {},
-    prepare() {
+    select: { accordions: "accordions" },
+    prepare({ accordions }) {
       return {
         title: "Section: Accordions",
+        subtitle: pluralize("accordion", accordions?.length ?? 0),
       };
     },
   },

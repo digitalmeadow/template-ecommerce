@@ -6,6 +6,7 @@ import { pageSections } from "../sections/sections";
 export const page = defineType({
   type: "document",
   name: "page",
+  title: "Page",
   icon: DocumentIcon,
   fields: [
     defineField({
@@ -33,11 +34,13 @@ export const page = defineType({
   ],
   preview: {
     select: { title: "title", slug: "slug.current", sections: "sections" },
-    prepare: ({ title, slug, sections }) => ({
-      title,
-      subtitle: [slug && `/${slug}`, pluralize("section", sections?.length ?? 0)]
-        .filter(Boolean)
-        .join(" · "),
-    }),
+    prepare({ title, slug, sections }) {
+      return {
+        title,
+        subtitle: [slug && `/${slug}`, pluralize("section", sections?.length ?? 0)]
+          .filter(Boolean)
+          .join(" · "),
+      };
+    },
   },
 });

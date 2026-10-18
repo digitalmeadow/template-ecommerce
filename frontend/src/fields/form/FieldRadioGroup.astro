@@ -20,22 +20,22 @@ const labelId = `${id}-label`;
   aria-describedby={errorId}
   aria-required={required || undefined}
 >
-  <span class="question" id={labelId}>{label}</span>
+  <span class="question" id={labelId}>
+    {label}
+  </span>
 
-  {
-    options.map((option, index) => {
-      const optionId = `${id}-${index}`;
-      return (
-        <span class="option">
-          <input type="radio" id={optionId} name={name} value={option} required={required} />
-          <label for={optionId}>
-            {option}
-            <span class="box" aria-hidden="true" />
-          </label>
-        </span>
-      );
-    })
-  }
+  {options.map((option, index) => {
+    const optionId = `${id}-${index}`;
+    return (
+      <span class="option">
+        <input type="radio" id={optionId} name={name} value={option} required={required} />
+        <label for={optionId}>
+          {option}
+          <span class="box" aria-hidden="true" />
+        </label>
+      </span>
+    );
+  })}
 </div>
 
 <style>

@@ -3,6 +3,7 @@ import { defineField, defineType } from "sanity";
 export const meta = defineType({
   type: "object",
   name: "meta",
+  title: "Meta",
   fields: [
     defineField({
       type: "string",

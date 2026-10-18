@@ -16,12 +16,7 @@ fragment ProductThumbnail on Product {
 }
 
 fragment Product on Product {
-  __typename
-  _id
-
-  mediaThumbnail {
-    ...Media
-  }
+  ...ProductThumbnail
 
   mediaGallery {
     ...Media
@@ -37,13 +32,5 @@ fragment Product on Product {
 
   meta {
     ...Meta
-  }
-
-  shopify {
-    title
-    handle {
-      ...Slug
-    }
-    status
   }
 }

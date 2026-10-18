@@ -1,16 +1,11 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import type {
-  FormConsentDefinition,
-  FormGroupDefinition,
-} from "@/lib/forms/types";
-import { FORM_ENDPOINT, HONEYPOT_FIELD_NAME } from "@/lib/forms/constants";
+import type { FormConsentDefinition, FormGroupDefinition } from "@/lib/forms/types";
+import { FORM_ENDPOINT } from "@/config";
+import { HONEYPOT_FIELD_NAME } from "@/lib/forms/constants";
 import { formFields } from "@/lib/forms/fields";
-import {
-  validateSubmission,
-  validateTotalUploadSize,
-} from "@/lib/forms/schema";
+import { validateSubmission, validateTotalUploadSize } from "@/lib/forms/schema";
 import { cn } from "@/lib/utils";
 import FormField from "@/fields/FormField";
 import FormTerm from "@/fields/FormTerm";
@@ -42,7 +37,7 @@ export default function FormClient({
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Every control starts empty, so only a form without required fields starts ready.
-  const [ready, setReady] = useState(() => !fields.some((f) => f.required));
+  const [ready, setReady] = useState(() => !fields.some((field) => field.required));
 
   const lastGroupIndex = groups.length - 1;
 
@@ -52,10 +47,7 @@ export default function FormClient({
   }
 
   // Without this a failed submit leaves focus on the button and the errors go unnoticed.
-  function focusFirstError(
-    form: HTMLFormElement,
-    fieldErrors: Record<string, string>,
-  ) {
+  function focusFirstError(form: HTMLFormElement, fieldErrors: Record<string, string>) {
     const name = fields.find((field) => fieldErrors[field.name])?.name;
     if (!name) return;
     form.querySelector<HTMLElement>(`[name="${CSS.escape(name)}"]`)?.focus();
@@ -143,9 +135,7 @@ export default function FormClient({
         {groups.map((group, index) => (
           <div className="group" key={index}>
             {group.heading && (
-              <GroupHeading className="mb-[var(--s16)]">
-                {group.heading}
-              </GroupHeading>
+              <GroupHeading className="mb-[var(--s16)]">{group.heading}</GroupHeading>
             )}
 
             {/* Rows sit flush; each field draws its own top border, forming the dividers. */}
@@ -190,9 +180,7 @@ export default function FormClient({
         )}
 
         <div className="visually-hidden" aria-hidden="true">
-          <label htmlFor={`${HONEYPOT_FIELD_NAME}-${formId}`}>
-            Leave this field empty
-          </label>
+          <label htmlFor={`${HONEYPOT_FIELD_NAME}-${formId}`}>Leave this field empty</label>
           <input
             id={`${HONEYPOT_FIELD_NAME}-${formId}`}
             name={HONEYPOT_FIELD_NAME}

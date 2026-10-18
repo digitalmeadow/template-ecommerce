@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useImperativeHandle } from "react";
+import { useImperativeHandle, type ReactNode, type Ref } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { cn } from "@/lib/utils";
 
@@ -24,24 +24,23 @@ interface Props {
   slidesToScroll?: EmblaOptionsType["slidesToScroll"];
   breakpoints?: EmblaOptionsType["breakpoints"];
   watchResize?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
+  ref?: Ref<CarouselApi>;
 }
 
-const Carousel = forwardRef<CarouselApi, Props>(function Carousel(
-  {
-    id,
-    className,
-    align = "start",
-    dragFree,
-    loop,
-    skipSnaps = true,
-    slidesToScroll,
-    breakpoints,
-    watchResize = true,
-    children,
-  },
+export default function Carousel({
+  id,
+  className,
+  align = "start",
+  dragFree,
+  loop,
+  skipSnaps = true,
+  slidesToScroll,
+  breakpoints,
+  watchResize = true,
+  children,
   ref,
-) {
+}: Props) {
   const options: EmblaOptionsType = {
     align,
     dragFree,
@@ -63,11 +62,7 @@ const Carousel = forwardRef<CarouselApi, Props>(function Carousel(
 
   return (
     <div id={id} className={cn("overflow-hidden", className)} ref={emblaRef}>
-      <div className="flex cursor-grab active:cursor-grabbing [&>*]:flex-shrink-0">
-        {children}
-      </div>
+      <div className="flex cursor-grab active:cursor-grabbing [&>*]:flex-shrink-0">{children}</div>
     </div>
   );
-});
-
-export default Carousel;
+}

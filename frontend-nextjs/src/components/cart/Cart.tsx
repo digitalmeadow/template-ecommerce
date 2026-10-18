@@ -10,9 +10,7 @@ export default function Cart({ cartData }: Props) {
   return (
     <CartClient
       emptyMessage={<PortableText value={cartData?.emptyMessageRaw} />}
-      note={
-        cartData?.noteRaw ? <PortableText value={cartData.noteRaw} /> : null
-      }
+      note={cartData?.noteRaw ? <PortableText value={cartData.noteRaw} /> : null}
     />
   );
 }

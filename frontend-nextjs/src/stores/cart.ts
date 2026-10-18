@@ -1,5 +1,5 @@
-import { atom } from "nanostores";
-import { computed } from "nanostores";
+import { persistentJSON } from "@nanostores/persistent";
+import { atom, computed } from "nanostores";
 import type { CartFragment, CartLineFragment } from "shopify/generated/graphql";
 import { shopifyClient } from "shopify/client";
 import { cartByIdQuery } from "shopify/queries/cart";
@@ -11,23 +11,11 @@ import {
 } from "shopify/mutations/cart";
 import { getStoredLocale } from "@/lib/shopify/locale.client";
 import { getCountryCode } from "@/lib/shopify/locale";
-import {
-  CART_ID_STORAGE_KEY_SUFFIX,
-  CART_DATA_STORAGE_KEY_SUFFIX,
-} from "@/lib/shopify/cart";
 import { getCartStorageKey } from "@/lib/shopify/cart.client";
 
-export type Cart = CartFragment | null;
-
-function getCartIdStorageKey(): string {
-  return getCartStorageKey(CART_ID_STORAGE_KEY_SUFFIX);
-}
-
-function getCartDataStorageKey(): string {
-  return getCartStorageKey(CART_DATA_STORAGE_KEY_SUFFIX);
-}
-
-export const $cart = atom<Cart>(null);
+// The whole cart (id included) is the one persisted value; `undefined` removes the key.
+// Keyed at load: changing locale reloads the page, which re-keys it. On the server it stays empty.
+export const $cart = persistentJSON<CartFragment | undefined>(getCartStorageKey(), undefined);
 
 // Last mutation's failure, for the cart UI to announce; cleared by the next success.
 export const $cartError = atom<string | null>(null);
@@ -50,11 +38,6 @@ export const $cartTotal = computed(
   },
 );
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const $isCartEmpty = computed($cart, (_cart): boolean => {
-  return !$cartCount.get() || $cartCount.get() === 0;
-});
-
 export const $checkoutUrl = computed($cart, (cart): string | null => {
   if (!cart?.checkoutUrl || $cartCount.get() === 0) return null;
   return cart.checkoutUrl;
@@ -67,84 +50,49 @@ export const $cartLines = computed($cart, (cart): CartLineFragment[] => {
     .map((edge) => edge.node as CartLineFragment);
 });
 
-function countryCode() {
+function getStoredCountryCode() {
   return getCountryCode(getStoredLocale());
 }
 
-function store(): typeof window.localStorage | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage;
+function getCartId(): string | undefined {
+  return $cart.get()?.id;
 }
 
-export function getCartId(): string | null {
-  const s = store();
-  if (!s) return null;
-  return s.getItem(getCartIdStorageKey());
-}
-
+// Renders the stored cart immediately, then refreshes it (prices, availability) from Shopify.
 export async function loadCart(): Promise<void> {
   const cartId = getCartId();
-  if (!cartId) {
-    $cart.set(null);
-    return;
-  }
-
-  const s = store();
-  if (!s) return;
-  const cached = s.getItem(getCartDataStorageKey());
-  if (cached) {
-    try {
-      $cart.set(JSON.parse(cached) as Cart);
-    } catch {
-      s.removeItem(getCartDataStorageKey());
-    }
-  }
+  if (!cartId) return;
 
   try {
     const { cart } = await shopifyClient.request(cartByIdQuery, {
       cartId,
-      countryCode: countryCode(),
+      countryCode: getStoredCountryCode(),
     });
-
-    if (!cart) {
-      s.removeItem(getCartIdStorageKey());
-      s.removeItem(getCartDataStorageKey());
-      $cart.set(null);
-      return;
-    }
-
-    $cart.set(cart);
-    s.setItem(getCartDataStorageKey(), JSON.stringify(cart));
+    // Expired or completed carts come back null.
+    $cart.set(cart ?? undefined);
   } catch (error) {
     console.error("Failed to load cart:", error);
   }
 }
 
-export async function createCart(
-  variantId: string,
-  quantity: number = 1,
-): Promise<void> {
+async function createCart(variantId: string, quantity: number = 1): Promise<void> {
   try {
     const { cartCreate } = await shopifyClient.request(cartCreateMutation, {
       cartInput: {
         lines: [{ merchandiseId: variantId, quantity }],
         // Fixes checkout currency to the market; @inContext alone only prices the response.
-        buyerIdentity: { countryCode: countryCode() },
+        buyerIdentity: { countryCode: getStoredCountryCode() },
       },
-      countryCode: countryCode(),
+      countryCode: getStoredCountryCode(),
     });
 
-    if (cartCreate?.cart) store()?.setItem(getCartIdStorageKey(), cartCreate.cart.id);
     applyCartPayload(cartCreate, variantId);
   } catch (error) {
     handleCartFailure("create cart", error);
   }
 }
 
-export async function addToCart(
-  variantId: string,
-  quantity: number = 1,
-): Promise<void> {
+export async function addToCart(variantId: string, quantity: number = 1): Promise<void> {
   const cartId = getCartId();
 
   if (!cartId) {
@@ -156,7 +104,7 @@ export async function addToCart(
     const { cartLinesAdd } = await shopifyClient.request(cartLinesAddMutation, {
       cartId,
       lines: [{ merchandiseId: variantId, quantity }],
-      countryCode: countryCode(),
+      countryCode: getStoredCountryCode(),
     });
     applyCartPayload(cartLinesAdd, variantId);
   } catch (error) {
@@ -164,22 +112,16 @@ export async function addToCart(
   }
 }
 
-export async function updateLineQuantity(
-  lineId: string,
-  quantity: number,
-): Promise<void> {
+export async function updateLineQuantity(lineId: string, quantity: number): Promise<void> {
   const cartId = getCartId();
   if (!cartId) return;
 
   try {
-    const { cartLinesUpdate } = await shopifyClient.request(
-      cartLinesUpdateMutation,
-      {
-        cartId,
-        lines: [{ id: lineId, quantity }],
-        countryCode: countryCode(),
-      },
-    );
+    const { cartLinesUpdate } = await shopifyClient.request(cartLinesUpdateMutation, {
+      cartId,
+      lines: [{ id: lineId, quantity }],
+      countryCode: getStoredCountryCode(),
+    });
     applyCartPayload(cartLinesUpdate);
   } catch (error) {
     handleCartFailure("update cart line", error);
@@ -191,23 +133,15 @@ export async function removeLine(lineId: string): Promise<void> {
   if (!cartId) return;
 
   try {
-    const { cartLinesRemove } = await shopifyClient.request(
-      cartLinesRemoveMutation,
-      {
-        cartId,
-        lineIds: [lineId],
-        countryCode: countryCode(),
-      },
-    );
+    const { cartLinesRemove } = await shopifyClient.request(cartLinesRemoveMutation, {
+      cartId,
+      lineIds: [lineId],
+      countryCode: getStoredCountryCode(),
+    });
     applyCartPayload(cartLinesRemove);
   } catch (error) {
     handleCartFailure("remove cart line", error);
   }
-}
-
-function saveCart(cart: CartFragment) {
-  $cart.set(cart);
-  store()?.setItem(getCartDataStorageKey(), JSON.stringify(cart));
 }
 
 // Mutations answer 200 even when Shopify rejects the change, reporting it in userErrors/warnings.
@@ -231,11 +165,12 @@ function applyCartPayload(payload: CartPayload | null | undefined, addedVariantI
   const message = payload?.userErrors[0]?.message ?? payload?.warnings[0]?.message;
   const cart = payload?.cart;
 
-  if (cart) saveCart(cart);
+  if (cart) $cart.set(cart);
 
   if (message) $cartError.set(message);
   else if (!cart) $cartError.set(GENERIC_ERROR);
-  else if (addedVariantId && !hasMerchandise(cart, addedVariantId)) $cartError.set(UNAVAILABLE_ERROR);
+  else if (addedVariantId && !hasMerchandise(cart, addedVariantId))
+    $cartError.set(UNAVAILABLE_ERROR);
   else $cartError.set(null);
 }
 

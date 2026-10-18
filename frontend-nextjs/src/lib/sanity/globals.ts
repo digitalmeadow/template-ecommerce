@@ -1,8 +1,8 @@
 import { sanityClient } from "sanity-nextjs/client.server";
 import { globalsQuery } from "sanity-nextjs/queries/globals";
-import { buildScoped } from "./cache";
+import { buildScoped } from "@/lib/cache";
 
-/** Header, footer, cart and settings singletons — identical on every page, so fetched once. */
+// Header, footer, cart and settings singletons — identical on every page, so fetched once.
 export const getGlobals = buildScoped(async () => {
   const result = await sanityClient.request(globalsQuery);
 

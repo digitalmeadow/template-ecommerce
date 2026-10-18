@@ -16,14 +16,12 @@ export const SINGLETON_DOCUMENT_TYPES: string[] = [
   "locationNotice",
 ];
 
-// Created programmatically only — never offered in "New document".
-export const HIDDEN_DOCUMENT_TYPES: string[] = [];
-
 // No front-end route of their own, so Preview would just land on the homepage.
 export const UNPREVIEWABLE_DOCUMENT_TYPES: string[] = [
   "form",
   "accordion",
   "productVariant",
+  "cart",
   "metaSettings",
   "organisationSettings",
   "analyticsSettings",

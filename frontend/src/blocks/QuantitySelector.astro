@@ -1,5 +1,7 @@
 <quantity-selector>
-  <button type="button" data-decrease-button aria-label="Decrease quantity">−</button>
+  <button type="button" data-decrease-button aria-label="Decrease quantity">
+    −
+  </button>
   <input
     type="number"
     data-input
@@ -8,16 +10,16 @@
     pattern="[0-9]+"
     aria-label="Quantity"
   />
-  <button type="button" data-increase-button aria-label="Increase quantity">+</button>
+  <button type="button" data-increase-button aria-label="Increase quantity">
+    +
+  </button>
 </quantity-selector>
 
 <script>
   import { z } from "astro/zod";
+  import type { EventQuantityChangedDetail } from "@lib/events";
 
-  export type EventQuantityChangedDetail = { value: number };
-  export type EventQuantityChanged = CustomEvent<{ value: number }>;
-
-  export class QuantitySelectorElement extends HTMLElement {
+  class QuantitySelectorElement extends HTMLElement {
     private input!: HTMLInputElement;
     private decreaseButton!: HTMLButtonElement;
     private increaseButton!: HTMLButtonElement;
@@ -34,7 +36,7 @@
 
       this.decreaseButton.addEventListener("click", this.decrease);
       this.increaseButton.addEventListener("click", this.increase);
-      this.input.addEventListener("change", this.onInputChange);
+      this.input.addEventListener("change", this.handleInputChange);
 
       this.init();
     }
@@ -42,7 +44,7 @@
     disconnectedCallback() {
       this.decreaseButton.removeEventListener("click", this.decrease);
       this.increaseButton.removeEventListener("click", this.increase);
-      this.input.removeEventListener("change", this.onInputChange);
+      this.input.removeEventListener("change", this.handleInputChange);
     }
 
     attributeChangedCallback() {
@@ -71,25 +73,11 @@
       this.increaseButton.disabled = this.value >= this.max;
     }
 
-    setUpdatingState(updating: boolean) {
-      if (updating) {
-        this.setAttribute("state", "updating");
-        this.input.setAttribute("aria-busy", "true");
-        this.decreaseButton.disabled = true;
-        this.increaseButton.disabled = true;
-        this.input.disabled = true;
-      } else {
-        this.removeAttribute("state");
-        this.input.removeAttribute("aria-busy");
-        this.input.disabled = false;
-        this.render();
-      }
-    }
-
     emitChangedEvent() {
+      const detail: EventQuantityChangedDetail = { value: this.value };
       this.dispatchEvent(
         new CustomEvent("quantity-selector:quantity-changed", {
-          detail: { value: this.value },
+          detail,
           bubbles: true,
         }),
       );
@@ -114,7 +102,7 @@
       this.setValue(newValue);
     };
 
-    onInputChange = (_e: Event) => {
+    handleInputChange = () => {
       const quantitySchema = z.coerce.number().int().positive().min(this.min).max(this.max);
       const result = quantitySchema.safeParse(this.input.value);
 

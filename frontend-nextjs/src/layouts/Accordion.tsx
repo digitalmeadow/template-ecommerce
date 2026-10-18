@@ -1,29 +1,34 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useId, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
+  summary: string | null | undefined;
+  headingLevel?: 2 | 3 | 4;
+  // Opening one accordion closes the others in the same group.
   group?: string;
   initOpen?: boolean;
-  summary: React.ReactNode;
-  content: React.ReactNode;
+  content: ReactNode;
   className?: string;
 }
 
+type EventAccordionOpen = CustomEvent<{ target: HTMLElement | null }>;
+
 export default function Accordion({
+  summary,
+  headingLevel = 2,
   group,
   initOpen = false,
-  summary,
   content,
   className,
 }: Props) {
   const [isOpen, setIsOpen] = useState(initOpen);
   const accordionRef = useRef<HTMLDivElement>(null);
+  const contentId = `accordion-${useId()}`;
+  const Heading = `h${headingLevel}` as const;
 
-  const close = useCallback(() => {
-    setIsOpen(false);
-  }, []);
+  const close = useCallback(() => setIsOpen(false), []);
 
   const open = useCallback(() => {
     setIsOpen(true);
@@ -38,70 +43,59 @@ export default function Accordion({
 
   useEffect(() => {
     if (!group) return;
-    const handler = (event: Event) => {
-      const { target } = (event as CustomEvent).detail;
-      if (target !== accordionRef.current) {
-        close();
-      }
+    const handleAccordionOpen = (event: Event) => {
+      if ((event as EventAccordionOpen).detail.target !== accordionRef.current) close();
     };
-    window.addEventListener(`accordion:opened:${group}`, handler);
+    window.addEventListener(`accordion:opened:${group}`, handleAccordionOpen);
     return () => {
-      window.removeEventListener(`accordion:opened:${group}`, handler);
+      window.removeEventListener(`accordion:opened:${group}`, handleAccordionOpen);
     };
   }, [group, close]);
 
   const toggle = useCallback(() => {
-    if (isOpen) {
-      close();
-    } else {
-      open();
-    }
+    if (isOpen) close();
+    else open();
   }, [isOpen, open, close]);
 
   return (
     <div
       ref={accordionRef}
       className={cn(
-        "block -mt-px border-t border-border",
-        "last:border-b",
+        "accordion group/accordion -mt-px block border-t border-border last:border-b",
         className,
       )}
+      data-state={isOpen ? "open" : undefined}
     >
-      <button
-        type="button"
-        className="summary w-full grid grid-cols-[1fr_auto] items-start gap-2 py-1 cursor-pointer"
-        onClick={toggle}
-        aria-expanded={isOpen}
-      >
-        <div>{summary}</div>
-        <div className="icon grid items-center justify-items-center w-4 h-4 text-lg leading-[18px]">
+      <Heading className="heading">
+        <button
+          type="button"
+          className="summary grid w-full cursor-pointer grid-cols-[1fr_auto] items-start gap-[var(--s8)] py-[var(--s4)] text-left"
+          onClick={toggle}
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+        >
+          <span className="summary-text">{summary}</span>
           <span
-            className={cn(
-              "col-start-1 row-start-1 transition-opacity duration-300",
-              isOpen ? "opacity-0" : "opacity-100",
-            )}
+            className="icon grid h-[var(--s16)] w-[var(--s16)] items-center justify-items-center text-[1.125rem] leading-none"
+            aria-hidden="true"
           >
-            +
+            <span className="icon-open col-start-1 row-start-1 transition-opacity duration-[var(--transition-default-duration)] group-data-[state=open]/accordion:opacity-0">
+              +
+            </span>
+            <span className="icon-close col-start-1 row-start-1 opacity-0 transition-opacity duration-[var(--transition-default-duration)] group-data-[state=open]/accordion:opacity-100">
+              -
+            </span>
           </span>
-          <span
-            className={cn(
-              "col-start-1 row-start-1 transition-opacity duration-300",
-              isOpen ? "opacity-100" : "opacity-0",
-            )}
-          >
-            -
-          </span>
-        </div>
-      </button>
+        </button>
+      </Heading>
 
       <div
-        className={cn(
-          "grid transition-[grid-template-rows] duration-300 ease-in-out",
-          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-        )}
+        id={contentId}
+        className="content-container grid grid-rows-[0fr] transition-[grid-template-rows] duration-[var(--transition-default-duration)] group-data-[state=open]/accordion:grid-rows-[1fr]"
+        inert={!isOpen}
       >
-        <div className="overflow-hidden">
-          <div className="pt-2 pb-6 pl-[2em]">{content}</div>
+        <div className="content-inner overflow-hidden">
+          <div className="content pt-[var(--s8)] pb-[var(--s24)] pl-[2em]">{content}</div>
         </div>
       </div>
     </div>

@@ -16,10 +16,7 @@ const components = {
 ---
 
 <div class:list={["portable-text", className, style]}>
-  {
-    /* CMS-authored Portable Text blocks: shape is validated by Sanity's schema, not by our
-     types (GraphQL codegen types this field as `unknown`), so a cast is required here. */
-  }
+  {/* Codegen types Portable Text as `unknown`; Sanity's schema guarantees the shape. */}
   <AstroPortableText
     value={value as Parameters<typeof AstroPortableText>[0]["value"]}
     components={components}

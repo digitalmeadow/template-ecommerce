@@ -22,7 +22,7 @@ const {
 }: Props = Astro.props;
 
 const altText = imageData?.asset?.altText ?? "";
-const blurhashSrc = imageData?.asset?.metadata?.lqip;
+const placeholderSrc = imageData?.asset?.metadata?.lqip;
 const sanityImageProps = getSanityImageProps({ sanityImage: imageData, sizes });
 const aspectRatio =
   sanityImageProps?.width && sanityImageProps?.height
@@ -33,33 +33,33 @@ const focalPoint = getSanityImageFocalPoint(imageData);
 
 <div
   class:list={["sanity-image", `layout-${layout}`]}
-  style={aspectRatio && (layout === "width" || layout === "height")
-    ? `aspect-ratio: ${aspectRatio}`
-    : undefined}
+  style={
+    aspectRatio && (layout === "width" || layout === "height")
+      ? `aspect-ratio: ${aspectRatio}`
+      : undefined
+  }
 >
   <img
-    class:list={["blurhash", `layout-${layout}`]}
-    src={blurhashSrc}
+    class:list={["placeholder", `layout-${layout}`]}
+    src={placeholderSrc}
     alt=""
     loading="eager"
     aria-hidden="true"
   />
 
-  {
-    sanityImageProps && (
-      <img
-        class:list={["image", `layout-${layout}`]}
-        data-media-id={mediaId}
-        {...sanityImageProps}
-        style={focalPoint ? `object-position: ${focalPoint}` : undefined}
-        alt={altText}
-        loading={priority ? "eager" : loading}
-        fetchpriority={priority ? "high" : undefined}
-        decoding="async"
-        onload="this.dataset.loaded = ''"
-      />
-    )
-  }
+  {sanityImageProps && (
+    <img
+      class:list={["image", `layout-${layout}`]}
+      data-media-id={mediaId}
+      {...sanityImageProps}
+      style={focalPoint ? `object-position: ${focalPoint}` : undefined}
+      alt={altText}
+      loading={priority ? "eager" : loading}
+      fetchpriority={priority ? "high" : undefined}
+      decoding="async"
+      onload="this.dataset.loaded = ''"
+    />
+  )}
 </div>
 
 <style>
@@ -75,19 +75,19 @@ const focalPoint = getSanityImageFocalPoint(imageData);
     min-height: 0;
   }
 
-  .blurhash {
+  .placeholder {
     opacity: 1;
     transition: opacity var(--transition-media-load);
     pointer-events: none;
     filter: blur(100px);
   }
 
-  .sanity-image:has(.image[data-loaded]) .blurhash {
+  .sanity-image:has(.image[data-loaded]) .placeholder {
     opacity: 0;
   }
 
-  .layout-width .blurhash,
-  .layout-height .blurhash {
+  .layout-width .placeholder,
+  .layout-height .placeholder {
     position: absolute;
     inset: 0;
     width: 100%;

@@ -5,6 +5,7 @@ import { useStore } from "@nanostores/react";
 import Overlay from "@/layouts/Overlay";
 import CartLineItem from "./CartLineItem";
 import PriceDisplay from "@/blocks/PriceDisplay";
+import type { CartLineFragment } from "shopify/generated/graphql";
 import {
   $cartCount,
   $cartTotal,
@@ -13,7 +14,7 @@ import {
   $cartError,
   loadCart,
 } from "@/stores/cart";
-import { cartOpen, setCartOpen } from "@/stores/ui";
+import { $cartOpen, setCartOpen } from "@/stores/ui";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -21,15 +22,17 @@ interface Props {
   note: ReactNode;
 }
 
+// The stored cart loads before hydration, so hydrate with the server's empty cart (stable reference).
+const NO_LINES: CartLineFragment[] = [];
+
 // Portable Text resolves links server-side, so it arrives pre-rendered.
 export default function CartClient({ emptyMessage, note }: Props) {
-  const count = useStore($cartCount);
-  const total = useStore($cartTotal);
-  const checkoutUrl = useStore($checkoutUrl);
-  const lines = useStore($cartLines);
+  const count = useStore($cartCount, { ssr: () => 0 });
+  const total = useStore($cartTotal, { ssr: () => null });
+  const checkoutUrl = useStore($checkoutUrl, { ssr: () => null });
+  const lines = useStore($cartLines, { ssr: () => NO_LINES });
   const error = useStore($cartError);
-  const open = useStore(cartOpen);
-
+  const open = useStore($cartOpen);
   const isEmpty = lines.length === 0;
 
   useEffect(() => {
@@ -59,12 +62,7 @@ export default function CartClient({ emptyMessage, note }: Props) {
         <div className="cart-content flex h-full w-full flex-col gap-[var(--s40)]">
           <div className={isEmpty ? "block" : "hidden"}>{emptyMessage}</div>
 
-          <ul
-            className={cn(
-              "cart-line-items flex flex-col gap-[var(--s24)]",
-              isEmpty && "hidden",
-            )}
-          >
+          <ul className={cn("cart-line-items flex flex-col gap-[var(--s24)]", isEmpty && "hidden")}>
             {lines.map((line) => (
               <CartLineItem key={line.id} line={line} />
             ))}
@@ -73,12 +71,7 @@ export default function CartClient({ emptyMessage, note }: Props) {
           <div className={isEmpty ? "hidden" : ""}>
             <span>
               Total:{" "}
-              {total ? (
-                <PriceDisplay
-                  amount={total.amount}
-                  currency={total.currencyCode}
-                />
-              ) : null}
+              {total ? <PriceDisplay amount={total.amount} currency={total.currencyCode} /> : null}
             </span>
           </div>
 

@@ -1,6 +1,6 @@
 import { sanityClient } from "sanity/client";
 import { globalsQuery } from "sanity/queries/globals";
-import { buildScoped } from "./cache";
+import { buildScoped } from "@lib/cache";
 
 /** Header, footer, cart and settings singletons — identical on every page, so fetched once. */
 export const getGlobals = buildScoped(async () => {

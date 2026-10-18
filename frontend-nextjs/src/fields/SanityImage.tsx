@@ -16,7 +16,7 @@ interface Props {
   layout?: "width" | "height" | "cover" | "contain";
   sizes?: [number, number, number];
   loading?: "lazy" | "eager";
-  /* Above-the-fold images: preloads, skips lazy loading and raises fetch priority for LCP. */
+  // Above-the-fold images: preloads, skips lazy loading and raises fetch priority for LCP.
   priority?: boolean;
   mediaId?: string | null;
 }
@@ -34,20 +34,19 @@ export default function SanityImage({
   if (!imageProps) return null;
 
   const alt = imageData?.asset?.altText ?? "";
-  const lqip = imageData?.asset?.metadata?.lqip;
+  const placeholderSrc = imageData?.asset?.metadata?.lqip;
   const focalPoint = getSanityImageFocalPoint(imageData);
 
-  const isFill = layout === "cover" || layout === "contain";
+  const isFillLayout = layout === "cover" || layout === "contain";
   const hasDimensions = !!imageProps.width && !!imageProps.height;
 
-  // Cover/contain keep intrinsic dimensions like the Astro version: they fill a sized parent and
-  // fall back to the image's own aspect ratio otherwise. `fill` only when dimensions are unknown.
-  const useFill = !hasDimensions;
+  // Cover/contain keep intrinsic dimensions (as in Astro); Next `fill` only when dimensions are unknown.
+  const fillsParent = !hasDimensions;
 
   const imgClasses = cn(
     "relative transition-opacity duration-300 ease-in-out",
     loaded ? "opacity-100" : "opacity-0",
-    isFill
+    isFillLayout
       ? cn("w-full h-full", layout === "contain" ? "object-contain" : "object-cover")
       : layout === "height"
         ? "h-full w-auto"
@@ -55,22 +54,24 @@ export default function SanityImage({
   );
 
   return (
-    <div className={cn("sanity-image relative grid overflow-hidden", isFill && "w-full h-full")}>
-      {lqip && (
+    <div
+      className={cn("sanity-image relative grid overflow-hidden", isFillLayout && "h-full w-full")}
+    >
+      {placeholderSrc && (
         <img
-          src={lqip}
+          src={placeholderSrc}
           alt=""
           aria-hidden="true"
           loading="eager"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="placeholder absolute inset-0 h-full w-full object-cover"
         />
       )}
       <Image
         src={imageProps.src}
         alt={alt}
-        fill={useFill}
-        width={useFill ? undefined : imageProps.width!}
-        height={useFill ? undefined : imageProps.height!}
+        fill={fillsParent}
+        width={fillsParent ? undefined : imageProps.width!}
+        height={fillsParent ? undefined : imageProps.height!}
         sizes={getSizesAttr(sizes)}
         loading={priority ? "eager" : loading}
         preload={priority}

@@ -6,18 +6,16 @@ import { visionTool } from "@sanity/vision";
 import { schemaTypes } from "./schemas";
 import { muxInput } from "sanity-plugin-mux-input";
 import { media } from "sanity-plugin-media";
-import resolveNewDocumentOptions from "./document/resolveNewDocumentOptions";
-import resolveDocumentActions from "./document/resolveDocumentActions";
+import { resolveDocumentActions } from "./document/resolveDocumentActions";
 import { locations } from "./presentation/locations";
 import { PREVIEW_WEBSITE_URL, SHOPIFY_DOCUMENT_TYPES, SINGLETON_DOCUMENT_TYPES } from "./config";
 
-// From the root .env, symlinked in as cms/.env.
 export default defineConfig({
   name: "default",
   title: process.env.SANITY_STUDIO_TITLE ?? "template-ecommerce",
 
   projectId: process.env.SANITY_STUDIO_PROJECT_ID!,
-  dataset: "production",
+  dataset: process.env.SANITY_STUDIO_DATASET!,
 
   plugins: [
     structureTool({ structure }),
@@ -43,7 +41,6 @@ export default defineConfig({
   },
 
   document: {
-    newDocumentOptions: (previous, context) => resolveNewDocumentOptions(previous, context),
-    actions: (previous, context) => resolveDocumentActions(previous, context),
+    actions: resolveDocumentActions,
   },
 });

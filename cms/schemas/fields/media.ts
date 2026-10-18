@@ -5,6 +5,7 @@ import { isEmptyMedia, requiredInUse } from "../../utils/validation";
 export const media = defineType({
   type: "object",
   name: "media",
+  title: "Media",
   fields: [
     defineField({
       type: "string",
@@ -65,6 +66,8 @@ export const media = defineType({
   },
   preview: {
     select: mediaSelection(),
-    prepare: (selection) => ({ title: selection.mediaType, media: previewMedia(selection) }),
+    prepare(selection) {
+      return { title: selection.mediaType, media: previewMedia(selection) };
+    },
   },
 });

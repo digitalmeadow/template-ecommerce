@@ -1,6 +1,6 @@
+import type { SectionAccordionsFragment } from "sanity-nextjs/generated/graphql";
 import Accordion from "@/layouts/Accordion";
 import PortableText from "@/fields/PortableText";
-import type { SectionAccordionsFragment } from "sanity-nextjs/generated/graphql";
 
 interface Props {
   sectionData: SectionAccordionsFragment;
@@ -12,7 +12,8 @@ export default function SectionAccordions({ sectionData }: Props) {
   return (
     <section
       data-color-scheme={sectionData.colorScheme ?? undefined}
-      className="mx-auto mt-[var(--s120)] mb-[var(--s64)] flex w-[var(--container-width)] flex-col items-center"
+      id={sectionData.id ?? undefined}
+      className="section-accordions mx-auto mt-[var(--s120)] mb-[var(--s64)] flex w-[var(--container-width)] flex-col items-center"
     >
       {sectionData.accordions.map((accordion) => {
         if (!accordion) return null;
@@ -23,7 +24,7 @@ export default function SectionAccordions({ sectionData }: Props) {
           >
             <Accordion
               group="default"
-              summary={<h2>{accordion.summary}</h2>}
+              summary={accordion.summary}
               content={<PortableText value={accordion.contentRaw} />}
             />
           </div>

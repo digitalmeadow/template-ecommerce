@@ -6,7 +6,6 @@
 @media (max-width: 64rem) {
   :root {
     --scroll-padding-top: 80px;
-    --border-radius: 12px;
   }
 }
 

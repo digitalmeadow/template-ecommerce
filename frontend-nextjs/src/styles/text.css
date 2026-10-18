@@ -26,11 +26,6 @@ body {
   h3 {
     font-size: 1.17em;
   }
-  :focus-visible {
-    outline: 2px solid var(--color-focus);
-    outline-offset: 2px;
-  }
-
   sup {
     position: static;
     font-size: smaller;

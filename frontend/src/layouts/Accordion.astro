@@ -1,14 +1,36 @@
-<accordion-root {...Astro.props}>
-  <div data-accordion-toggle data-summary class="summary">
-    <slot name="summary" />
+---
+interface Props {
+  summary: string | null | undefined;
+  headingLevel?: 2 | 3 | 4;
+  /* Opening one accordion closes the others in the same group. */
+  group?: string;
+  initOpen?: boolean;
+}
 
-    <div class="icon">
-      <div class="icon-open">+</div>
-      <div class="icon-close">-</div>
-    </div>
-  </div>
+const { summary, headingLevel = 2, group, initOpen = false }: Props = Astro.props;
 
-  <div class="content-container" data-accordion-content>
+const Heading = `h${headingLevel}` as const;
+const contentId = `accordion-${crypto.randomUUID()}`;
+---
+
+<accordion-root group={group} init-open={initOpen ? "" : undefined}>
+  <Heading class="heading">
+    <button
+      type="button"
+      class="summary"
+      aria-expanded={initOpen ? "true" : "false"}
+      aria-controls={contentId}
+      data-accordion-toggle
+    >
+      <span class="summary-text">{summary}</span>
+      <span class="icon" aria-hidden="true">
+        <span class="icon-open">+</span>
+        <span class="icon-close">-</span>
+      </span>
+    </button>
+  </Heading>
+
+  <div class="content-container" id={contentId} data-accordion-content>
     <div class="content-inner">
       <div class="content">
         <slot name="content" />
@@ -18,14 +40,10 @@
 </accordion-root>
 
 <script>
-  export type EventAccordionOpenDetail = {
-    target: HTMLElement;
-  };
-  export type EventAccordionOpen = CustomEvent<EventAccordionOpenDetail>;
+  type EventAccordionOpen = CustomEvent<{ target: HTMLElement }>;
 
   class AccordionElement extends HTMLElement {
-    private toggleElement!: HTMLElement;
-    private summaryElement!: HTMLElement;
+    private toggleElement!: HTMLButtonElement;
     private contentElement!: HTMLElement;
     private group: string | null = null;
     private isOpen = false;
@@ -36,10 +54,8 @@
 
     connectedCallback() {
       this.toggleElement = this.querySelector("[data-accordion-toggle]")!;
-      this.summaryElement = this.querySelector("[data-summary]")!;
       this.contentElement = this.querySelector("[data-accordion-content]")!;
       this.group = this.getAttribute("group");
-
       this.isOpen = this.hasAttribute("init-open");
 
       this.toggleElement.addEventListener("click", this.toggle);
@@ -57,19 +73,17 @@
       }
     }
 
-    attributeChangedCallback(_name: string, _oldValue: string | null, _newValue: string | null) {
+    attributeChangedCallback() {
       this.render();
     }
 
     open = () => {
       this.isOpen = true;
 
-      if (this.isOpen && this.group) {
-        const detail: EventAccordionOpenDetail = { target: this };
-        const openedEvent = new CustomEvent(`accordion:opened:${this.group}`, {
-          detail,
-        });
-        window.dispatchEvent(openedEvent);
+      if (this.group) {
+        window.dispatchEvent(
+          new CustomEvent(`accordion:opened:${this.group}`, { detail: { target: this } }),
+        );
       }
 
       this.render();
@@ -89,24 +103,19 @@
     };
 
     private handleAccordionOpen = (event: Event) => {
-      const customEvent = event as EventAccordionOpen;
-      const openedItem = customEvent.detail.target;
-      if (this !== openedItem) {
-        this.close();
-      }
+      if ((event as EventAccordionOpen).detail.target !== this) this.close();
     };
 
     private render() {
-      if (!this.contentElement || !this.summaryElement) return;
+      if (!this.contentElement || !this.toggleElement) return;
 
-      const icon = this.summaryElement.querySelector(".icon")! as HTMLElement;
+      this.toggleElement.setAttribute("aria-expanded", String(this.isOpen));
+      this.contentElement.inert = !this.isOpen;
 
       if (this.isOpen) {
-        this.contentElement.dataset.state = "open";
-        icon.dataset.state = "open";
+        this.dataset.state = "open";
       } else {
-        delete this.contentElement.dataset.state;
-        delete icon.dataset.state;
+        delete this.dataset.state;
       }
     }
   }
@@ -116,40 +125,37 @@
 
 <style>
   accordion-root {
-    margin-top: calc(-1 * var(--border-width));
+    margin-top: -1px;
     display: block;
-    border-top: var(--border-width) solid var(--color-grey_05);
+    border-top: 1px solid var(--color-shape-stroke);
   }
 
   accordion-root:last-child {
-    border-bottom: var(--border-width) solid var(--color-grey_05);
+    border-bottom: 1px solid var(--color-shape-stroke);
   }
 
-  [data-accordion-toggle] {
-    cursor: pointer;
+  .summary {
+    width: 100%;
+    padding: var(--s4) 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: var(--s8);
+    text-align: left;
   }
 
-  /* Accordion container */
   [data-accordion-content] {
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 0.3s ease;
+    transition: grid-template-rows var(--transition-default);
   }
 
   [data-accordion-content] > * {
     overflow: hidden;
   }
 
-  [data-accordion-content][data-state]:not([data-accordion-content][data-state="false"]) {
+  accordion-root[data-state="open"] [data-accordion-content] {
     grid-template-rows: 1fr;
-  }
-
-  .summary {
-    padding: var(--s4) 0;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: start;
-    gap: var(--s8);
   }
 
   .icon {
@@ -158,31 +164,25 @@
     justify-items: center;
     width: var(--s16);
     height: var(--s16);
-    font-size: 18px;
-    line-height: 18px;
+    font-size: 1.125rem;
+    line-height: 1;
   }
 
   .icon-open,
   .icon-close {
     grid-area: 1 / 1 / 2 / 2;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--transition-default);
   }
 
-  /* Default state (closed) */
-  .icon .icon-open {
-    opacity: 1;
-  }
-
-  .icon .icon-close {
+  .icon-close {
     opacity: 0;
   }
 
-  /* Open state */
-  .icon[data-state]:not([data-state="false"]) .icon-open {
+  accordion-root[data-state="open"] .icon-open {
     opacity: 0;
   }
 
-  .icon[data-state]:not([data-state="false"]) .icon-close {
+  accordion-root[data-state="open"] .icon-close {
     opacity: 1;
   }
 

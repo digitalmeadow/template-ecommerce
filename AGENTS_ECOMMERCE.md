@@ -5,19 +5,19 @@ Read `AGENTS.md` first, then the frontend file (`AGENTS_ASTRO.md` / `AGENTS_NEXT
 ## Sources of truth
 
 - **Shopify** owns commerce data: title, handle, price, variants, availability, collections membership.
-- **Sanity** owns editorial data on synced `product` / `productVariant` / `collection` documents (media, accordions, related products, meta). Those documents are created by Sanity Connect via the api worker's `/api/shopify-sanity-sync` (Astro) — never create or duplicate them in the Studio.
+- **Sanity** owns editorial data on synced `product` / `productVariant` / `collection` documents (media, accordions, related products, meta). Those documents are created by Sanity Connect via the api worker's `/api/shopify-sanity-sync` (Astro; secret-protected, see `AGENTS.md` Deployment) — never create or duplicate them in the Studio.
 - Products and collections route by `shopify.handle`, not a Sanity slug.
 
 ## `shopify/` package
 
-Typed Storefront API fragments/queries via codegen, a `shopifyClient` (`GraphQLClient` with `X-Shopify-Storefront-Access-Token`), config with store domain + API version, and `utils/ids` (`shopifyIdFromGid`, `shopifyGidFromId`).
+Typed Storefront API fragments/queries via codegen, a `shopifyClient` (`GraphQLClient` with `X-Shopify-Storefront-Access-Token`), config with store domain + API version, and `utils/ids` (`shopifyIdFromGid`).
 
 Codegen reads the committed `shopify/schema.json`, so `pnpm gen` runs offline. After bumping `SHOPIFY_API_VERSION`, refresh it with `pnpm --filter shopify introspect`.
 
 ```ts
 import { shopifyClient } from "shopify/client";
 import { productByHandleQuery } from "shopify/queries/product";
-const { productByHandle } = await shopifyClient.request(productByHandleQuery, { handle });
+const { product } = await shopifyClient.request(productByHandleQuery, { handle });
 ```
 
 Country-specific pricing uses `@inContext(country: $countryCode)`. Shopify silently answers an unknown or disabled country with the primary market, so market-specific reads go through `shopifyRequestWithContext` and compare `context.country` with the country requested. Currency always comes from the response `Money` (`currencyCode`), never from `LOCALE_CONFIG`.
@@ -29,7 +29,7 @@ Country-specific pricing uses `@inContext(country: $countryCode)`. Shopify silen
 - Pass the Sanity document when the route already holds it (it does — see route data in `AGENTS.md`) to skip a Sanity request.
 - `fetchProductThumbnailShopifySanity` is `buildScopedByKey`, so each thumbnail is fetched once per build.
 - Prices: `productPricesQuery` pages through every product once per locale (`buildScopedByKey` on the locale), so a build costs one request per market. Locales Shopify has no market for are omitted, and readers fall back to `DEFAULT_LOCALE`.
-- Collection thumbnails fetch in parallel; a failed thumbnail is logged and skipped.
+- Thumbnails fetch in parallel; a failed one is logged and skipped. Every path (collection pages, collection sections, related products) goes through `fetchProductThumbnailsShopifySanity`, and collection sections are cached per handle (`fetchShopifyCollectionWithThumbnails`).
 - Shopify localization (locale selector options) is `buildScoped`.
 
 ## Locales
@@ -42,22 +42,24 @@ Country-specific pricing uses `@inContext(country: $countryCode)`. Shopify silen
 
 ## Cart (nanostores)
 
-`stores/cart.ts` — `$cart` (persistent atom), computed `$cartCount`, `$cartTotal`, `$checkoutUrl`, `$cartLines`, `$isCartEmpty`, and actions `loadCart`, `createCart`, `addToCart`, `updateLineQuantity`, `removeLine`. Synced to `localStorage` under a locale/currency-scoped key (`lib/shopify/cart.ts` `getStorageKey`) and re-fetched from Shopify on load.
+`stores/cart.ts` — `$cart`, `$cartError`, computed `$cartCount`, `$cartTotal`, `$checkoutUrl`, `$cartLines`, and actions `loadCart`, `addToCart`, `updateLineQuantity`, `removeLine`.
 
-`stores/ui.ts` — `cartOpen` atom + `setCartOpen`. The cart drawer (Overlay `right`) subscribes; checkout redirects to `$checkoutUrl`.
+One storage mechanism: `$cart` is a `persistentJSON<CartFragment | undefined>` under a locale/currency-scoped key (`getCartStorageKey()` in `lib/shopify/cart.ts`; Next: `cart.client.ts` → `shopify_{locale}_{currency}_cart`). The whole cart is the stored value; its `id` is the cart id (no separate id key). Setting `undefined` removes the key. The key is fixed at module load, which is safe because changing locale reloads the page. Next: on the server there's no storage, so `$cart` stays empty there; the stored cart is read before hydration, so components hydrate with `useStore(store, { ssr: () => emptyValue })`. `loadCart()` renders the stored cart instantly, then refreshes it from Shopify (a `null` reply — expired/completed — clears it).
 
-The cart is persisted chrome: `loadCart()` runs once from the cart itself, not from every button or page.
+`stores/ui.ts` — `$cartOpen` atom + `setCartOpen`. The cart drawer (Overlay `right`) subscribes; checkout redirects to `$checkoutUrl`.
+
+The cart is persisted chrome: `loadCart()` runs once from the cart itself (Astro: `Cart.astro`'s module script; Next: `CartClient` mount effect), not from every button or page.
 
 `cartCreate` sets `buyerIdentity.countryCode` to fix the checkout currency. Mutations answer 200 even when Shopify rejects a change, so every payload goes through `applyCartPayload`. It reads `userErrors`/`warnings` and catches lines that were silently dropped (merchandise not sold in the market), then sets `$cartError`, which the cart announces in a `role="alert"` region.
 
 ## Product components and events
 
-Product components communicate through DOM events on a shared `[data-product-root]` ancestor:
+Product components communicate through DOM events on a shared `[data-product-root]` ancestor (types in `lib/events.ts`; `Variant` + `DEFAULT_VARIANT_TITLE` in `lib/shopify/variants.ts`):
 
 - `product:variant-change` — `{ variantId, availableForSale }`, emitted when the selected options change.
 - `product:request-variant-update` — asks the selector to re-emit current state.
 
-`ProductVariantSelector` (option radios → matching variant, `data-variants` JSON), `ProductPrice` (reads `data-prices` for the current locale, "from" prefix for ranges, compare-at), `ProductAddToCart` (variant id + quantity → `addToCart`, opens the cart), `QuantitySelector` (min/max, `data-state="updating"`), `PriceDisplay` (`Intl.NumberFormat`, `standard` | `compare-at`).
+`ProductMain` (gallery, purchase, accordions; `.product-main`) and `ProductRelated` (carousel `#product-related-carousel`) make up the product page. `ProductVariantSelector` (option radios → matching variant, `data-variants` JSON), `ProductPrice` (reads `data-prices` for the current locale, "from" prefix for ranges, compare-at), `ProductAddToCart` (variant id + quantity → `addToCart`, opens the cart), `QuantitySelector` (min/max, `data-state="updating"`), `PriceDisplay` (`Intl.NumberFormat`, `standard` | `compare-at`).
 
 ## Structured data
 

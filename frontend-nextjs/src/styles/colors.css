@@ -1,0 +1,37 @@
+:root,
+[data-color-scheme="light"] {
+  --theme-bg: #f6f2e5;
+  --theme-fg: #3e3832;
+  --theme-accent: #b20155;
+  --theme-muted: #9c958c;
+  --theme-surface: #ffffff;
+  --theme-border: #d9d3c5;
+  --theme-focus: var(--theme-accent);
+}
+
+[data-color-scheme="dark"] {
+  --theme-bg: #1a1815;
+  --theme-fg: #ede7dc;
+}
+
+/* @theme resolves --color-* once at :root; re-declaring them makes a subtree's scheme apply. */
+[data-color-scheme] {
+  --color-background: var(--theme-bg);
+  --color-foreground: var(--theme-fg);
+  --color-accent: var(--theme-accent);
+  --color-muted: var(--theme-muted);
+  --color-surface: var(--theme-surface);
+  --color-border: var(--theme-border);
+  --color-focus: var(--theme-focus);
+
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+:root {
+  --color-green: #2c6469;
+  --color-purple: #b20155;
+  --color-orange: #df6536;
+  --color-blue: #3469a1;
+  --color-yellow: #ebb137;
+}

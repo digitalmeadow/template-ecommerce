@@ -4,6 +4,7 @@ import { defineField, defineType } from "sanity";
 export const collection = defineType({
   type: "document",
   name: "collection",
+  title: "Collection",
   icon: PackageIcon,
   fields: [
     defineField({

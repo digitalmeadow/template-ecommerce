@@ -7,17 +7,17 @@
 import { createSchema, validateDocument, type Workspace } from "sanity";
 import { schemaTypes } from "../schemas";
 
-const g = globalThis as unknown as Record<string, unknown>;
-g.requestIdleCallback ??= (cb: () => void) => setTimeout(cb, 0);
-g.cancelIdleCallback ??= (id: number) => clearTimeout(id);
+const globalScope = globalThis as unknown as Record<string, unknown>;
+globalScope.requestIdleCallback ??= (callback: () => void) => setTimeout(callback, 0);
+globalScope.cancelIdleCallback ??= (handle: number) => clearTimeout(handle);
 
-const PROJECT = process.env.SANITY_PROJECT_ID;
+const PROJECT_ID = process.env.SANITY_PROJECT_ID;
 const DATASET = process.env.SANITY_DATASET ?? "production";
-const TOKEN = process.env.SANITY_VIEWER_API_TOKEN;
+const VIEWER_TOKEN = process.env.SANITY_VIEWER_API_TOKEN;
 
 async function fetchDocument(id: string) {
-  const url = `https://${PROJECT}.api.sanity.io/v2021-06-07/data/doc/${DATASET}/${encodeURIComponent(id)}`;
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
+  const url = `https://${PROJECT_ID}.api.sanity.io/v2021-06-07/data/doc/${DATASET}/${encodeURIComponent(id)}`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${VIEWER_TOKEN}` } });
   const body = (await response.json()) as { documents?: Record<string, unknown>[] };
   return body.documents?.[0];
 }
@@ -46,14 +46,14 @@ async function fetchAll() {
   const query = encodeURIComponent(
     '*[!(_id in path("_.**")) && !(_type in ["sanity.imageAsset", "sanity.fileAsset", "mux.videoAsset"])]',
   );
-  const url = `https://${PROJECT}.api.sanity.io/v2021-06-07/data/query/${DATASET}?query=${query}`;
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
+  const url = `https://${PROJECT_ID}.api.sanity.io/v2021-06-07/data/query/${DATASET}?query=${query}`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${VIEWER_TOKEN}` } });
   const body = (await response.json()) as { result?: Record<string, unknown>[] };
   return body.result ?? [];
 }
 
-const id = process.argv[2];
-const documents = id ? [await fetchDocument(id)].filter(Boolean) : await fetchAll();
+const documentId = process.argv[2];
+const documents = documentId ? [await fetchDocument(documentId)].filter(Boolean) : await fetchAll();
 
 for (const document of documents as Record<string, unknown>[]) {
   const markers = (
@@ -70,10 +70,10 @@ for (const document of documents as Record<string, unknown>[]) {
   console.log(`\n${document._type} ${document._id} — ${markers.length} marker(s)`);
   for (const marker of markers) {
     const path = marker.path
-      .map((seg) =>
-        typeof seg === "object" && seg !== null && "_key" in seg
-          ? `[_key=${seg._key}]`
-          : String(seg),
+      .map((segment) =>
+        typeof segment === "object" && segment !== null && "_key" in segment
+          ? `[_key=${segment._key}]`
+          : String(segment),
       )
       .join(".");
     console.log(`  [${marker.level}] ${path || "(root)"} — ${marker.message}`);

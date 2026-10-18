@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import ProductSection from "@/sections/product/ProductSection";
-import RelatedProductsSection from "@/sections/product/RelatedProductsSection";
+import ProductMain from "@/sections/product/ProductMain";
+import ProductRelated from "@/sections/product/ProductRelated";
 import JsonLd from "@/meta/JsonLd";
 import { buildMetadata, SITE_URL } from "@/meta/metadata";
 import { getProduct, getProducts } from "@/lib/sanity/paths";
 import { resolveMeta } from "@/lib/sanity/meta";
 import { resolveSanityHref } from "@/lib/sanity/resolve";
-import {
-  buildBreadcrumbSchema,
-  buildProductSchema,
-} from "@/lib/sanity/structuredData";
+import { buildBreadcrumbSchema, buildProductSchema } from "@/lib/sanity/structuredData";
 import { fetchProductShopifySanity } from "@/lib/fetches/productShopifySanity";
 
 interface Props {
@@ -52,9 +49,7 @@ export default async function ProductPage({ params }: Props) {
     <>
       {/* Next's OpenGraph types lack "product"; React hoists this into <head>. */}
       <meta property="og:type" content="product" />
-      <JsonLd
-        schema={buildProductSchema(productData, metaData.description, SITE_URL)}
-      />
+      <JsonLd schema={buildProductSchema(productData, metaData.description, SITE_URL)} />
       <JsonLd
         schema={buildBreadcrumbSchema(
           resolveSanityHref("product", slug),
@@ -62,8 +57,8 @@ export default async function ProductPage({ params }: Props) {
           SITE_URL,
         )}
       />
-      <ProductSection productData={productData} />
-      <RelatedProductsSection productsData={productData.relatedProducts} />
+      <ProductMain productData={productData} />
+      <ProductRelated productsData={productData.relatedProducts} />
     </>
   );
 }

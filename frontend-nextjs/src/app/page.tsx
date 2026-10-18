@@ -3,6 +3,7 @@ import SectionsRenderer from "@/sections/SectionsRenderer";
 import { getHome } from "@/lib/sanity/paths";
 import { getGlobals } from "@/lib/sanity/globals";
 import { resolveMeta } from "@/lib/sanity/meta";
+import { hasHeroHeading } from "@/lib/sanity/sections";
 import { buildMetadata } from "@/meta/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,19 +12,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [pageData, { organisationSettingsData }] = await Promise.all([
-    getHome(),
-    getGlobals(),
-  ]);
-
-  // Every page needs an h1; the hero section provides one when present.
-  const hasHeroHeading = pageData?.sections?.some(
-    (section) => section?.__typename === "SectionHero" && section.heading,
-  );
+  const [pageData, { organisationSettingsData }] = await Promise.all([getHome(), getGlobals()]);
 
   return (
     <>
-      {!hasHeroHeading && organisationSettingsData?.name && (
+      {!hasHeroHeading(pageData?.sections) && organisationSettingsData?.name && (
         <h1 className="visually-hidden">{organisationSettingsData.name}</h1>
       )}
       <SectionsRenderer sections={pageData?.sections} />

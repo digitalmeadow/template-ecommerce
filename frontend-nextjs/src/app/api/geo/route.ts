@@ -2,9 +2,7 @@
 export const dynamic = "force-dynamic";
 
 export function GET(request: Request) {
-  const country =
-    request.headers.get("cf-ipcountry") ??
-    request.headers.get("x-vercel-ip-country");
+  const country = request.headers.get("cf-ipcountry") ?? request.headers.get("x-vercel-ip-country");
 
   // "XX" / "T1": unknown or Tor.
   const known = country && /^[A-Z]{2}$/.test(country) && country !== "XX";

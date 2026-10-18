@@ -1,25 +1,23 @@
 ---
-import type { Props as $, Mark } from "astro-portabletext/types";
+import type {
+  Props as PortableTextProps,
+  Mark as PortableTextMark,
+} from "astro-portabletext/types";
 import { Mark as DefaultMark } from "astro-portabletext/components";
 import SanityLink from "@fields/SanityLink.astro";
 
-export type Props = $<Mark>;
-const props = Astro.props;
+type Props = PortableTextProps<PortableTextMark>;
+
+const props: Props = Astro.props;
+const { node } = props;
 ---
 
-{
-  () => {
-    if (props.node.markType === "link" && props.node.markDef) {
-      return (
-        <SanityLink class:list={"text-link"} linkData={props.node.markDef}>
-          <slot />
-        </SanityLink>
-      );
-    }
-    return (
-      <DefaultMark {...props}>
-        <slot />
-      </DefaultMark>
-    );
-  }
-}
+{node.markType === "link" && node.markDef ? (
+  <SanityLink class="text-link" linkData={node.markDef}>
+    <slot />
+  </SanityLink>
+) : (
+  <DefaultMark {...props}>
+    <slot />
+  </DefaultMark>
+)}

@@ -21,35 +21,28 @@ const {
 }: Props = Astro.props;
 ---
 
-{
-  () => {
-    if (mediaData?.type === "image") {
-      return (
-        <SanityImage
-          imageData={mediaData.image}
-          layout={layout}
-          sizes={sizes}
-          loading={loading}
-          mediaId={mediaId}
-        />
-      );
-    }
-
-    if (mediaData?.type === "video") {
-      return (
-        <MuxVideo videoData={mediaData.video} layout={layout} loading={loading} mediaId={mediaId} />
-      );
-    }
-
-    if (mediaData?.type === "vimeo") {
-      return (
-        <VimeoVideo
-          videoData={mediaData.vimeo}
-          layout={layout}
-          loading={loading}
-          mediaId={mediaId}
-        />
-      );
-    }
+{() => {
+  if (mediaData?.type === "image") {
+    return (
+      <SanityImage
+        imageData={mediaData.image}
+        layout={layout}
+        sizes={sizes}
+        loading={loading}
+        mediaId={mediaId}
+      />
+    );
   }
-}
+
+  if (mediaData?.type === "video") {
+    return (
+      <MuxVideo videoData={mediaData.video} layout={layout} loading={loading} mediaId={mediaId} />
+    );
+  }
+
+  if (mediaData?.type === "vimeo") {
+    return (
+      <VimeoVideo videoData={mediaData.vimeo} layout={layout} loading={loading} mediaId={mediaId} />
+    );
+  }
+}}
