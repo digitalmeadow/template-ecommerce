@@ -126,6 +126,10 @@ export default defineConfig({
     imageService: "passthrough",
   }),
 
+  // Nothing uses Astro.session; leaving it on makes the adapter add a SESSION KV binding, which
+  // Worker Previews can't provision.
+  session: false,
+
   output: isPreview ? "server" : "static",
 
   prefetch: {
