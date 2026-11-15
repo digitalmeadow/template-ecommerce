@@ -44,12 +44,13 @@ Run `pnpm gen` after changing `cms/schemas/**`, `sanity*/fragments/**` or `sanit
 
 ## Env
 
-One real file, the root `.env` (gitignored; copy `.env.example`). Every package symlinks its own `.env` to it (`frontend/.env -> ../.env`, etc.); the symlinks are committed. In CI nothing is read from files — values come from `.github/workflows/deploy.yml`.
+One real file, the root `.env` (gitignored; copy `.env.example`). Every package symlinks its own `.env` to it (`frontend/.env -> ../.env`, etc.); the symlinks are committed. Workers Builds never reads it: non-secret build values are `DEPLOY_ENVIRONMENTS` in `frontend/config.ts` (keyed by `CLOUDFLARE_ENV`), and secrets live on each Worker.
 
-- The Sanity dataset is **private**: `SANITY_VIEWER_API_TOKEN` and other tokens are server-only. Never expose them as Astro `context: "client"` or `NEXT_PUBLIC_*`.
+- The Sanity dataset is **private**: `SANITY_VIEWER_API_TOKEN` and other tokens are server-only. So is `SHOPIFY_PRIVATE_API_TOKEN`; the browser reaches Shopify through the same-origin proxy. Never expose them as Astro `context: "client"` or `NEXT_PUBLIC_*`.
 - `SANITY_PROJECT_ID` / `SANITY_DATASET` are duplicated as `SANITY_STUDIO_PROJECT_ID` / `SANITY_STUDIO_DATASET` because the Studio bundle only sees the `SANITY_STUDIO_` prefix.
 - `WEBSITE_URL` drives canonicals, sitemap, robots and JSON-LD `@id`s.
-- Adding a runtime secret: `frontend/astro.config.mjs` env schema, `.env.example`, `deploy.yml` (build env + wrangler `secrets`), and `frontend/wrangler.jsonc` `secrets.required` per environment.
+- `INDEXABLE` is derived in `astro.config.mjs` (false on the drafts site and branch Previews) and drives `noindex` + robots.
+- Adding a secret: `frontend/astro.config.mjs` env schema, `.env.example`, `frontend/wrangler.jsonc` `secrets.required` per environment; then on each Worker a secret build variable (prerendering validates every secret) and a runtime secret (`npx wrangler secret put <NAME> --env <env>`, plus `npx wrangler preview base-config secret put <NAME> --env production` for Previews).
 
 ## Data fetching (READ BEFORE ADDING A QUERY)
 
@@ -70,7 +71,15 @@ A static build renders every page in one process, so **a query in the wrong plac
 
 ## Analytics + consent
 
-GTM only. `analyticsSettings.gtmId` in the CMS; banner copy is the `cookieConsent` singleton (no document, no banner, so analytics never load). The script loads only after the cookie banner records consent (`lib/consent/consent.ts` fires `cookie-consent:change`). Configure GA4 etc. inside GTM. Client-side navigations are `pushState`, so use GTM's History Change trigger for page views.
+Two destinations, one consent decision. GTM: `analyticsSettings.gtmId` in the CMS; configure GA4 etc. inside GTM, and use its History Change trigger for page views (client-side navigations are `pushState`). Banner copy is the `cookieConsent` singleton (no document, no banner, so GTM never loads).
+
+Astro (Next: GTM after consent only, pending parity):
+
+- Shopify's Customer Privacy API (`lib/consent/customerPrivacy.ts`, loaded once per visit by `Analytics.astro`) says whether the visitor's region needs a choice (`shouldShowBanner()`). The banner only shows there; elsewhere tracking is allowed unless the visitor declines. Consent is never recorded on the visitor's behalf.
+- The banner's choice (`lib/consent/consent.ts`, `cookie-consent:change`) is passed to Shopify with `setTrackingConsent`, which applies it to Shopify analytics and checkout.
+- Shopify admin analytics: `lib/analytics/shopifyAnalytics.ts` is the bus Shopify's `shopify.js` listens on (Headless channel attribution); events wait for consent, then replay. Needs the same-origin Storefront API proxy.
+- GA4 ecommerce events go to the `dataLayer` (`lib/analytics/dataLayer.ts`), held until consent is decided.
+- Call sites use `lib/analytics/track.ts` only: page, product, collection and search views, cart changes (diffed against the last server cart), cart view, begin checkout.
 
 ## CMS (`cms/`)
 
@@ -85,35 +94,50 @@ GTM only. `analyticsSettings.gtmId` in the CMS; banner copy is the `cookieConsen
 - **Linkable types**: `LINKABLE_DOCUMENT_TYPES` in `frontend/config.ts` (mirrored in `frontend-nextjs/src/config.ts`); the Studio reads it, and each type must have a route pattern (compile-time `satisfies`).
 - **A new singleton** must be registered in: `schemas/index.ts`, `structure/`, `SINGLETON_DOCUMENT_TYPES` in `cms/config.ts` (which also drops its "Create" template), and (if it has a route) `SANITY_DOCUMENT_ROUTE_PATTERNS` in both frontends' config. Types with no route go in `UNPREVIEWABLE_DOCUMENT_TYPES`.
 - **Media**: `media.type` is `image` | `video` (Mux, looping image replacement) | `vimeo` (Vimeo URL, alternative provider).
-- **Forms**: `form` documents (groups of `formField`, `formConsent` terms) rendered by `sectionForm`. Submissions POST multipart `FormData` (+ `formId`) to the frontend's `FORM_ENDPOINT`; no endpoint ships with the template.
+- **Forms**: `form` documents (groups of `formField`, `formConsent` terms) rendered by `sectionForm`. Submissions POST multipart `FormData` (+ `formId`) to `/api/forms` (Astro), which validates them with zod against the form's fields (built to `/forms.json` at deploy, so no Sanity read per submission), answers `{ ok, message, errors }` with errors keyed by field name, and saves a read-only `formSubmission` document (Studio → Library → Form Submissions; uploads become file assets) with the editor token.
 
-## Deployment (Cloudflare Workers)
+## Deployment (Cloudflare Workers Builds)
 
-One workflow, `.github/workflows/deploy.yml`, with a matrix of targets:
+Cloudflare builds and deploys from git; no GitHub Actions. Each `env` in `frontend/wrangler.jsonc` is its own Worker in the client's Cloudflare account, connected to the repo:
 
 ```
-production          main     static, published
-production-preview  main     SSR, drafts, noindex
-staging             staging  static, published
-api                 api      hosts /api/deploy + /api/shopify-sanity-sync
+production          main             static, published; Sanity deploy hook
+production-preview  main             SSR, drafts, noindex; code changes only
+branch Previews     any other branch production build via `wrangler preview`, noindex
 ```
 
-`/api/shopify-sanity-sync` requires `SHOPIFY_SANITY_SYNC_SECRET`: set the Sanity Connect custom sync URL to `…/api/shopify-sanity-sync?secret=<value>` (or send `Authorization: Bearer <value>`); anything else gets 401.
+Worker build settings (dashboard → Settings → Build):
 
-- Push to `main` deploys production + production-preview; `staging`/`api` deploy themselves; manual dispatch picks one or `all`.
-- Sanity publish webhook → api worker `/api/deploy` → dispatches `deploy.yml` with `environment: all`. Dispatches within 30s of a queued/running run are coalesced.
-- Each environment deploys one at a time (concurrency group) because Wrangler can't write secrets while a version is pending.
-- To add an environment: add it to the `TABLE` in `deploy.yml`, the `options` list, the `all` case if it carries content, and `env` in `wrangler.jsonc`.
+- Root directory `frontend`; build watch paths `frontend/*`, `sanity/*`, `shopify/*`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.tool-versions`; build cache on.
+- Build command `pnpm install --frozen-lockfile --filter frontend... && pnpm build`; deploy and Preview commands stay the defaults (`npx wrangler deploy` / `npx wrangler preview`). Preview builds on production only.
+- Build variables: `CLOUDFLARE_ENV=<env>`, `SKIP_DEPENDENCY_INSTALL=1` (skips the whole-workspace install), and every `secrets.required` name as a secret.
+- Runtime secrets are set once per Worker (deploys keep them): `npx wrangler secret bulk --env <env>` and, for Previews, `npx wrangler preview base-config secret bulk --env production`, each fed a JSON or `.env` file.
+
+`CLOUDFLARE_ENV` selects the env at build; the adapter writes a redirected config into `dist/` that `wrangler deploy` follows. Node comes from `.tool-versions` (an LTS the build image preinstalls), pnpm from `packageManager`. Lint + typecheck run in a pre-push hook (`simple-git-hooks`), not in builds.
+
+Rebuilds on content:
+
+- **Sanity**: a webhook (create/update/delete, published only, projection `{}`) POSTs to the production Worker's deploy hook. The drafts site renders live and needs none.
+- **Shopify** needs no webhook: Sanity Connect's sync writes product create/delete and title/handle/status edits to Sanity, which fires the Sanity webhook. Price-only changes don't rebuild (static prices update on the next build; product pages read live price and stock from `/api/product`). Shopify's `products/update` also fires on orders, so hooking it up would rebuild on every sale.
+- A hook that fires while its last build is still queued or initializing returns that build instead of starting another, so bursts collapse. Limits: 10 builds/min per Worker.
+
+Deploy hook URLs are credentials (no auth header): keep them only in the webhook settings; delete and recreate one if it leaks.
+
+`/api/shopify-sanity-sync` (on production) requires `SHOPIFY_SANITY_SYNC_SECRET`: set the Sanity Connect custom sync URL to `…/api/shopify-sanity-sync?secret=<value>` (or send `Authorization: Bearer <value>`); anything else gets 401.
+
+To add an environment: an `env` in `wrangler.jsonc`, its `DEPLOY_ENVIRONMENTS` entry, then a Worker connected to the repo with the settings above.
 
 ## New project checklist
 
 Replace the template's values:
 
 - `frontend/wrangler.jsonc`: `name` (worker names derive from it) + `account_id`.
-- `shopify/config.ts`: `SHOPIFY_STORE_DOMAIN` + `SHOPIFY_PUBLIC_API_TOKEN`.
-- `*.workers.dev` URLs: `website_url` per target in `deploy.yml`, `SANITY_STUDIO_PREVIEW_URL` in `.env.example`.
+- `shopify/config.ts`: `SHOPIFY_STORE_DOMAIN` + `SHOPIFY_PUBLIC_API_TOKEN`; `.env` `SHOPIFY_PRIVATE_API_TOKEN` (same Headless channel storefront).
+- `DEPLOY_ENVIRONMENTS` in `frontend/config.ts`: `*.workers.dev` (or custom domain) URLs + Sanity project/dataset; `SANITY_STUDIO_PREVIEW_URL` in `.env.example`.
+- `LOCALES` in `frontend/config.ts`: one per Shopify market, default first (unprefixed). Curated on purpose (each is a URL prefix and a full copy of the site; Shopify's country-selector guide recommends a static list); locales Shopify doesn't sell to are left out at build.
 - `THEME_COLOR` in both frontends' config (browser UI + manifest, which is generated with the organisation name) and the `web-app-manifest-*.png` / favicon icons in each `public/`.
-- GitHub vars `SANITY_PROJECT_ID`, `SANITY_DATASET`; secrets `SANITY_VIEWER_API_TOKEN`, `SANITY_EDITOR_API_TOKEN`, `SANITY_WEBHOOK_SECRET`, `SHOPIFY_SANITY_SYNC_SECRET`, `GIT_API_TOKEN`, `CLOUDFLARE_API_TOKEN`.
+- Cloudflare: connect each `env`'s Worker to the repo with the build settings in Deployment, and set its runtime secrets (plus the Previews Base on production).
+- Sanity webhook → the production deploy hook; Sanity Connect sync URL → production.
 - Sanity project + dataset: `.env` (`SANITY_*` and `SANITY_STUDIO_*`), then `pnpm gen`.
 
 ## What NOT to do

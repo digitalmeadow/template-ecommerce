@@ -1,0 +1,31 @@
+<script>
+  import { getPageLocale } from "@lib/shopify/locale";
+  import type { EventProductLiveDataDetail } from "@lib/events";
+
+  // Product pages are static; this swaps in live price and stock for the page's market. The
+  // built values stay on screen until it lands (and if it fails), so nothing flashes.
+  async function loadLiveProduct(productRoot: HTMLElement, signal: AbortSignal) {
+    const handle = productRoot.dataset.productHandle;
+    if (!handle) return;
+    const search = new URLSearchParams({ handle, locale: getPageLocale().path });
+    try {
+      const response = await fetch(`/api/product?${search}`, { signal });
+      if (!response.ok) return;
+      const detail = (await response.json()) as EventProductLiveDataDetail;
+      productRoot.dispatchEvent(new CustomEvent("product:live-data", { detail }));
+    } catch (error) {
+      if (!signal.aborted) console.error("Live product data failed:", error);
+    }
+  }
+
+  let controller: AbortController | undefined;
+
+  document.addEventListener("astro:page-load", () => {
+    controller = new AbortController();
+    document
+      .querySelectorAll<HTMLElement>("[data-product-root][data-product-handle]")
+      .forEach((productRoot) => loadLiveProduct(productRoot, controller!.signal));
+  });
+
+  document.addEventListener("astro:before-swap", () => controller?.abort());
+</script>

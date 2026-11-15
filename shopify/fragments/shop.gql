@@ -1,0 +1,6 @@
+fragment ShopPolicy on ShopPolicy {
+  id
+  handle
+  title
+  body
+}

@@ -1,0 +1,45 @@
+---
+export const prerender = false;
+export const partial = true;
+
+import ProductBrowser from "@sections/product/ProductBrowser.astro";
+import { fetchProductBrowserResults, type ProductBrowserSource } from "@lib/fetches/productBrowser";
+import { loadBuildJson } from "@lib/buildAssets";
+import type { ProductThumbnailFragment } from "sanity/generated/graphql";
+import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
+import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
+import { getLocale } from "@lib/shopify/locale";
+
+// A collection (`?handle=`) or search (`?q=`) page filtered by the URL's Liquid parameters, for
+// ProductBrowser to swap in. Never calls Sanity: thumbnails come from the build's JSON.
+const params = new URLSearchParams(Astro.url.searchParams);
+const handle = params.get("handle");
+const locale = getLocale(params.get("locale") ?? undefined);
+Astro.locals.locale = locale;
+for (const name of ["handle", "locale"]) params.delete(name);
+
+const source: ProductBrowserSource = handle
+  ? { type: "collection", handle }
+  : { type: "search", query: params.get("q")?.trim() ?? "" };
+
+const results = await fetchProductBrowserResults(
+  createBuyerShopifyClient(Astro.request),
+  locale,
+  source,
+  params,
+  new Map(
+    Object.entries(
+      await loadBuildJson<Record<string, ProductThumbnailFragment>>(
+        "/product-thumbnails.json",
+        Astro.url,
+      ),
+    ),
+  ),
+);
+if (!results) return new Response(null, { status: 404 });
+
+params.delete("after");
+Astro.response.headers.set("cache-control", PRIVATE_CACHE_CONTROL);
+---
+
+<ProductBrowser source={source} results={results} params={params} />

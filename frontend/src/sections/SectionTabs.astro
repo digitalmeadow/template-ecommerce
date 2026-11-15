@@ -15,10 +15,10 @@ const tabItems = section.tabItems ?? [];
 
 <section
   data-color-scheme={section.colorScheme ?? undefined}
-  class="section-tabs"
+  class="section-tabs g-page-margin g-section-lg"
   id={section.id ?? undefined}
 >
-  <Tabs id={section._key ?? undefined} class="u-container">
+  <Tabs id={section._key ?? undefined}>
     {tabItems.map(
       (item, index) =>
         item && (
@@ -54,63 +54,51 @@ const tabItems = section.tabItems ?? [];
 </section>
 
 <style>
-  .section-tabs {
-    margin-top: var(--s120);
-    margin-bottom: var(--s120);
-  }
-
   .panel {
     display: flex;
     flex-direction: column;
-    row-gap: var(--s32);
+    row-gap: var(--size-8);
   }
-</style>
 
-<style is:global>
-  .section-tabs tabs-root {
+  /* Tabs renders these parts; this section lays them out. */
+  .section-tabs :global(tabs-root) {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--gutter);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
-  }
-  @media (max-width: 64rem) {
-    .section-tabs tabs-root {
-      grid-template-columns: 1fr;
-    }
+    gap: var(--gutter);
   }
 
-  .section-tabs [data-tabs-triggers] {
+  .section-tabs :global([data-tabs-triggers]) {
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid var(--color-shape-stroke);
+    border-bottom: var(--border-width-1) solid var(--color-rule);
   }
 
-  .section-tabs [data-tabs-panels] {
+  .section-tabs :global([data-tabs-panels]) {
     padding-left: calc(var(--column) + var(--gutter));
   }
-  @media (max-width: 64rem) {
-    .section-tabs [data-tabs-panels] {
-      margin-top: var(--s40);
-      padding-left: 0;
-    }
-  }
 
-  .section-tabs [data-tab-trigger] {
-    padding: var(--s16) 0;
-    border-top: 1px solid var(--color-shape-stroke);
+  .section-tabs :global([data-tab-trigger]) {
+    padding-block: var(--size-4);
+    border-top: var(--border-width-1) solid var(--color-rule);
+    color: var(--color-text-subtle);
     text-align: left;
-    opacity: 0.4;
-    cursor: pointer;
-    transition: opacity var(--transition-default);
+    transition: color var(--transition-default);
   }
 
-  .section-tabs [data-tab-trigger][data-state="active"] {
-    opacity: 1;
+  .section-tabs :global([data-tab-trigger]:hover),
+  .section-tabs :global([data-tab-trigger][data-state="active"]) {
+    color: var(--color-text);
   }
 
-  @media (hover: hover) {
-    .section-tabs [data-tab-trigger]:hover {
-      opacity: 1;
+  @media (max-width: 48rem) {
+    .section-tabs :global(tabs-root) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .section-tabs :global([data-tabs-panels]) {
+      margin-top: var(--size-10);
+      padding-left: 0;
     }
   }
 </style>

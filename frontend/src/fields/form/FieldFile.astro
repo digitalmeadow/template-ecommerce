@@ -4,21 +4,17 @@ import { ACCEPTED_FILE_ATTR } from "@lib/forms/constants";
 interface Props {
   id: string;
   name: string;
-  label: string;
   placeholder: string;
   required: boolean;
   multiple: boolean;
-  errorId?: string;
+  errorId: string;
 }
 
-const { id, name, label, placeholder, required, multiple, errorId }: Props = Astro.props;
+const { id, name, placeholder, required, multiple, errorId }: Props = Astro.props;
 ---
 
-<label class="visually-hidden" for={id}>
-  {label}
-</label>
 <input
-  class="file-input"
+  class="file-input g-sr-only"
   id={id}
   name={name}
   type="file"
@@ -27,52 +23,42 @@ const { id, name, label, placeholder, required, multiple, errorId }: Props = Ast
   multiple={multiple}
   aria-describedby={errorId}
 />
-<label class="file-label" for={id}>
+<label class="file-label" for={id} aria-hidden="true">
   <span class="file-name" data-file-label={placeholder}>
     {placeholder}
   </span>
-  <span class="arrow" aria-hidden="true">
-    ↑
-  </span>
+  <span>↑</span>
 </label>
 
 <style>
-  .file-input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-  }
-
-  /* Must measure the same as ButtonSubmit. */
+  /* Drawn like the other controls (globals/forms.css); the native input is hidden behind it. */
   .file-label {
     display: flex;
-    flex: 1;
-    min-width: 0;
     align-items: center;
     justify-content: space-between;
-    gap: var(--s16);
-    padding: var(--s16) var(--s20);
+    gap: var(--size-2-5);
+    min-height: 2.5rem;
+    padding: 0 var(--size-2-5);
+    background-color: var(--color-surface);
+    border-bottom: var(--border-width-1) solid var(--color-text);
     cursor: pointer;
+    transition: background-color var(--transition-default);
   }
 
-  .file-name {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .file-label:hover {
+    background-color: var(--color-surface-strong);
   }
 
   .file-name:not([data-has-file]) {
-    opacity: 0.5;
-  }
-
-  .arrow {
-    flex-shrink: 0;
+    color: var(--color-text-subtle);
   }
 
   .file-input:focus-visible + .file-label {
-    outline: 1px solid currentColor;
-    outline-offset: var(--s4);
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .file-input[aria-invalid="true"] + .file-label {
+    border-color: var(--color-error);
   }
 </style>

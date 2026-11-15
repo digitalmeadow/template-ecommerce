@@ -4,26 +4,38 @@ import Overlay from "@layouts/Overlay.astro";
 import CartLineItem from "./CartLineItem.astro";
 import type { CartFragment } from "sanity/generated/graphql";
 import PortableText from "@fields/PortableText.astro";
+import { getRenderLocale } from "@lib/shopify/locale";
 
 interface Props {
   cartData: CartFragment | null | undefined;
 }
 
 const { cartData }: Props = Astro.props;
+
+const localePath = getRenderLocale(Astro).path;
 ---
 
 <cart-drawer>
   <Overlay id="cart" layout="right" aria-label="Shopping Cart">
     <div class="header" slot="header">
-      <h2>
+      <h2 class="g-heading-5">
         Your Cart <span data-cart-count></span>
       </h2>
     </div>
 
-    <aside class="cart" data-cart slot="content">
+    <aside class="cart" data-cart data-state="empty" slot="content">
       <template data-cart-line-template>
         <li>
           <CartLineItem />
+        </li>
+      </template>
+
+      <template data-cart-code-template>
+        <li class="applied-code">
+          <span data-code-label></span>
+          <button class="g-text-link g-underline-orange" type="button" data-code-remove>
+            Remove
+          </button>
         </li>
       </template>
 
@@ -34,6 +46,39 @@ const { cartData }: Props = Astro.props;
 
         <ul class="cart-line-items" data-cart-line-items></ul>
 
+        <div class="codes">
+          <form class="code-form" method="post" action="/api/cart" data-discount-form>
+            <input type="hidden" name="locale" value={localePath} />
+            <input type="hidden" name="intent" value="discount-apply" />
+            <label class="code-field g-form-field">
+              <span class="g-sr-only">Discount code</span>
+              <input type="text" name="code" placeholder="Discount code" autocomplete="off" />
+            </label>
+            <button class="g-text-link" type="submit">
+              Apply
+            </button>
+          </form>
+          <ul class="applied-codes" data-discount-codes></ul>
+
+          <form class="code-form" method="post" action="/api/cart" data-gift-card-form>
+            <input type="hidden" name="locale" value={localePath} />
+            <input type="hidden" name="intent" value="gift-card-apply" />
+            <label class="code-field g-form-field">
+              <span class="g-sr-only">Gift card</span>
+              <input type="text" name="code" placeholder="Gift card" autocomplete="off" />
+            </label>
+            <button class="g-text-link" type="submit">
+              Apply
+            </button>
+          </form>
+          <ul class="applied-codes" data-gift-cards></ul>
+        </div>
+
+        <label class="g-form-field">
+          <span>Order note</span>
+          <textarea name="note" rows="2" data-cart-note-input></textarea>
+        </label>
+
         <div data-cart-total>
           <span>
             Total:&nbsp;
@@ -42,15 +87,15 @@ const { cartData }: Props = Astro.props;
         </div>
 
         <div class="footer">
-          <p class="cart-error" role="alert" data-cart-error></p>
+          <p class="cart-error g-form-error" role="alert" data-cart-error></p>
 
           <div data-cart-note>
             <PortableText value={cartData?.noteRaw} />
           </div>
 
-          <button class="text-link checkout-button" type="button" data-cart-checkout-button>
+          <a class="checkout-button g-text-link" href="/checkout" data-cart-checkout>
             Checkout
-          </button>
+          </a>
         </div>
       </div>
     </aside>
@@ -61,23 +106,37 @@ const { cartData }: Props = Astro.props;
   import {
     $cart,
     $cartCount,
-    $cartTotal,
-    $checkoutUrl,
     $cartLines,
-    $cartError,
+    $cartMessages,
+    $cartPending,
+    $cartTotal,
+    applyDiscountCode,
+    applyGiftCard,
     loadCart,
+    removeDiscountCode,
+    removeGiftCard,
+    updateNote,
   } from "@stores/cart";
   import { $cartOpen, setCartOpen } from "@stores/ui";
   import type { CartLineItemElement, OverlayElement } from "@lib/elements";
+  import type { CartFragment, MoneyFragment } from "shopify/generated/graphql";
+  import type { CartMessage } from "@lib/shopify/cartActions";
+  import { trackBeginCheckout, trackCartView } from "@lib/analytics/track";
 
   class CartDrawerElement extends HTMLElement {
     private cartElement!: HTMLElement;
     private countElement!: HTMLElement;
     private lineItemsContainer!: HTMLUListElement;
+    private discountCodesContainer!: HTMLUListElement;
+    private giftCardsContainer!: HTMLUListElement;
+    private discountForm!: HTMLFormElement;
+    private giftCardForm!: HTMLFormElement;
+    private noteInput!: HTMLTextAreaElement;
+    private checkoutLink!: HTMLAnchorElement;
     private totalPriceDisplay!: HTMLElement;
-    private checkoutButton!: HTMLButtonElement;
     private errorElement!: HTMLElement;
-    private itemTemplate!: HTMLTemplateElement;
+    private lineTemplate!: HTMLTemplateElement;
+    private codeTemplate!: HTMLTemplateElement;
     private overlayElement!: OverlayElement;
     private unsubscribes: (() => void)[] = [];
 
@@ -85,88 +144,161 @@ const { cartData }: Props = Astro.props;
       this.cartElement = this.querySelector("[data-cart]")!;
       this.countElement = this.querySelector("[data-cart-count]")!;
       this.lineItemsContainer = this.querySelector("[data-cart-line-items]")!;
+      this.discountCodesContainer = this.querySelector("[data-discount-codes]")!;
+      this.giftCardsContainer = this.querySelector("[data-gift-cards]")!;
+      this.discountForm = this.querySelector("[data-discount-form]")!;
+      this.giftCardForm = this.querySelector("[data-gift-card-form]")!;
+      this.noteInput = this.querySelector("[data-cart-note-input]")!;
+      this.checkoutLink = this.querySelector("[data-cart-checkout]")!;
       this.totalPriceDisplay = this.querySelector("[data-cart-total] price-display")!;
-      this.checkoutButton = this.querySelector("[data-cart-checkout-button]")!;
       this.errorElement = this.querySelector("[data-cart-error]")!;
-      this.itemTemplate = this.querySelector("[data-cart-line-template]")!;
+      this.lineTemplate = this.querySelector("[data-cart-line-template]")!;
+      this.codeTemplate = this.querySelector("[data-cart-code-template]")!;
       this.overlayElement = this.querySelector("overlay-root")!;
 
       this.unsubscribes = [
         $cart.subscribe(this.renderCart),
+        $cartMessages.subscribe(this.renderCart),
+        $cartPending.subscribe(this.renderPending),
         $cartCount.subscribe(this.renderCount),
         $cartTotal.subscribe(this.renderTotal),
-        $checkoutUrl.subscribe(this.renderCheckout),
-        $cartError.subscribe(this.renderError),
         $cartOpen.subscribe(this.handleOpenChange),
       ];
 
-      this.checkoutButton.addEventListener("click", this.handleCheckoutClick);
+      this.discountForm.addEventListener("submit", this.handleDiscountSubmit);
+      this.giftCardForm.addEventListener("submit", this.handleGiftCardSubmit);
+      this.noteInput.addEventListener("change", this.handleNoteChange);
+      this.checkoutLink.addEventListener("click", this.handleCheckoutClick);
       this.overlayElement.addEventListener("overlay:closed", this.handleOverlayClosed);
     }
 
     disconnectedCallback() {
       this.unsubscribes.forEach((unsubscribe) => unsubscribe());
       this.unsubscribes = [];
-      this.checkoutButton.removeEventListener("click", this.handleCheckoutClick);
+      this.discountForm.removeEventListener("submit", this.handleDiscountSubmit);
+      this.giftCardForm.removeEventListener("submit", this.handleGiftCardSubmit);
+      this.noteInput.removeEventListener("change", this.handleNoteChange);
+      this.checkoutLink.removeEventListener("click", this.handleCheckoutClick);
       this.overlayElement.removeEventListener("overlay:closed", this.handleOverlayClosed);
     }
-
-    private handleCheckoutClick = () => {
-      const url = $checkoutUrl.get();
-      if (!url) throw new Error("Checkout URL is not available");
-      window.location.href = url;
-    };
 
     private handleOverlayClosed = () => setCartOpen(false);
 
     // Subscribing fires immediately, possibly before the overlay is upgraded.
     private handleOpenChange = async (isOpen: boolean) => {
       await customElements.whenDefined("overlay-root");
-      if (isOpen) this.overlayElement.open();
-      else this.overlayElement.close();
+      if (isOpen) {
+        this.overlayElement.open();
+        trackCartView($cart.get());
+      } else {
+        this.overlayElement.close();
+      }
+    };
+
+    private handleCheckoutClick = () => trackBeginCheckout($cart.get());
+
+    private handleDiscountSubmit = async (event: SubmitEvent) => {
+      event.preventDefault();
+      const code = readCode(this.discountForm);
+      if (!code) return;
+      const result = await applyDiscountCode(code);
+      if (result && !result.messages.length) this.discountForm.reset();
+    };
+
+    private handleGiftCardSubmit = async (event: SubmitEvent) => {
+      event.preventDefault();
+      const code = readCode(this.giftCardForm);
+      if (!code) return;
+      const result = await applyGiftCard(code);
+      if (result && !result.messages.length) this.giftCardForm.reset();
+    };
+
+    private handleNoteChange = () => {
+      if (this.noteInput.value !== ($cart.get()?.note ?? "")) updateNote(this.noteInput.value);
     };
 
     private renderCount = (count: number) => {
       this.countElement.textContent = `(${count})`;
     };
 
-    private renderTotal = (total: { amount: string; currencyCode: string } | null) => {
+    private renderTotal = (total: MoneyFragment | null) => {
       if (total) {
-        this.totalPriceDisplay.setAttribute("amount", String(total.amount));
+        this.totalPriceDisplay.setAttribute("amount", total.amount);
         this.totalPriceDisplay.setAttribute("currency", total.currencyCode);
       } else {
         this.totalPriceDisplay.removeAttribute("amount");
       }
     };
 
-    private renderCheckout = (url: string | null) => {
-      if (url) this.cartElement.dataset.checkoutValid = "";
-      else delete this.cartElement.dataset.checkoutValid;
-      this.checkoutButton.disabled = !url;
-    };
-
-    private renderError = (error: string | null) => {
-      this.errorElement.textContent = error ?? "";
+    private renderPending = (pending: ReadonlySet<string>) => {
+      this.cartElement.toggleAttribute("data-pending", pending.size > 0);
+      this.discountForm.toggleAttribute("data-pending", pending.has("discount"));
+      this.giftCardForm.toggleAttribute("data-pending", pending.has("gift-card"));
+      for (const lineItem of this.lineItemsContainer.querySelectorAll<CartLineItemElement>(
+        "cart-line-item",
+      )) {
+        lineItem.setPending(pending.has(lineItem.dataset.lineId ?? ""));
+      }
     };
 
     private renderCart = () => {
+      const cart = $cart.get();
       const lines = $cartLines.get();
-      this.lineItemsContainer.innerHTML = "";
+      const messages = $cartMessages.get();
 
-      if (!$cart.get() || !lines.length) {
-        this.cartElement.dataset.state = "empty";
-        return;
-      }
+      const cartMessages = messages
+        .filter((message) => !message.lineId && !message.discountCode)
+        .map((message) => message.message);
+      this.errorElement.textContent = [...new Set(cartMessages)].join(" ");
 
-      this.cartElement.dataset.state = "loaded";
+      this.cartElement.dataset.state = cart && lines.length ? "loaded" : "empty";
 
-      for (const line of lines) {
-        const clone = this.itemTemplate.content.cloneNode(true) as DocumentFragment;
-        const lineItemElement = clone.querySelector("cart-line-item") as CartLineItemElement;
-        customElements.whenDefined("cart-line-item").then(() => lineItemElement.init(line));
-        this.lineItemsContainer.appendChild(clone);
-      }
+      this.lineItemsContainer.replaceChildren(
+        ...lines.map((line) => {
+          const clone = this.lineTemplate.content.cloneNode(true) as DocumentFragment;
+          const lineItemElement = clone.querySelector("cart-line-item") as CartLineItemElement;
+          const lineMessages = messages.filter((message) => message.lineId === line.id);
+          customElements
+            .whenDefined("cart-line-item")
+            .then(() => lineItemElement.init(line, lineMessages));
+          return clone;
+        }),
+      );
+
+      this.renderCodes(cart, messages);
+      if (document.activeElement !== this.noteInput) this.noteInput.value = cart?.note ?? "";
+      this.renderPending($cartPending.get());
     };
+
+    private renderCodes(cart: CartFragment | null, messages: CartMessage[]) {
+      this.discountCodesContainer.replaceChildren(
+        ...(cart?.discountCodes ?? []).map((discountCode) => {
+          const message = messages.find((item) => item.discountCode === discountCode.code);
+          const label = discountCode.applicable
+            ? discountCode.code
+            : `${discountCode.code} (${message?.message ?? "not applicable"})`;
+          return this.codeItem(label, () => removeDiscountCode(discountCode.code));
+        }),
+      );
+      this.giftCardsContainer.replaceChildren(
+        ...(cart?.appliedGiftCards ?? []).map((giftCard) =>
+          this.codeItem(`Gift card •••• ${giftCard.lastCharacters}`, () =>
+            removeGiftCard(giftCard.id),
+          ),
+        ),
+      );
+    }
+
+    private codeItem(label: string, remove: () => void): DocumentFragment {
+      const clone = this.codeTemplate.content.cloneNode(true) as DocumentFragment;
+      clone.querySelector("[data-code-label]")!.textContent = label;
+      clone.querySelector("[data-code-remove]")!.addEventListener("click", remove, { once: true });
+      return clone;
+    }
+  }
+
+  function readCode(form: HTMLFormElement): string {
+    return String(new FormData(form).get("code") ?? "").trim();
   }
 
   customElements.define("cart-drawer", CartDrawerElement);
@@ -185,22 +317,47 @@ const { cartData }: Props = Astro.props;
   }
 
   .header {
-    margin-bottom: var(--s40);
+    margin-bottom: var(--size-10);
   }
 
   .cart-content {
     width: 100%;
     height: 100%;
-
     display: flex;
     flex-direction: column;
-    gap: var(--s40);
+    gap: var(--size-10);
   }
 
   .cart-line-items {
     display: flex;
     flex-direction: column;
-    gap: var(--s24);
+    gap: var(--size-6);
+  }
+
+  .codes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-3);
+  }
+
+  .code-form {
+    display: flex;
+    align-items: center;
+    gap: var(--size-3);
+  }
+
+  .code-field {
+    flex: 1;
+  }
+
+  .code-form[data-pending] {
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
+  }
+
+  .applied-code {
+    display: flex;
+    gap: var(--size-3);
   }
 
   .footer {
@@ -208,15 +365,13 @@ const { cartData }: Props = Astro.props;
   }
 
   .checkout-button {
-    margin-top: var(--s40);
-    align-self: flex-start;
+    display: inline-block;
+    margin-top: var(--size-10);
   }
 
+  .applied-codes:empty,
+  .cart-error:empty,
   .empty-message {
-    display: none;
-  }
-
-  .cart-error:empty {
     display: none;
   }
 
@@ -224,13 +379,13 @@ const { cartData }: Props = Astro.props;
     display: block;
   }
 
-  [data-cart][data-state="empty"] .cart-line-items,
-  [data-cart][data-state="empty"] [data-cart-total] {
+  [data-cart][data-state="empty"]
+    :is(.cart-line-items, .codes, .g-form-field, [data-cart-total], [data-cart-checkout]) {
     display: none;
   }
 
-  [data-cart]:not([data-checkout-valid]) [data-cart-checkout-button] {
-    opacity: 0.5;
-    cursor: not-allowed;
+  [data-cart][data-pending] [data-cart-checkout] {
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
   }
 </style>

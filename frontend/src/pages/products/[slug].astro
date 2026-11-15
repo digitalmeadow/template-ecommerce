@@ -1,21 +1,30 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
-import { fetchProductShopifySanity } from "@lib/fetches/productShopifySanity";
+import { fetchProductShopifySanity, isProductInShopify } from "@lib/fetches/productShopifySanity";
 import ProductMain from "@sections/product/ProductMain.astro";
 import ProductRelated from "@sections/product/ProductRelated.astro";
 import { propsForSlug } from "@lib/sanity/staticPaths";
 import { buildProductPaths, loadProductProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
 import { buildBreadcrumbSchema, buildProductSchema } from "@lib/sanity/structuredData";
+import { getRenderLocale } from "@lib/shopify/locale";
 
 export async function getStaticPaths() {
-  return buildProductPaths();
+  const paths = await buildProductPaths();
+  const inShopify = await Promise.all(paths.map((path) => isProductInShopify(path.params.slug)));
+  return paths.filter((_, index) => inShopify[index]);
 }
 
 const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadProductProps);
 if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
-const productData = await fetchProductShopifySanity(Astro.params.slug, resolved.sanityProductData);
+const locale = getRenderLocale(Astro);
+const productData = await fetchProductShopifySanity(
+  Astro.params.slug,
+  locale,
+  resolved.sanityProductData,
+);
+if (!productData) return Astro.rewrite("/404");
 
 const metaData = resolveMeta(productData.sanity, { title: productData.shopify.title });
 ---
@@ -24,8 +33,8 @@ const metaData = resolveMeta(productData.sanity, { title: productData.shopify.ti
   metaData={metaData}
   ogType="product"
   jsonLd={[
-    buildProductSchema(productData, metaData.description, Astro.site),
-    buildBreadcrumbSchema(Astro.url.pathname, productData.shopify.title, Astro.site),
+    buildProductSchema(productData, metaData.description, Astro.site, locale),
+    buildBreadcrumbSchema(Astro.url.pathname, productData.shopify.title, Astro.site, locale),
   ]}
 >
   <ProductMain productData={productData} />

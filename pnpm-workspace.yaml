@@ -9,6 +9,8 @@ packages:
 allowBuilds:
   esbuild: true
   sharp: true
+  # Hooks are installed by the root `prepare` script instead.
+  simple-git-hooks: false
   unrs-resolver: true
   workerd: true
 

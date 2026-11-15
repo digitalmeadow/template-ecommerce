@@ -8,6 +8,15 @@ export const productThumbnailByHandleQuery = graphql(`
   }
 `);
 
+// Every product's thumbnail in one request, so grids never ask per product.
+export const productThumbnailsQuery = graphql(`
+  query ProductThumbnailsQuery {
+    allProduct {
+      ...ProductThumbnail
+    }
+  }
+`);
+
 export const productByHandleQuery = graphql(`
   query ProductByHandleQuery($handle: String!) {
     allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {

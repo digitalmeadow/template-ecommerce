@@ -14,7 +14,7 @@ const contentId = `accordion-${crypto.randomUUID()}`;
 ---
 
 <accordion-root group={group} init-open={initOpen ? "" : undefined}>
-  <Heading class="heading">
+  <Heading class="heading g-heading-6">
     <button
       type="button"
       class="summary"
@@ -125,22 +125,22 @@ const contentId = `accordion-${crypto.randomUUID()}`;
 
 <style>
   accordion-root {
-    margin-top: -1px;
     display: block;
-    border-top: 1px solid var(--color-shape-stroke);
+    margin-top: calc(-1 * var(--border-width-1));
+    border-top: var(--border-width-1) solid var(--color-rule);
   }
 
   accordion-root:last-child {
-    border-bottom: 1px solid var(--color-shape-stroke);
+    border-bottom: var(--border-width-1) solid var(--color-rule);
   }
 
   .summary {
     width: 100%;
-    padding: var(--s4) 0;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
-    gap: var(--s8);
+    gap: var(--size-2);
+    padding-block: var(--size-2);
     text-align: left;
   }
 
@@ -160,24 +160,18 @@ const contentId = `accordion-${crypto.randomUUID()}`;
 
   .icon {
     display: grid;
-    align-items: center;
-    justify-items: center;
-    width: var(--s16);
-    height: var(--s16);
-    font-size: 1.125rem;
-    line-height: 1;
+    place-items: center;
+    width: var(--size-4);
+    height: var(--size-4);
   }
 
   .icon-open,
   .icon-close {
-    grid-area: 1 / 1 / 2 / 2;
+    grid-area: 1 / 1;
     transition: opacity var(--transition-default);
   }
 
-  .icon-close {
-    opacity: 0;
-  }
-
+  .icon-close,
   accordion-root[data-state="open"] .icon-open {
     opacity: 0;
   }
@@ -187,6 +181,6 @@ const contentId = `accordion-${crypto.randomUUID()}`;
   }
 
   .content {
-    padding: var(--s8) 0 var(--s24) 2em;
+    padding: var(--size-2) 0 var(--size-6) var(--size-8);
   }
 </style>

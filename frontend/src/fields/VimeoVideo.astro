@@ -110,7 +110,7 @@ const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefi
     height: 100%;
     object-fit: cover;
     opacity: 1;
-    transition: opacity var(--transition-media-load);
+    transition: opacity var(--transition-media);
     pointer-events: none;
     filter: blur(100px);
   }
@@ -125,7 +125,7 @@ const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefi
     border: 0;
     pointer-events: none; /* decorative player — clicks and hover belong to the parent */
     opacity: 0;
-    transition: opacity var(--transition-media-load);
+    transition: opacity var(--transition-media);
   }
 
   .video[data-loaded] {

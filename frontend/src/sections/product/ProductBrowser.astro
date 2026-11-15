@@ -1,0 +1,326 @@
+---
+import type { ProductFilter } from "shopify/generated/graphql";
+import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
+import type { ProductBrowserResults, ProductBrowserSource } from "@lib/fetches/productBrowser";
+import { COLLECTION_SORT_OPTIONS, filterToParam, SEARCH_SORT_OPTIONS } from "@lib/shopify/filters";
+import { getRenderLocale } from "@lib/shopify/locale";
+
+interface Props {
+  source: ProductBrowserSource;
+  results: ProductBrowserResults;
+  /* The listing's current URL parameters (filters, sort), for checked state and the next page. */
+  params: URLSearchParams;
+  /* Collection pages: reported with collection views. */
+  collectionId?: string;
+}
+
+const { source, results, params, collectionId }: Props = Astro.props;
+
+const locale = getRenderLocale(Astro);
+const sortOptions = source.type === "collection" ? COLLECTION_SORT_OPTIONS : SEARCH_SORT_OPTIONS;
+const selectedSort = params.get("sort_by") ?? sortOptions[0]!.value;
+
+function readFilterInput(input: unknown): ProductFilter | null {
+  try {
+    return (typeof input === "string" ? JSON.parse(input) : input) as ProductFilter;
+  } catch {
+    return null;
+  }
+}
+
+const facets = results.filters.map((filter) => ({
+  ...filter,
+  values: filter.values.flatMap((value) => {
+    const filterInput = readFilterInput(value.input);
+    const param = filterInput && filterToParam(filterInput);
+    if (!param) return [];
+    const [name, paramValue] = param;
+    return [{ ...value, name, paramValue, checked: params.getAll(name).includes(paramValue) }];
+  }),
+}));
+
+const nextParams = new URLSearchParams(params);
+if (results.endCursor) nextParams.set("after", results.endCursor);
+---
+
+<product-browser
+  class="product-browser"
+  data-source={source.type}
+  data-handle={source.type === "collection" ? source.handle : undefined}
+  data-collection-id={collectionId}
+  data-locale={locale.path}
+>
+  <form class="controls" method="get" data-browser-form>
+    {source.type === "search" && (
+      <label class="search-field g-form-field">
+        <span>Search</span>
+        <input type="search" name="q" value={source.query} placeholder="Search" />
+      </label>
+    )}
+
+    <label class="sort g-form-field">
+      <span>Sort</span>
+      <span class="g-select">
+        <select name="sort_by">
+          {sortOptions.map((option) => (
+            <option value={option.value} selected={option.value === selectedSort}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </span>
+    </label>
+
+    {facets.map((facet) => (
+      <fieldset class="facet g-form-field">
+        <legend>{facet.label}</legend>
+        {facet.type === "PRICE_RANGE" ? (
+          <div class="price-range">
+            <label class="g-form-field">
+              <span>Min</span>
+              <input
+                type="number"
+                name="filter.v.price.gte"
+                min="0"
+                step="1"
+                inputmode="decimal"
+                value={params.get("filter.v.price.gte") ?? undefined}
+              />
+            </label>
+            <label class="g-form-field">
+              <span>Max</span>
+              <input
+                type="number"
+                name="filter.v.price.lte"
+                min="0"
+                step="1"
+                inputmode="decimal"
+                value={params.get("filter.v.price.lte") ?? undefined}
+              />
+            </label>
+          </div>
+        ) : (
+          facet.values.map((value) => (
+            <label class="g-form-choice">
+              <input
+                type="checkbox"
+                name={value.name}
+                value={value.paramValue}
+                checked={value.checked}
+                disabled={value.count === 0 && !value.checked}
+              />
+              {value.label} <span class="count">({value.count})</span>
+            </label>
+          ))
+        )}
+      </fieldset>
+    ))}
+
+    <button class="apply g-button" type="submit">
+      Apply
+    </button>
+  </form>
+
+  <div class="results" data-browser-results aria-live="polite">
+    {results.totalCount !== undefined && (
+      <p class="total g-text-color-muted">
+        {results.totalCount} {results.totalCount === 1 ? "result" : "results"}
+      </p>
+    )}
+    {results.products.length ? (
+      <ProductThumbnailsGrid productsData={results.products} />
+    ) : (
+      <p class="empty">
+        {source.type === "search" && !source.query ? "Enter a search term." : "No products found."}
+      </p>
+    )}
+    {results.hasNextPage && (
+      <a class="load-more g-text-link" href={`?${nextParams}`} data-load-more>
+        Load more
+      </a>
+    )}
+  </div>
+</product-browser>
+
+<script>
+  import { hasBrowseParams } from "@lib/shopify/filters";
+  import { trackCollectionView, trackSearch, type AnalyticsListItem } from "@lib/analytics/track";
+
+  const PARTIAL_PATH = "/partials/product-browser";
+
+  // Filtering, sorting and paging re-render the browser on the worker (same components, same
+  // markup) and swap it in; the static page holds the default first page.
+  class ProductBrowserElement extends HTMLElement {
+    private controller?: AbortController;
+
+    connectedCallback() {
+      this.addEventListener("change", this.handleChange);
+      this.addEventListener("submit", this.handleSubmit);
+      this.addEventListener("click", this.handleClick);
+      const params = new URLSearchParams(window.location.search);
+      if (hasBrowseParams(params)) this.render(params);
+      else this.trackView(params);
+    }
+
+    private listItems(): AnalyticsListItem[] {
+      return [...this.querySelectorAll<HTMLElement>("[data-analytics-item]")].map(
+        (element) => JSON.parse(element.dataset.analyticsItem ?? "{}") as AnalyticsListItem,
+      );
+    }
+
+    private trackView(params: URLSearchParams) {
+      const { handle, collectionId } = this.dataset;
+      const query = params.get("q");
+      if (handle && collectionId)
+        trackCollectionView({ id: collectionId, handle }, this.listItems());
+      if (this.dataset.source === "search" && query) trackSearch(query, this.listItems());
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener("change", this.handleChange);
+      this.removeEventListener("submit", this.handleSubmit);
+      this.removeEventListener("click", this.handleClick);
+      this.controller?.abort();
+    }
+
+    private get form(): HTMLFormElement | null {
+      return this.querySelector("[data-browser-form]");
+    }
+
+    private formParams(): URLSearchParams {
+      const params = new URLSearchParams();
+      if (!this.form) return params;
+      for (const [name, value] of new FormData(this.form)) {
+        if (typeof value === "string" && value.trim()) params.append(name, value.trim());
+      }
+      return params;
+    }
+
+    private handleChange = (event: Event) => {
+      // Search text applies on submit, not on every keystroke.
+      if ((event.target as HTMLInputElement).name === "q") return;
+      this.apply();
+    };
+
+    private handleSubmit = (event: SubmitEvent) => {
+      event.preventDefault();
+      this.apply();
+    };
+
+    private handleClick = (event: MouseEvent) => {
+      const link = (event.target as Element).closest<HTMLAnchorElement>("[data-load-more]");
+      if (!link) return;
+      event.preventDefault();
+      this.loadMore(new URL(link.href).searchParams);
+    };
+
+    private apply() {
+      const params = this.formParams();
+      const url = new URL(window.location.href);
+      url.search = params.toString();
+      history.replaceState(history.state, "", url);
+      this.render(params);
+    }
+
+    private async fetchBrowser(params: URLSearchParams): Promise<HTMLElement | null> {
+      this.controller?.abort();
+      this.controller = new AbortController();
+      const query = new URLSearchParams(params);
+      query.set("locale", this.dataset.locale ?? "");
+      if (this.dataset.handle) query.set("handle", this.dataset.handle);
+      this.dataset.loading = "";
+      try {
+        const response = await fetch(`${PARTIAL_PATH}?${query}`, {
+          signal: this.controller.signal,
+        });
+        if (!response.ok) throw new Error(`Product browser responded ${response.status}`);
+        const template = document.createElement("template");
+        template.innerHTML = await response.text();
+        return template.content.querySelector("product-browser");
+      } catch (error) {
+        if (!this.controller.signal.aborted) console.error(error);
+        return null;
+      } finally {
+        delete this.dataset.loading;
+      }
+    }
+
+    private async render(params: URLSearchParams) {
+      const focused = document.activeElement as HTMLInputElement | null;
+      const focusKey =
+        focused && this.contains(focused) ? `${focused.name}=${focused.value}` : null;
+
+      const fresh = await this.fetchBrowser(params);
+      if (!fresh) return;
+      this.replaceChildren(...fresh.childNodes);
+      this.trackView(params);
+
+      // The swap replaces the control the visitor was using; hand focus back to its twin.
+      if (focusKey) {
+        const twin = [...this.querySelectorAll<HTMLInputElement>("input, select")].find(
+          (control) => `${control.name}=${control.value}` === focusKey,
+        );
+        twin?.focus();
+      }
+    }
+
+    private async loadMore(params: URLSearchParams) {
+      const fresh = await this.fetchBrowser(params);
+      const grid = this.querySelector(".grid");
+      const freshGrid = fresh?.querySelector(".grid");
+      if (!fresh || !grid || !freshGrid) return;
+      grid.append(...freshGrid.childNodes);
+      const loadMore = this.querySelector("[data-load-more]");
+      const freshLoadMore = fresh.querySelector("[data-load-more]");
+      if (freshLoadMore) loadMore?.replaceWith(freshLoadMore);
+      else loadMore?.remove();
+    }
+  }
+
+  customElements.define("product-browser", ProductBrowserElement);
+</script>
+
+<style>
+  .product-browser {
+    display: block;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--size-6);
+  }
+
+  .price-range {
+    display: flex;
+    gap: var(--size-3);
+  }
+
+  .price-range input {
+    width: 6em;
+  }
+
+  .count {
+    color: var(--color-text-subtle);
+  }
+
+  /* Filters apply as they change once JS is running. */
+  :global(html[data-js]) .apply {
+    display: none;
+  }
+
+  .results {
+    margin-top: var(--size-10);
+    transition: opacity var(--transition-default);
+  }
+
+  .product-browser[data-loading] .results {
+    opacity: var(--opacity-disabled);
+  }
+
+  .load-more {
+    display: inline-block;
+    margin-top: var(--size-10);
+  }
+</style>

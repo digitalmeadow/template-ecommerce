@@ -2,11 +2,12 @@
 import PageLayout from "@layouts/PageLayout.astro";
 import { fetchCollectionShopifySanity } from "@lib/fetches/collectionShopifySanity";
 import SectionHero from "@sections/SectionHero.astro";
-import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
+import ProductBrowser from "@sections/product/ProductBrowser.astro";
 import { propsForSlug } from "@lib/sanity/staticPaths";
 import { buildCollectionPaths, loadCollectionProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
 import { buildBreadcrumbSchema } from "@lib/sanity/structuredData";
+import { getRenderLocale } from "@lib/shopify/locale";
 
 export async function getStaticPaths() {
   return buildCollectionPaths();
@@ -15,15 +16,19 @@ export async function getStaticPaths() {
 const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadCollectionProps);
 if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
+const locale = getRenderLocale(Astro);
 const collectionData = await fetchCollectionShopifySanity(
   Astro.params.slug,
+  locale,
   resolved.sanityCollectionData,
 );
 ---
 
 <PageLayout
   metaData={resolveMeta(collectionData.sanity, { title: collectionData.shopify.title })}
-  jsonLd={[buildBreadcrumbSchema(Astro.url.pathname, collectionData.shopify.title, Astro.site)]}
+  jsonLd={[
+    buildBreadcrumbSchema(Astro.url.pathname, collectionData.shopify.title, Astro.site, locale),
+  ]}
 >
   <SectionHero
     section={{
@@ -37,5 +42,17 @@ const collectionData = await fetchCollectionShopifySanity(
     }}
   />
 
-  <ProductThumbnailsGrid productsData={collectionData.productThumbnails} />
+  <div class="g-page-margin g-section-sm">
+    <ProductBrowser
+      source={{ type: "collection", handle: collectionData.shopify.handle }}
+      collectionId={collectionData.shopify.id}
+      results={{
+        products: collectionData.productThumbnails,
+        filters: collectionData.shopify.products.filters,
+        hasNextPage: collectionData.shopify.products.pageInfo.hasNextPage,
+        endCursor: collectionData.shopify.products.pageInfo.endCursor ?? null,
+      }}
+      params={new URLSearchParams()}
+    />
+  </div>
 </PageLayout>

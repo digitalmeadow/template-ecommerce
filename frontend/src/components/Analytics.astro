@@ -1,60 +1,109 @@
 ---
 import type { AnalyticsSettingsFragment } from "sanity/generated/graphql";
+import { SHOPIFY_STORE_DOMAIN } from "shopify/config";
+import { getShop } from "@lib/shopify/shop";
+import { getLocalization } from "@lib/shopify/localization";
+import { getRenderLocale } from "@lib/shopify/locale";
 
 interface Props {
   analyticsSettingsData: AnalyticsSettingsFragment | null | undefined;
 }
 
 const { analyticsSettingsData }: Props = Astro.props;
-const gtmId = analyticsSettingsData?.gtmId;
+
+const locale = getRenderLocale(Astro);
+const [shop, localization] = await Promise.all([getShop(), getLocalization()]);
+const currency = localization.availableCountries.find(
+  (country) => country.isoCode === locale.country,
+)?.currency.isoCode;
 ---
 
-{gtmId && <google-tag-manager data-gtm-id={gtmId} hidden />}
+<storefront-analytics
+  hidden
+  data-shop-id={shop.id}
+  data-shop-domain={SHOPIFY_STORE_DOMAIN}
+  data-country={locale.country}
+  data-language={locale.language}
+  data-currency={currency}
+  data-gtm-id={analyticsSettingsData?.gtmId ?? undefined}
+/>
 
 <script>
   import {
-    COOKIE_CONSENT_EVENT,
     getConsent,
+    resolveTrackingAllowed,
+    subscribeToConsent,
     type EventCookieConsentChange,
   } from "@lib/consent/consent";
+  import { loadCustomerPrivacy, syncShopifyConsent } from "@lib/consent/customerPrivacy";
+  import { initShopifyAnalytics } from "@lib/analytics/shopifyAnalytics";
+  import { disableDataLayer, enableDataLayer } from "@lib/analytics/dataLayer";
+  import { trackPageView } from "@lib/analytics/track";
 
-  declare global {
-    interface Window {
-      dataLayer?: unknown[];
-    }
+  let isInitialised = false;
+  let isGtmLoaded = false;
+
+  // GTM loads only once a visitor accepts cookies (or their region needs no banner).
+  // Client-router navigations are pushState, which GTM's History Change trigger reports.
+  function loadGtm(gtmId: string | undefined) {
+    if (!gtmId || isGtmLoaded) return;
+    isGtmLoaded = true;
+    window.dataLayer!.push({ "gtm.start": Date.now(), event: "gtm.js" });
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(gtmId)}`;
+    document.head.appendChild(script);
   }
 
-  // GTM loads only once a visitor accepts cookies. Client-router navigations are pushState, which
-  // GTM's History Change trigger already reports as page views.
-  class GoogleTagManagerElement extends HTMLElement {
+  function enableTracking(gtmId: string | undefined) {
+    enableDataLayer();
+    loadGtm(gtmId);
+  }
+
+  async function initialise({
+    shopId,
+    shopDomain,
+    country,
+    language,
+    currency,
+    gtmId,
+  }: DOMStringMap) {
+    const privacy = await loadCustomerPrivacy({
+      shop: shopDomain ?? "",
+      country: country ?? "",
+      language: language ?? "",
+      currency: currency ?? "",
+    });
+
+    // Ours is set but Shopify's isn't (its cookies were cleared): restore it rather than ask again.
+    const consent = getConsent();
+    if (privacy && consent && !privacy.currentVisitorConsent().analytics) {
+      await syncShopifyConsent(consent);
+    }
+
+    if (shopId) initShopifyAnalytics(shopId, privacy);
+    trackPageView();
+    document.addEventListener("astro:after-swap", trackPageView);
+
+    // Undecided (banner showing) keeps GA4 events waiting for the visitor's answer.
+    if (await resolveTrackingAllowed()) enableTracking(gtmId);
+    else if (getConsent() === "declined") disableDataLayer();
+    subscribeToConsent((event) => {
+      const { status } = (event as EventCookieConsentChange).detail;
+      syncShopifyConsent(status);
+      if (status === "accepted") enableTracking(gtmId);
+      else disableDataLayer();
+    });
+  }
+
+  // Persisted chrome reconnects on every navigation; the setup runs once per visit.
+  class StorefrontAnalyticsElement extends HTMLElement {
     connectedCallback() {
-      if (getConsent() === "accepted") {
-        this.load();
-      } else {
-        window.addEventListener(COOKIE_CONSENT_EVENT, this.handleConsentChange);
-      }
-    }
-
-    disconnectedCallback() {
-      window.removeEventListener(COOKIE_CONSENT_EVENT, this.handleConsentChange);
-    }
-
-    handleConsentChange = (event: Event) => {
-      if ((event as EventCookieConsentChange).detail.status === "accepted") this.load();
-    };
-
-    load() {
-      const gtmId = this.dataset.gtmId;
-      if (!gtmId || window.dataLayer) return;
-
-      window.dataLayer = [{ "gtm.start": Date.now(), event: "gtm.js" }];
-
-      const script = document.createElement("script");
-      script.async = true;
-      script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(gtmId)}`;
-      document.head.appendChild(script);
+      if (isInitialised) return;
+      isInitialised = true;
+      initialise(this.dataset);
     }
   }
 
-  customElements.define("google-tag-manager", GoogleTagManagerElement);
+  customElements.define("storefront-analytics", StorefrontAnalyticsElement);
 </script>

@@ -1,0 +1,65 @@
+:root {
+  /* Set from the header's height by ScriptMeasurements, so anchors clear it. */
+  --scroll-padding-top: 0px;
+}
+
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+
+  scroll-padding-top: var(--scroll-padding-top);
+  scrollbar-gutter: stable;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--font-size-regular);
+  line-height: var(--line-height-tight);
+  font-weight: var(--font-weight-regular);
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
+p,
+li,
+blockquote {
+  text-wrap: pretty;
+}
+
+strong,
+b {
+  font-weight: var(--font-weight-bold);
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* One disabled look for every control; a fieldset's controls count too. */
+:is(button, input, select, textarea):disabled,
+[aria-disabled="true"] {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+/* Each section repaints with its own scheme's roles. */
+[data-color-scheme] {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}

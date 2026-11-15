@@ -1,0 +1,19 @@
+---
+// The banner only shows where Shopify says consent is required and no choice is stored, so it's
+// shown here regardless.
+import CookiesBanner from "@components/CookiesBanner.astro";
+import { cookieConsent } from "../fixtures/settings";
+---
+
+<CookiesBanner cookieConsentData={cookieConsent} />
+
+<script>
+  type CookieBannerElement = HTMLElement & { show(): void };
+
+  document.addEventListener("astro:page-load", async () => {
+    await customElements.whenDefined("cookie-banner");
+    document.querySelectorAll<CookieBannerElement>("cookie-banner").forEach((banner) => {
+      banner.show();
+    });
+  });
+</script>

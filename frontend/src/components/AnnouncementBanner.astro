@@ -58,12 +58,11 @@ const visible = announcementBannerData?.enabled && announcementBannerData.textRa
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--s16);
-    padding: var(--s8) var(--margin);
-
+    gap: var(--size-4);
+    padding: var(--size-2) var(--margin);
     text-align: center;
-    background-color: var(--color-text);
-    color: var(--color-background);
+    background-color: var(--color-inverse-background);
+    color: var(--color-inverse-text);
   }
 
   :global(html[data-announcement-dismissed]) .announcement-banner {

@@ -1,0 +1,76 @@
+/* Mirrors Figma's Sizes collection, group for group. Text sizes live in text.css. */
+:root {
+  /* size: N × 0.25rem, fixed at every breakpoint */
+  --size-0: 0rem;
+  --size-0-5: 0.125rem;
+  --size-1: 0.25rem;
+  --size-2: 0.5rem;
+  --size-2-5: 0.625rem;
+  --size-3: 0.75rem;
+  --size-4: 1rem;
+  --size-5: 1.25rem;
+  --size-6: 1.5rem;
+  --size-8: 2rem;
+  --size-10: 2.5rem;
+  --size-12: 3rem;
+  --size-14: 3.5rem;
+  --size-15: 3.75rem;
+  --size-16: 4rem;
+  --size-20: 5rem;
+  --size-24: 6rem;
+  --size-28: 7rem;
+  --size-30: 7.5rem;
+  --size-32: 8rem;
+  --size-40: 10rem;
+
+  /* section-space: responsive */
+  --section-space-sm: var(--size-10);
+  --section-space-md: var(--size-20);
+  --section-space-lg: var(--size-30);
+
+  /* layout: page margin and grid gutter */
+  --margin: var(--size-2-5);
+  --gutter: var(--size-2-5);
+
+  /* container */
+  --container-sm: 48rem;
+  --container-md: 64rem;
+  /* Full bleed: the page grid's column maths assume the container spans the viewport. */
+  --container-full: none;
+
+  /* max-w */
+  --max-w-64: 16rem;
+  --max-w-80: 20rem;
+  --max-w-100: 25rem;
+  --max-w-120: 30rem;
+  --max-w-140: 35rem;
+  --max-w-160: 40rem;
+  --max-w-192: 48rem;
+  --max-w-256: 64rem;
+  --max-w-320: 80rem;
+
+  /* radius: unused by this design (square corners), set per brand */
+  --radius-none: 0rem;
+  --radius-sm: var(--size-1);
+  --radius-md: var(--size-2);
+  --radius-lg: var(--size-4);
+  --radius-full: 999rem;
+
+  /* border */
+  --border-width-1: 1px;
+  --border-width-2: 2px;
+
+  /* marker: the accent square on buttons, tabs and the current item */
+  --marker-size: var(--size-1);
+
+  /* link underline (g-text-link): hairline at rest, a highlighter stroke when hovered or active */
+  --link-underline-thickness-rest: var(--border-width-1);
+  --link-underline-thickness-active: var(--size-3);
+}
+
+@media (max-width: 48rem) {
+  :root {
+    --section-space-md: var(--size-15);
+    --section-space-lg: var(--size-20);
+  }
+}

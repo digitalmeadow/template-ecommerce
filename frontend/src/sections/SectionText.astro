@@ -11,7 +11,7 @@ const { section }: Props = Astro.props;
 
 <section
   data-color-scheme={section.colorScheme ?? undefined}
-  class="section-text u-container"
+  class="section-text g-page-margin g-section-md"
   id={section.id ?? undefined}
 >
   <PortableText value={section.textRaw} />
@@ -19,14 +19,6 @@ const { section }: Props = Astro.props;
 
 <style>
   .section-text {
-    margin-top: var(--s40);
-    margin-bottom: var(--s64);
     text-align: center;
-  }
-  @media (max-width: 32rem) {
-    .section-text {
-      margin-top: 0;
-      margin-bottom: var(--s80);
-    }
   }
 </style>

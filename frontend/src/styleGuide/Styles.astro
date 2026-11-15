@@ -1,0 +1,833 @@
+---
+// Every token and global class in styles/, labelled: the Styles tab, one part per frame.
+// Keep in sync with styles/ when a token or class is added or removed.
+import type { StylePart } from "./entry";
+
+const headings = [1, 2, 3, 4, 5, 6] as const;
+const textSizes = ["large", "medium", "regular", "small", "tiny"] as const;
+const fontTokens = [
+  "--font-body",
+  "--font-heading",
+  "--font-weight-regular",
+  "--font-weight-bold",
+  "--line-height-display",
+  "--line-height-tight",
+  "--line-height-body",
+  "--letter-spacing-display",
+  "--letter-spacing-large",
+];
+const sizes = [
+  "0",
+  "0-5",
+  "1",
+  "2",
+  "2-5",
+  "3",
+  "4",
+  "5",
+  "6",
+  "8",
+  "10",
+  "12",
+  "14",
+  "15",
+  "16",
+  "20",
+  "24",
+  "28",
+  "30",
+  "32",
+  "40",
+];
+const maxWidths = ["64", "80", "100", "120", "140", "160", "192", "256", "320"];
+const layoutTokens = [
+  "section-space-sm",
+  "section-space-md",
+  "section-space-lg",
+  "margin",
+  "gutter",
+  "marker-size",
+  "border-width-1",
+  "border-width-2",
+  "link-underline-thickness-rest",
+  "link-underline-thickness-active",
+];
+const radii = ["none", "sm", "md", "lg", "full"];
+const schemes = ["light", "dark"] as const;
+const coreColors = [
+  "cream",
+  "brown",
+  "ink",
+  "linen",
+  "yellow",
+  "orange",
+  "green",
+  "blue",
+  "purple",
+];
+const schemeColors = ["background", "foreground", "accent", "on-accent", "focus", "error"];
+const roleColors = [
+  "background",
+  "text",
+  "text-muted",
+  "text-subtle",
+  "rule",
+  "surface",
+  "surface-strong",
+  "accent",
+  "on-accent",
+  "inverse-background",
+  "inverse-text",
+  "focus",
+  "error",
+];
+const contrasts = ["64", "40", "16", "8", "4"];
+const alphas = ["5", "10", "15", "20", "30", "40", "50", "60", "80", "90", "92", "95"];
+const highlights = ["yellow", "orange", "green", "blue", "purple"] as const;
+const textColors = ["default", "muted", "subtle", "accent", "error", "inverse"];
+const backgroundColors = ["default", "surface", "surface-strong", "accent", "inverse"];
+const positions = [
+  "top-left",
+  "top-center",
+  "top-right",
+  "center-left",
+  "center-center",
+  "center-right",
+  "bottom-left",
+  "bottom-center",
+  "bottom-right",
+];
+const ratios = ["1-1", "4-5", "2-3", "3-2", "4-3", "16-9"];
+const motionTokens = [
+  "--ease-out",
+  "--ease-in-out",
+  "--duration-default",
+  "--duration-media",
+  "--duration-reveal",
+  "--transition-default",
+  "--transition-media",
+  "--transition-reveal",
+  "--stagger",
+  "--parallax-scale",
+  "--parallax-travel",
+  "--parallax-travel-wrapper",
+];
+const stateTokens = ["--focus-ring-width", "--focus-ring-offset", "--opacity-disabled"];
+
+interface Props {
+  part: StylePart;
+}
+
+const { part }: Props = Astro.props;
+---
+
+<div class="styles g-page-margin">
+  {part === "Typography" && (
+    <section id="typography" class="block">
+      <h3 class="subtitle">Heading tags and classes</h3>
+      <p class="note">
+        Tags set the default look; <code>g-heading-N</code> when the look differs from the tag.
+        Sizes are <code>--font-size-h1</code>…<code>--font-size-h6</code>, smaller below the
+        breakpoint.
+      </p>
+      <div class="rows">
+        {headings.map((level) => (
+          <div class="row">
+            <code class="label">
+              h{level} · .g-heading-{level} · --font-size-h{level}
+            </code>
+            <p class={`g-heading-${level}`}>Heading {level}</p>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Text styles</h3>
+      <div class="rows">
+        {textSizes.map((size) => (
+          <div class="row">
+            <code class="label">
+              .g-text-{size} · --font-size-{size}
+            </code>
+            <p class={`g-text-${size}`}>The quick brown fox</p>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Font tokens</h3>
+      <div class="rows">
+        {fontTokens.map((token) => (
+          <div class="row">
+            <code class="label">{token}</code>
+            <code class="label" data-token-value={token} />
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Weights and styles</h3>
+      <div class="rows">
+        <div class="row">
+          <code class="label">.g-font-weight-regular</code>
+          <p class="g-font-weight-regular">Regular</p>
+        </div>
+        <div class="row">
+          <code class="label">.g-font-weight-bold · strong</code>
+          <p class="g-font-weight-bold">Bold</p>
+        </div>
+        <div class="row">
+          <code class="label">.g-text-italic</code>
+          <p class="g-text-italic">Italic</p>
+        </div>
+        <div class="row">
+          <code class="label">.g-text-uppercase</code>
+          <p class="g-text-uppercase">Uppercase</p>
+        </div>
+        <div class="row">
+          <code class="label">.g-text-balance</code>
+          <p class="g-text-balance g-max-w-100">
+            Balanced lines wrap evenly instead of leaving one word behind
+          </p>
+        </div>
+        <div class="row">
+          <code class="label">.g-text-nowrap</code>
+          <p class="g-text-nowrap">Never wraps</p>
+        </div>
+      </div>
+
+      <h3 class="subtitle">Links</h3>
+      <p class="note">
+        <code>g-text-link</code> thickens into a highlighter stroke on hover or when active (
+        <code>data-active</code>, <code>aria-current</code>); <code>g-text-link-hover</code> shows
+        nothing at rest. Colour with <code>g-underline-*</code> (default yellow).
+      </p>
+      <div class="rows">
+        {highlights.map((color) => (
+          <div class="row">
+            <code class="label">.g-text-link.g-underline-{color}</code>
+            <p class="g-flex-row g-gap-5">
+              <a class={`g-text-link g-underline-${color}`} href="#typography">
+                Rest
+              </a>
+              <a class={`g-text-link g-underline-${color}`} href="#typography" data-active>
+                Active
+              </a>
+            </p>
+          </div>
+        ))}
+        <div class="row">
+          <code class="label">.g-text-link-hover</code>
+          <p class="g-flex-row g-gap-5">
+            <a class="g-text-link-hover" href="#typography">
+              Rest
+            </a>
+            <a class="g-text-link-hover" href="#typography" data-active>
+              Active
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <h3 class="subtitle">Alignment</h3>
+      <p class="note">
+        Add <code>-sm</code> for mobile only: <code>g-text-align-sm-center</code>.
+      </p>
+      <div class="rows">
+        {["left", "center", "right"].map((align) => (
+          <div class="row">
+            <code class="label">.g-text-align-{align}</code>
+            <p class={`g-text-align-${align} sample`}>Aligned {align}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {part === "Colours" && (
+    <section id="colours" class="block">
+      <p class="note">
+        Core (raw) → scheme (swapped per <code>data-color-scheme</code>) → roles. Components use
+        roles only.
+      </p>
+
+      <h3 class="subtitle">Core</h3>
+      <div class="swatches">
+        {coreColors.map((color) => (
+          <div class="g-flex-column g-gap-2-5">
+            <div class="swatch" style={`background-color: var(--core-${color})`} />
+            <code class="label">--core-{color}</code>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Schemes</h3>
+      <p class="note">
+        Theme a section with <code>data-color-scheme</code>; every role follows it, and so do native
+        controls.
+      </p>
+      <div class="g-grid-cols-2">
+        {schemes.map((scheme) => (
+          <div class="scheme g-flex-column g-gap-5 g-p-5" data-color-scheme={scheme}>
+            <code>data-color-scheme="{scheme}"</code>
+            <div class="swatches">
+              {schemeColors.map((color) => (
+                <div class="g-flex-column g-gap-2-5">
+                  <div class="swatch" style={`background-color: var(--scheme-${color})`} />
+                  <code class="label">--scheme-{color}</code>
+                </div>
+              ))}
+            </div>
+            <span class="g-text-large">Aa</span>
+            <span class="g-text-color-muted">Muted text</span>
+            <div class="g-form-field">
+              <label class="g-form-choice">
+                <input type="checkbox" checked /> Checkbox
+              </label>
+              <label class="g-form-choice">
+                <input type="radio" name={`scheme-${scheme}`} checked /> Radio
+              </label>
+              <select aria-label="Dropdown">
+                <option>Dropdown</option>
+              </select>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Roles</h3>
+      <div class="swatches">
+        {roleColors.map((color) => (
+          <div class="g-flex-column g-gap-2-5">
+            <div class="swatch" style={`background-color: var(--color-${color})`} />
+            <code class="label">--color-{color}</code>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Highlights</h3>
+      <p class="note">The same in every scheme: link underlines (g-underline-*) and accents.</p>
+      <div class="swatches">
+        {highlights.map((color) => (
+          <div class="g-flex-column g-gap-2-5">
+            <div class="swatch" style={`background-color: var(--color-highlight-${color})`} />
+            <code class="label">--color-highlight-{color}</code>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Contrast and alpha</h3>
+      <p class="note">
+        Foreground mixed into the background (<code>--contrast-N</code>) or into transparent (
+        <code>--alpha-N</code>), N percent. Roles are built from these.
+      </p>
+      <div class="swatches">
+        {contrasts.map((amount) => (
+          <div class="g-flex-column g-gap-2-5">
+            <div class="swatch" style={`background-color: var(--contrast-${amount})`} />
+            <code class="label">--contrast-{amount}</code>
+          </div>
+        ))}
+      </div>
+      <div class="swatches">
+        {alphas.map((amount) => (
+          <div class="g-flex-column g-gap-2-5">
+            <div class="swatch" style={`background-color: var(--alpha-${amount})`} />
+            <code class="label">--alpha-{amount}</code>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Text colours</h3>
+      <div class="rows">
+        {textColors.map((color) => (
+          <div class="row">
+            <code class="label">.g-text-color-{color}</code>
+            <p
+              class:list={[
+                `g-text-color-${color}`,
+                color === "inverse" && "g-background-color-inverse g-p-2-5",
+              ]}
+            >
+              The quick brown fox
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Background colours</h3>
+      <div class="g-grid-cols-4">
+        {backgroundColors.map((color) => (
+          <div class="g-flex-column g-gap-2-5">
+            <div class={`swatch g-background-color-${color}`} />
+            <code class="label">.g-background-color-{color}</code>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {part === "Elements" && (
+    <section id="elements" class="block">
+      <h3 class="subtitle">Buttons</h3>
+      <div class="rows">
+        <div class="row">
+          <code class="label">.g-button</code>
+          <div>
+            <button class="g-button" type="button">
+              Primary
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <code class="label">.g-button-secondary</code>
+          <div>
+            <button class="g-button-secondary" type="button">
+              Secondary
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <code class="label">.g-button-icon</code>
+          <div>
+            <button class="g-button-icon" type="button" aria-label="Next">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M2 8h12M9 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <code class="label">:disabled · --opacity-disabled</code>
+          <div class="g-flex-row g-align-center-left g-gap-5">
+            <button class="g-button" type="button" disabled>
+              Primary
+            </button>
+            <button class="g-button-secondary" type="button" disabled>
+              Secondary
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="subtitle">Decoration</h3>
+      <div class="rows">
+        <div class="row">
+          <code class="label">.g-marker[data-active]</code>
+          <p>
+            <span class="g-marker" data-active>
+              Current item
+            </span>
+          </p>
+        </div>
+        <div class="row">
+          <code class="label">.g-checker</code>
+          <div class="g-checker g-ratio-16-9 g-max-w-80" />
+        </div>
+        <div class="row">
+          <code class="label">.g-rule · .g-rule-bottom</code>
+          <div class="g-flex-column g-gap-2-5">
+            <p class="g-rule g-pt-2-5">Rule above</p>
+            <p class="g-rule-bottom g-pb-2-5">Rule below</p>
+          </div>
+        </div>
+        <div class="row">
+          <code class="label">.g-sr-only</code>
+          <p>
+            Hidden, still read by screen readers: <span class="g-sr-only">hidden text</span>
+          </p>
+        </div>
+        <div class="row">
+          <code class="label">:focus-visible · --color-focus</code>
+          <div>
+            <button class="g-button-secondary" type="button">
+              Tab to me
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="subtitle">Forms</h3>
+      <div class="g-grid-cols-2">
+        <label class="g-form-field">
+          <code class="label">.g-form-field</code>
+          <input type="text" placeholder="Placeholder" />
+        </label>
+        <div class="g-form-field">
+          <code class="label">.g-form-choice</code>
+          <label class="g-form-choice">
+            <input type="checkbox" /> I agree to the terms
+          </label>
+          <p class="g-form-error g-text-small">.g-form-error: Enter your email</p>
+        </div>
+        <label class="g-form-field">
+          <code class="label">[aria-invalid="true"]</code>
+          <input type="text" value="Invalid" aria-invalid="true" />
+        </label>
+        <div class="g-form-field">
+          <code class="label">.g-form-choice:has(:disabled)</code>
+          <label class="g-form-choice">
+            <input type="checkbox" checked disabled /> Disabled
+          </label>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {part === "Structure" && (
+    <section id="structure" class="block">
+      <p class="note">
+        <code>section.g-section-md</code> &gt; <code>.g-page-margin</code> (<code>--margin</code>)
+        &gt; <code>.g-container-sm|md|full</code>.
+      </p>
+      <div class="rows">
+        {["sm", "md", "lg"].map((size) => (
+          <div class="row">
+            <code class="label">
+              .g-section-{size} · --section-space-{size}
+            </code>
+            <div class={`demo g-section-${size}`} />
+          </div>
+        ))}
+        {["sm", "md", "full"].map((size) => (
+          <div class="row">
+            <code class="label">
+              .g-container-{size} · --container-{size}
+            </code>
+            <div class={`demo g-container-${size} g-p-2-5`} />
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {part === "Grid" && (
+    <section id="grid" class="block">
+      <p class="note">
+        <code>.g-grid</code>: <code>--column-count</code> columns (16, 4 on mobile) with{" "}
+        <code>--gutter</code> between. <code>g-col-N</code> spans N, <code>g-offset-N</code> skips
+        N. On mobile every column is full width unless it has <code>g-col-sm-N</code> /{" "}
+        <code>g-offset-sm-N</code> (<code>g-offset-sm-0</code> resets). Span N columns in CSS:{" "}
+        <code>calc(N * var(--column) + (N - 1) * var(--gutter))</code>.
+      </p>
+      <div class="g-flex-column g-gap-2-5">
+        <div class="g-grid g-gap-2-5">
+          {Array.from({ length: 16 }, () => (
+            <div class="cell g-col-1 g-col-sm-1" />
+          ))}
+        </div>
+        <div class="g-grid">
+          <div class="cell g-col-8 g-col-sm-4">
+            <code>g-col-8 g-col-sm-4</code>
+          </div>
+          <div class="cell g-col-8 g-col-sm-4">
+            <code>g-col-8 g-col-sm-4</code>
+          </div>
+        </div>
+        <div class="g-grid">
+          <div class="cell g-col-6 g-offset-2 g-col-sm-3 g-offset-sm-1">
+            <code>g-col-6 g-offset-2 g-col-sm-3 g-offset-sm-1</code>
+          </div>
+        </div>
+        <div class="g-grid">
+          <div class="cell g-col-4 g-order-sm-last">
+            <code>g-col-4 g-order-sm-last</code>
+          </div>
+          <div class="cell g-col-4 g-order-sm-first">
+            <code>g-col-4 g-order-sm-first</code>
+          </div>
+          <div class="cell g-col-8 g-col-sm-2">
+            <code>g-col-8 g-col-sm-2</code>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="subtitle">Subgrid</h3>
+      <p class="note">
+        A spanned element whose children (dark) sit on the page grid's own columns (light).
+      </p>
+      <div class="g-grid">
+        {Array.from({ length: 16 }, (_, index) => (
+          <div class="guide" style={`grid-column: ${index + 1}`} />
+        ))}
+        <div class="subgrid g-col-12 g-offset-2 g-subgrid">
+          <div class="cell child g-col-4">
+            <code>g-col-12 g-offset-2 g-subgrid › g-col-4</code>
+          </div>
+          <div class="cell child g-col-6 g-offset-6">
+            <code>g-col-6 g-offset-6</code>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="subtitle">Equal columns</h3>
+      <p class="note">Independent of the page grid; one column on mobile.</p>
+      <div class="g-flex-column g-gap-2-5">
+        {[2, 3, 4].map((count) => (
+          <div class={`g-grid-cols-${count}`}>
+            {Array.from({ length: count }, () => (
+              <div class="cell">
+                <code>g-grid-cols-{count}</code>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {part === "Flex" && (
+    <section id="flex" class="block">
+      <p class="note">
+        <code>.g-flex-row</code> (row) or <code>.g-flex-column</code> (column), placed with a
+        position class. Also <code>g-justify-between</code>, <code>g-flex-wrap</code>,{" "}
+        <code>g-flex-1</code>, <code>g-flex-none</code>,{" "}
+        <code>g-align-self-top|center|bottom|stretch</code>.
+      </p>
+      <div class="g-grid-cols-3">
+        {positions.map((position) => (
+          <div class={`flex-demo g-flex-row g-align-${position}`}>
+            <code class="cell">g-flex-row g-align-{position}</code>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {part === "Sizes" && (
+    <section id="sizes" class="block">
+      <p class="note">
+        <code>--size-N</code> = N × 0.25rem. Spacing classes are{" "}
+        <code>g-&lbrace;m|mt|mb|ms|me|mx|my|p|pt|pb|ps|pe|px|py|gap&rbrace;-N</code>, plus{" "}
+        <code>g-mt-auto</code>, <code>g-mb-auto</code>, <code>g-ms-auto</code>,{" "}
+        <code>g-me-auto</code>, <code>g-mx-auto</code>.
+      </p>
+      <div class="rows">
+        {sizes.map((size) => (
+          <div class="row">
+            <code class="label">--size-{size}</code>
+            <div class="bar" style={`width: var(--size-${size})`} />
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Layout</h3>
+      <div class="rows">
+        {layoutTokens.map((token) => (
+          <div class="row">
+            <code class="label">--{token}</code>
+            <div class="bar" style={`width: var(--${token})`} />
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Max widths</h3>
+      <p class="note">
+        Also <code>g-max-w-full</code> and, mobile only, <code>g-max-w-full-sm</code>.
+      </p>
+      <div class="rows">
+        {maxWidths.map((width) => (
+          <div class="row">
+            <code class="label">
+              .g-max-w-{width} · --max-w-{width}
+            </code>
+            <div class={`bar g-max-w-${width}`} />
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Radius</h3>
+      <p class="note">Unused by this design (square corners); set per brand.</p>
+      <div class="swatches">
+        {radii.map((radius) => (
+          <div class="g-flex-column g-gap-2-5">
+            <div class="swatch radius" style={`border-radius: var(--radius-${radius})`} />
+            <code class="label">--radius-{radius}</code>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {part === "Utilities" && (
+    <section id="utilities" class="block">
+      <div class="rows">
+        <div class="row">
+          <code class="label">Display</code>
+          <p>
+            <code>g-display-none|block|flex|inline-flex|grid</code>, mobile:{" "}
+            <code>g-display-sm-none|block|flex|grid</code>
+          </p>
+        </div>
+        <div class="row">
+          <code class="label">Overflow</code>
+          <p>
+            <code>g-overflow-hidden|clip|auto</code>
+          </p>
+        </div>
+        <div class="row">
+          <code class="label">Stacking</code>
+          <p>
+            <code>g-z-index-1|2</code>, <code>g-pointer-events-none|auto</code>
+          </p>
+        </div>
+        <div class="row">
+          <code class="label">Motion</code>
+          <p>
+            <code>data-animate-reveal</code>: fades in once in view (reduced motion: always shown)
+          </p>
+        </div>
+      </div>
+
+      <h3 class="subtitle">Aspect ratios and placeholder</h3>
+      <div class="g-grid-cols-4">
+        {ratios.map((ratio) => (
+          <div class="g-flex-column g-gap-2-5">
+            <div class={`g-checker g-ratio-${ratio}`} />
+            <code class="label">.g-ratio-{ratio}</code>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="subtitle">Motion and state tokens</h3>
+      <p class="note">Motion values are mirrored in lib/animations.ts.</p>
+      <div class="rows">
+        {[...motionTokens, ...stateTokens].map((token) => (
+          <div class="row">
+            <code class="label">{token}</code>
+            <code class="label" data-token-value={token} />
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+</div>
+
+<script>
+  // Token values are read from the live stylesheet, so the list can't drift from styles/.
+  document.addEventListener("astro:page-load", () => {
+    const style = getComputedStyle(document.documentElement);
+    document.querySelectorAll<HTMLElement>("[data-token-value]").forEach((element) => {
+      element.textContent = style.getPropertyValue(element.dataset.tokenValue ?? "").trim();
+    });
+  });
+</script>
+
+<style>
+  .block {
+    display: grid;
+    gap: var(--size-5);
+    padding-block: var(--size-10) var(--size-20);
+  }
+
+  .subtitle {
+    margin-top: var(--size-10);
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-body);
+  }
+
+  .note {
+    max-width: var(--max-w-160);
+    font-size: var(--font-size-tiny);
+    line-height: var(--line-height-body);
+    color: var(--color-text-muted);
+  }
+
+  .rows {
+    display: grid;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    align-items: center;
+    gap: var(--gutter);
+    padding-block: var(--size-2-5);
+    border-bottom: var(--border-width-1) solid var(--color-rule);
+  }
+
+  .label {
+    font-size: var(--font-size-tiny);
+    color: var(--color-text-muted);
+  }
+
+  .sample,
+  .demo,
+  .cell,
+  .flex-demo {
+    background-color: var(--color-surface);
+  }
+
+  .demo {
+    outline: var(--border-width-1) dashed var(--color-text-subtle);
+  }
+
+  .cell {
+    min-height: var(--size-10);
+    padding: var(--size-2-5);
+    font-size: var(--font-size-tiny);
+    line-height: var(--line-height-body);
+  }
+
+  /* Parent columns behind the subgrid, on the same row. */
+  .guide,
+  .subgrid {
+    grid-row: 1;
+  }
+
+  .guide {
+    min-height: var(--size-16);
+    background-color: var(--color-surface);
+  }
+
+  .subgrid {
+    align-items: center;
+    padding-block: var(--size-2-5);
+  }
+
+  .child {
+    background-color: var(--alpha-20);
+  }
+
+  .flex-demo {
+    height: var(--size-32);
+  }
+
+  .flex-demo .cell {
+    min-height: 0;
+    background-color: var(--color-surface-strong);
+  }
+
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--size-32), 1fr));
+    gap: var(--gutter);
+  }
+
+  .scheme,
+  .swatch {
+    outline: var(--border-width-1) solid var(--color-rule);
+  }
+
+  .swatch {
+    height: var(--size-16);
+  }
+
+  .radius {
+    background-color: var(--color-surface-strong);
+  }
+
+  .bar {
+    height: var(--size-2-5);
+    background-color: var(--color-accent);
+  }
+
+  @media (max-width: 48rem) {
+    .row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* The mobile grid has 4 columns. */
+    .guide:nth-child(n + 5) {
+      display: none;
+    }
+  }
+</style>

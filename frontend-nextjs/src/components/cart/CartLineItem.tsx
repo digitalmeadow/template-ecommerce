@@ -22,10 +22,9 @@ export default function CartLineItem({ line, className }: Props) {
   const { merchandise, quantity, cost, id } = line;
   const { product, title: variantTitle, compareAtPrice } = merchandise;
 
-  const isSingleDefaultVariant =
-    variantTitle === DEFAULT_VARIANT_TITLE && product.variants?.edges?.length === 1;
+  const isSingleDefaultVariant = variantTitle === DEFAULT_VARIANT_TITLE;
 
-  const variantImage = merchandise.image ?? product.variants?.edges?.[0]?.node?.image;
+  const variantImage = merchandise.image ?? product.featuredImage;
   // Shopify CDN resize params; imgix-style ones are ignored
   const imageUrl = variantImage?.url
     ? `${variantImage.url}${variantImage.url.includes("?") ? "&" : "?"}width=128&height=128&crop=center`

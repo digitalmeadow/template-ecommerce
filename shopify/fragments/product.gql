@@ -1,7 +1,7 @@
-fragment Product on Product {
+# Thumbnails and collection grids.
+fragment ProductCard on Product {
   __typename
   id
-
   title
   handle
   availableForSale
@@ -13,30 +13,37 @@ fragment Product on Product {
   compareAtPriceRange {
     ...PriceRange
   }
+}
 
-  variants(first: 16) {
-    edges {
-      node {
-        ...ProductVariant
-      }
-    }
-  }
+# Product pages. Every variant is loaded (stores here stay under Shopify's 250), so option
+# availability is computed from the list rather than Shopify's encoded variant strings.
+fragment Product on Product {
+  ...ProductCard
+  vendor
+  productType
 
   options {
     ...ProductOption
   }
 
-  collections(first: 8) {
-    edges {
-      node {
-        ...CollectionCore
-      }
+  variants(first: 250) {
+    nodes {
+      ...ProductVariant
     }
   }
 }
 
 fragment ProductOption on ProductOption {
-  id
   name
-  values
+  optionValues {
+    name
+    swatch {
+      color
+      image {
+        previewImage {
+          url(transform: { maxWidth: 96 })
+        }
+      }
+    }
+  }
 }

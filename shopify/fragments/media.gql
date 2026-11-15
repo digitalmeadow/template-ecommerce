@@ -1,8 +1,8 @@
 fragment Image on Image {
   altText
-  url: transformedSrc(maxWidth: 1080)
-  thumbnailUrl: transformedSrc(maxWidth: 360)
-  blurUrl: transformedSrc(maxWidth: 10)
+  url(transform: { maxWidth: 1080 })
+  thumbnailUrl: url(transform: { maxWidth: 360 })
+  blurUrl: url(transform: { maxWidth: 10 })
   height
   width
 }

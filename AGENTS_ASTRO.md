@@ -69,19 +69,19 @@ Header, cart overlay, cookie banner + analytics, and `PageTransition` are wrappe
 ## Directory map (`frontend/src`)
 
 ```
-blocks/       Small reusable UI (ButtonSubmit, PriceDisplay, QuantitySelector, LocaleSelector)
+blocks/       Small reusable UI (ButtonSubmit, PriceDisplay, QuantitySelector, LocaleSelector, SearchForm)
 components/   Page chrome (Header, Footer, AnnouncementBanner, CookiesBanner, LocationNotice, Analytics, cart/Cart, cart/CartButton, cart/CartLineItem)
 decorations/  Non-content visual layers (PageTransition)
 dev/          Dev-only overlays (Grid)
 fields/       Sanity value renderers (SanityImage, SanityMedia, MuxVideo, VimeoVideo, SanityLink, PortableText, FormField, FormTerm, form/*)
 layouts/      Primitives (PageLayout, Accordion, Carousel, Dropdown, Filter, FontSizeFillWidth, Overlay, Tabs)
-lib/          cache, sanity/ (globals, links, resolve, images, meta, structuredData, paths, staticPaths, sections), shopify/, fetches/, forms/, consent/, announcement, focus, video, events, elements
+lib/          cache, responses, animations, scrollLock, buildAssets, sanity/ (globals, links, resolve, images, meta, structuredData, paths, staticPaths, sections), shopify/ (clients, proxy, locale, money, variants, filters, cart*, redirects, shop), fetches/, analytics/, forms/, consent/, announcement, focus, video, events, elements
 meta/         Meta, JsonLd
 pages/        Routes (+ robots.txt.ts, api/)
 scripts/      ScriptMeasurements, ScriptAnimations + motion controllers (reveal, parallax, wordsReveal)
 sections/     SectionsRenderer + one file per section type; product/ (ProductMain, ProductRelated + their parts)
 stores/       nanostores
-styles/       Global CSS + animations.ts
+styles/       Global CSS (index.css): tokens/, base/, globals/, utilities/
 svgs/         Inline SVGs
 utils/        Small helpers
 ```
@@ -107,7 +107,8 @@ const { someData }: Props = Astro.props;
 - `Props` interface; destructure `const { ... }: Props = Astro.props`.
 - Data props typed to generated fragments, `| null | undefined`, guarded.
 - Root element carries the kebab-case class matching the component name.
-- Styles in the component's scoped `<style>`; `:global(...)` only when necessary.
+- Scoped `<style>` styles only elements the component renders. To place a child component, wrap it in an element you own.
+- `:global()` only for JS-created nodes, `<html>` state and slotted or child-component parts, under the component's class. No `is:global` styles.
 
 ### Sections
 
@@ -125,7 +126,7 @@ const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadPageProp
 if (!resolved) return Astro.rewrite("/404");
 ```
 
-Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `PageLayout` (`<slot />` renders in `<main>`, not `<head>`). Every page needs an `<h1>` — render a `.visually-hidden` one when no hero provides it (`hasHeroHeading()` in `lib/sanity/sections.ts`).
+Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `PageLayout` (`<slot />` renders in `<main>`, not `<head>`). Every page needs an `<h1>` — render a `.g-sr-only` one when no hero provides it (`hasHeroHeading()` in `lib/sanity/sections.ts`).
 
 ### Fields
 
@@ -146,22 +147,29 @@ Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `Pa
 
 ### Forms
 
-`SectionForm` renders a CMS `form` through `FormField` → `fields/form/Field*`, with consent terms (`FormTerm`), a honeypot and client validation. Submission POSTs multipart `FormData` (+ `formId`) to `FORM_ENDPOINT` in `frontend/config.ts`; unset → shows an error and warns. An endpoint may reply with JSON `{ ok?, message?, errors? }` (`lib/forms/types.ts`); multi-value fields are read with `getAll()`.
+`SectionForm` renders a CMS `form` through `FormField` → `fields/form/Field*`, with consent terms (`FormTerm`), a honeypot and client validation. Submission POSTs multipart `FormData` (+ `formId`) to `FORM_ENDPOINT` (`/api/forms`, `lib/forms/constants.ts`). The server re-validates with the same rules (`lib/forms/schema.ts`, zod) and replies `{ ok?, message?, errors? }` (`lib/forms/types.ts`); `errors` drive the same inline field states as client validation. Multi-value fields are read with `getAll()`; delivery is `lib/forms/delivery.ts`.
 
 ## Styles — plain CSS + custom properties
 
-Global sheets imported in order by `PageLayout.astro`: `reset, base, colors, spacing, text, elements, forms, animations, fonts`.
+Restyle through tokens, not components. The system mirrors the studio's Figma template file (variables and text styles), so token and class names match Figma's. `styleGuide/Styles.astro` lists every class; keep it in sync.
 
-- **Colors**: palette + semantic tokens (`--color-background`, `--color-text`, `--color-shape-stroke`, `--color-error`). Style against semantic tokens.
-- **Spacing**: `--s4 … --s200`, overridden under `@media (max-width: 64rem)`.
-- **Grid**: `--column-count`, `--margin`, `--gutter`, `--container-width` (from JS-set `--vw`), `--column`. Span N columns with `calc(N * var(--column) + (N - 1) * var(--gutter))`.
-- **`.u-container`** on the element itself centres it at container width — don't nest a wrapper.
-- **`.visually-hidden`** for screen-reader-only content.
-- **Breakpoints**: `64rem` primary, `32rem` mobile; mobile-last `max-width` queries. rem, not px, so user font size is respected.
+- Global classes all start with `g-` and live only in `styles/`; anything unprefixed is scoped to its component. Scoped styles never restyle a `g-` class: give the element its own class.
+- `styles/`: `tokens/` (custom properties) → `base/` (reset, element defaults) → `globals/` (multi-property styles: `g-heading-N`, `g-button*`, `g-form-*`, `g-marker`, `g-sr-only`) → `utilities/` (one job each). `PageLayout` imports `styles/index.css`, which imports them in that order.
+- Tokens mirror Figma: `colors.css` = Color Scheme collection, `sizes.css` = Sizes collection (same groups, same order). Also `grid.css` (column maths), `fonts.css`, `text.css` (text style ingredients), `motion.css`, `states.css`. Token names lead with the CSS property they feed (`--line-height-*`, `--letter-spacing-*`, `--duration-*`).
+- Sizes: `--size-N` = N × 0.25rem, fixed at every breakpoint; responsive spacing is `--section-space-sm|md|lg`; `--margin` (outer margin, `g-page-margin`) and `--gutter`. Also `--container-sm|md|full`, `--max-w-N`, `--radius-*`, `--border-width-*`.
+- Colour (`tokens/colors.css`): `--core-*` (the brand palette) → `--scheme-*` (swapped by `data-color-scheme`: light, dark) → role tokens (`--color-text`, `--color-text-muted`, `--color-rule`, `--color-surface`, `--color-accent`, `--color-focus`, …). Components use role tokens only, plus `--alpha-N` (foreground at N%) for tints, borders and overlays. `--color-highlight-*` are the brand's highlight colours, the same in every scheme.
+- Links: `g-text-link` is the highlight underline (hairline at rest, a thick marker stroke on hover, `data-active` or `aria-current`); `g-text-link-hover` shows it on hover only. Colour it with `g-underline-yellow|orange|green|blue|purple` (default yellow).
+- Type mirrors Figma's text styles: `Heading/H1–H6` = tags `h1`–`h6` + `g-heading-1…6`; `Text/Large | Medium | Regular | Small | Tiny` = `g-text-large…tiny` (Regular is the body default). Sizes step down at the breakpoint. Section headings are `h2.g-heading-4`; `g-heading-N` whenever the look and the tag differ.
+- Structure: a section is `section.g-page-margin.g-section-md` (or `-sm`/`-lg`; sections under the overlaid header pad their own top), optionally with a `.g-container-*` inside. Grid utilities (`g-grid`, `g-col-N`, `g-offset-N`, `g-subgrid`), flex utilities and spacing utilities (`g-{m|mt|mb|…|gap}-N`) are listed on the style guide's Styles tab. Utilities lose to scoped styles: use them for what the component's CSS doesn't set.
+- Grid maths: 16 columns (4 below the breakpoint). Span N with `calc(N * var(--column) + (N - 1) * var(--gutter))`; below the breakpoint N counts the 4 columns. Fractional tracks are `minmax(0, 1fr)`, so content never widens a track.
+- States: focus ring (`--focus-ring-*` in `--color-focus`) and disabled (`--opacity-disabled`) are tokens in `states.css`, applied globally in `base/`; never restyle them per component.
+- Forms: `g-form-field` (label + control + `g-form-error`), `g-form-choice` (checkbox/radio + label), `g-select` (wraps a `<select>` to draw its chevron); controls are drawn by `globals/forms.css`.
+- One breakpoint, `@media (max-width: 48rem)`, rem not px.
+- Property order: positioning → sizing → text → colours → everything else (`border`, `opacity`, `transform`, `transition`, `cursor`).
 
 ## Motion
 
-`motion` package (`animate`, `scroll`). Tokens live in `animations.css` (`--ease-out-cubic`, `--ease-sweep`, `--transition-default`, `--transition-media-load`, reveal/parallax tokens); `animations.ts` mirrors the numbers JS needs (`easeOutCubic`, durations).
+`motion` package (`animate`, `scroll`). Tokens (`--ease-out`, `--ease-in-out`, `--duration-*`, `--transition-default|media|reveal`, parallax) live in `styles/tokens/motion.css`; `lib/animations.ts` mirrors the numbers JS needs (`easeOut`, `easeInOut`, `pageTransitionDuration`).
 
 Attribute-driven, wired globally by `ScriptAnimations` (init on `astro:page-load`, teardown on `astro:before-swap`):
 
@@ -170,7 +178,7 @@ Attribute-driven, wired globally by `ScriptAnimations` (init on `astro:page-load
 - `data-animate-parallax` — media drift inside its overflow-hidden frame (SanityImage, VimeoVideo).
 - `data-animate-parallax-wrapper` — drifts the element itself.
 
-Bespoke motion uses the lifecycle pattern. When a section owns an element's `transform`, don't also give it a parallax attribute.
+Bespoke motion uses the lifecycle pattern. When a section owns an element's `transform`, don't also give it a parallax attribute. Overlays lock scroll with `lockScroll()` / `unlockScroll()` (`lib/scrollLock.ts`, counted; html reserves its scrollbar gutter, so nothing shifts).
 
 `PageTransition` wraps the router loader (`astro:before-preparation`) to cover, swap, then reveal on `astro:page-load`. Delete it (and its mount in `PageLayout`) if a project doesn't want transitions.
 

@@ -1,0 +1,466 @@
+---
+// Every section, component, element and global class in resizable frames.
+// Dev and preview only: injected by astro.config.mjs, so none of it (styles included) reaches the
+// static production build.
+// The page's own UI uses none of the site's CSS, so it looks the same on every project.
+// `?scheme=` and `?width=` set the starting controls, so a view can be linked.
+import { getHtmlLang, getRenderLocale } from "@lib/shopify/locale";
+import Preview from "./Preview.astro";
+import { ENTRIES, groupEntries } from "./entries";
+import { SCHEMES, TABS, WIDTHS, entryId, isScheme, isWidthId, type WidthId } from "./entry";
+
+const tab = TABS.find((item) => item.id === (Astro.params.tab ?? "sections"));
+if (!tab) return new Response("Not found", { status: 404 });
+
+const schemeParam = Astro.url.searchParams.get("scheme");
+const widthParam = Astro.url.searchParams.get("width");
+const scheme = isScheme(schemeParam) ? schemeParam : "light";
+const width = isWidthId(widthParam) ? widthParam : "desktop";
+const widthIds = Object.keys(WIDTHS) as WidthId[];
+
+const groups = groupEntries(ENTRIES[tab.id]);
+const groupId = (group: string) => entryId(group, "").replace(/-+$/, "");
+const tabHref = (id: string) => (id === "sections" ? "/style-guide" : `/style-guide/${id}`);
+
+Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
+---
+
+<html lang={getHtmlLang(getRenderLocale(Astro))}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Style Guide: {tab.title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <style-guide class="style-guide">
+      <header class="bar">
+        <a class="name" href="/style-guide">
+          Style Guide
+        </a>
+        <nav class="tabs" aria-label="Style guide">
+          {TABS.map((item) => (
+            <a
+              class="tab"
+              href={tabHref(item.id)}
+              aria-current={item.id === tab.id ? "page" : undefined}
+            >
+              {item.title}
+            </a>
+          ))}
+        </nav>
+        <div class="controls">
+          <div class="segments" role="group" aria-label="Color scheme, all frames">
+            {SCHEMES.map((id) => (
+              <button
+                type="button"
+                data-all-scheme={id}
+                aria-pressed={id === scheme ? "true" : "false"}
+              >
+                {id}
+              </button>
+            ))}
+          </div>
+          <div class="segments" role="group" aria-label="Width, all frames">
+            {widthIds.map((id) => (
+              <button
+                type="button"
+                data-all-width={id}
+                aria-pressed={id === width ? "true" : "false"}
+              >
+                {id}
+              </button>
+            ))}
+          </div>
+          <button class="grid-toggle" type="button" aria-pressed="false" data-grid-toggle>
+            Grid <kbd>Ctrl G</kbd>
+          </button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <nav class="sidebar" aria-label={tab.title} data-sidebar>
+          {groups.map(([group, entries]) => (
+            <div class="nav-group">
+              <a class="nav-title" href={`#${groupId(group)}`} data-nav-group={groupId(group)}>
+                {group}
+              </a>
+              <ul class="links">
+                {entries.map((entry) => (
+                  <li>
+                    <a href={`#${entry.id}`} data-nav-entry={entry.id}>
+                      {entry.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        <main class="content">
+          {groups.map(([group, entries]) => (
+            <section class="group" id={groupId(group)}>
+              <header class="group-head">
+                <h2 class="group-title">{group}</h2>
+                <span class="group-count">
+                  {entries.length} {entries.length === 1 ? "variant" : "variants"}
+                </span>
+              </header>
+              {entries.map((entry) => (
+                <Preview entry={entry} scheme={scheme} width={width} />
+              ))}
+            </section>
+          ))}
+        </main>
+      </div>
+    </style-guide>
+  </body>
+</html>
+
+<script>
+  import type { Scheme, WidthId } from "./entry";
+  import { isScheme, isWidthId } from "./entry";
+
+  type PreviewElement = HTMLElement & {
+    setScheme(scheme: Scheme): void;
+    setWidth(id: WidthId): void;
+    setGrid(visible: boolean): void;
+  };
+
+  // Parent of every preview: the bar's controls set them all at once, and the URL keeps the choice.
+  class StyleGuideElement extends HTMLElement {
+    private grid = false;
+    private spy: IntersectionObserver | null = null;
+
+    connectedCallback() {
+      this.addEventListener("click", this.handleClick);
+      window.addEventListener("keydown", this.handleKeydown);
+      // The preview crossing a line near the top of the viewport is the one being looked at.
+      this.spy = new IntersectionObserver(this.handleSpy, { rootMargin: "-20% 0px -79% 0px" });
+      this.previews().forEach((preview) => this.spy?.observe(preview));
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener("click", this.handleClick);
+      window.removeEventListener("keydown", this.handleKeydown);
+      this.spy?.disconnect();
+    }
+
+    private handleSpy = (entries: IntersectionObserverEntry[]) => {
+      const visible = entries.find((entry) => entry.isIntersecting);
+      if (visible) this.setCurrent(visible.target as HTMLElement);
+    };
+
+    private setCurrent(preview: HTMLElement) {
+      const groupId = preview.closest("section")?.id;
+      this.querySelectorAll("[data-nav-entry], [data-nav-group]").forEach((link) => {
+        const element = link as HTMLElement;
+        const current =
+          element.dataset.navEntry === preview.id || element.dataset.navGroup === groupId;
+        if (current) element.setAttribute("aria-current", "location");
+        else element.removeAttribute("aria-current");
+      });
+
+      // Keep the current item in view inside the sidebar, without scrolling the page.
+      const sidebar = this.querySelector<HTMLElement>("[data-sidebar]");
+      const link = this.querySelector<HTMLElement>(`[data-nav-entry="${preview.id}"]`);
+      if (!sidebar || !link) return;
+      const top = link.offsetTop - sidebar.offsetTop;
+      const bottom = top + link.offsetHeight;
+      if (top < sidebar.scrollTop) sidebar.scrollTop = top - 32;
+      else if (bottom > sidebar.scrollTop + sidebar.clientHeight) {
+        sidebar.scrollTop = bottom - sidebar.clientHeight + 32;
+      }
+    }
+
+    // Ctrl+G, as on the site in dev: the column grid shows inside every frame.
+    private toggleGrid() {
+      this.grid = !this.grid;
+      this.previews().forEach((preview) => preview.setGrid(this.grid));
+      this.querySelector("[data-grid-toggle]")?.setAttribute("aria-pressed", String(this.grid));
+    }
+
+    private handleKeydown = (event: KeyboardEvent) => {
+      if (!event.ctrlKey || event.code !== "KeyG") return;
+      event.preventDefault();
+      this.toggleGrid();
+    };
+
+    private previews() {
+      return Array.from(this.querySelectorAll<PreviewElement>("style-guide-preview"));
+    }
+
+    private handleClick = (event: Event) => {
+      if ((event.target as Element).closest("[data-grid-toggle]")) return this.toggleGrid();
+      const button = (event.target as Element).closest<HTMLElement>(
+        "[data-all-scheme], [data-all-width]",
+      );
+      if (!button) return;
+      const { allScheme, allWidth } = button.dataset;
+      if (isScheme(allScheme)) this.previews().forEach((preview) => preview.setScheme(allScheme));
+      if (isWidthId(allWidth)) this.previews().forEach((preview) => preview.setWidth(allWidth));
+
+      const attribute = allScheme ? "data-all-scheme" : "data-all-width";
+      this.querySelectorAll(`[${attribute}]`).forEach((item) =>
+        item.setAttribute("aria-pressed", String(item === button)),
+      );
+      const url = new URL(location.href);
+      url.searchParams.set(allScheme ? "scheme" : "width", (allScheme ?? allWidth)!);
+      history.replaceState(null, "", url);
+    };
+  }
+
+  customElements.define("style-guide", StyleGuideElement);
+</script>
+
+<style>
+  :global(html) {
+    --bar-height: 3rem;
+    scroll-padding-top: calc(var(--bar-height) + 4rem);
+  }
+
+  :global(body) {
+    margin: 0;
+    font:
+      0.8125rem/1.4 system-ui,
+      sans-serif;
+    color: #000;
+    background-color: #fff;
+  }
+
+  /* Resets carry no specificity, so the component rules below always win. */
+  :global(:where(.style-guide) :where(button, kbd)) {
+    font: inherit;
+    color: inherit;
+  }
+
+  :global(:where(.style-guide) :where(a)) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :global(:where(.style-guide) :where(button)) {
+    margin: 0;
+    padding: 0.25rem 0.625rem;
+    background: none;
+    border: 0;
+    text-transform: capitalize;
+    cursor: pointer;
+  }
+
+  .style-guide :global(button[aria-pressed="true"]) {
+    color: #fff;
+    background-color: #000;
+  }
+
+  .style-guide :global(:focus-visible) {
+    outline: 2px solid #000;
+    outline-offset: 2px;
+  }
+
+  /* Every control is one 28px box, so the bar reads as one row. */
+  .style-guide :global(.segments),
+  .grid-toggle {
+    display: flex;
+    height: 1.75rem;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+  }
+
+  .style-guide :global(.segments button) {
+    font-size: 0.75rem;
+  }
+
+  .bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 2rem;
+    min-height: var(--bar-height);
+    padding: 0 1rem;
+    box-sizing: border-box;
+    font-size: 0.8125rem;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .name {
+    font-weight: 600;
+  }
+
+  /* Tabs fill the bar's height; the current one is marked on the bar's edge, like the sidebar. */
+  .tabs {
+    display: flex;
+    align-self: stretch;
+    gap: 1.25rem;
+  }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    color: #666;
+  }
+
+  .tab:hover {
+    color: #000;
+  }
+
+  .tab[aria-current="page"] {
+    font-weight: 500;
+    color: #000;
+    box-shadow: inset 0 -2px #000;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .grid-toggle {
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+  }
+
+  .grid-toggle kbd {
+    padding: 0 0.25rem;
+    font-size: 0.625rem;
+    color: #888;
+    border: 1px solid #ddd;
+  }
+
+  .grid-toggle[aria-pressed="true"] kbd {
+    color: inherit;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+  }
+
+  /* Same top padding as the content, so the first label and first frame line up. */
+  .sidebar {
+    position: sticky;
+    top: var(--bar-height);
+    align-self: start;
+    display: grid;
+    align-content: start;
+    gap: 1.5rem;
+    height: calc(100svh - var(--bar-height));
+    padding: 2.5rem 0.5rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+    border-right: 1px solid #e5e5e5;
+    overscroll-behavior: contain;
+  }
+
+  .nav-group {
+    display: grid;
+    gap: 0.375rem;
+  }
+
+  .nav-group .nav-title {
+    padding: 0 0.5rem;
+  }
+
+  .links {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .links a {
+    display: block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: #666;
+  }
+
+  .links a:hover {
+    color: #000;
+    background-color: #f2f2f2;
+  }
+
+  .links a[aria-current] {
+    font-weight: 500;
+    color: #000;
+    box-shadow: inset 2px 0 #000;
+  }
+
+  .nav-title[aria-current] {
+    color: #000;
+  }
+
+  .content {
+    display: grid;
+    gap: 4rem;
+    min-width: 0;
+    padding: 1.5rem 1rem 2.5rem 2.5rem;
+  }
+
+  .group {
+    display: grid;
+    gap: 2rem;
+  }
+
+  /* Sticks under the bar while its frames scroll by, so you always know which group you're in. */
+  .group-head {
+    position: sticky;
+    top: var(--bar-height);
+    z-index: 5;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0 0.75rem;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .group-title {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .group-count {
+    font-size: 0.6875rem;
+    color: #888;
+  }
+
+  /* Labels stay small and quiet: the frames are the content. */
+  .nav-title {
+    margin: 0;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #888;
+  }
+
+  @media (max-width: 48rem) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sidebar {
+      display: none;
+    }
+
+    .content {
+      padding-left: 1rem;
+    }
+  }
+</style>

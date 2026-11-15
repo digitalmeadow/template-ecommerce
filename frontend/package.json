@@ -22,7 +22,6 @@
     "embla-carousel": "8.6.0",
     "motion": "14.0.0",
     "nanostores": "1.5.4",
-    "octokit": "5.0.5",
     "sanity": "workspace:*",
     "shopify": "workspace:*"
   },

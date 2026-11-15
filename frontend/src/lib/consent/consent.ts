@@ -1,3 +1,5 @@
+import { isConsentRequired } from "@lib/consent/customerPrivacy";
+
 export const COOKIE_CONSENT_STORAGE_KEY = "cookie-consent";
 export const COOKIE_CONSENT_EXPIRY_DAYS = 30;
 export const COOKIE_CONSENT_EVENT = "cookie-consent:change";
@@ -37,7 +39,14 @@ export function setConsent(status: ConsentStatus) {
   window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_EVENT, { detail: { status } }));
 }
 
-export function subscribeToConsent(onChange: () => void) {
+export function subscribeToConsent(onChange: (event: Event) => void) {
   window.addEventListener(COOKIE_CONSENT_EVENT, onChange);
   return () => window.removeEventListener(COOKIE_CONSENT_EVENT, onChange);
+}
+
+/** An explicit accept, or no choice yet where Shopify says the region doesn't need one. */
+export async function resolveTrackingAllowed(): Promise<boolean> {
+  const consent = getConsent();
+  if (consent) return consent === "accepted";
+  return !(await isConsentRequired());
 }

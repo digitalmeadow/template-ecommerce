@@ -1,16 +1,27 @@
+---
+interface Props {
+  /* The opening variant's availability, so "Sold Out" is in the static HTML. */
+  isAvailable: boolean;
+}
+
+const { isAvailable }: Props = Astro.props;
+---
+
 <div class="product-add-to-cart" data-product-add-to-cart>
   <button
-    type="button"
-    class="text-link"
+    type="submit"
+    name="intent"
+    value="add"
+    class="g-text-link"
     data-add-to-cart-button
-    data-available-for-sale="true"
+    data-available-for-sale={String(isAvailable)}
+    disabled={!isAvailable}
   ></button>
 </div>
 
 <script>
   import { addToCart } from "@stores/cart";
   import { setCartOpen } from "@stores/ui";
-  import type { Variant } from "@lib/shopify/variants";
   import type { EventProductVariantChange } from "@lib/events";
 
   function initialiseProductAddToCart(rootElement: HTMLElement): () => void {
@@ -18,81 +29,51 @@
     if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
 
     const button = rootElement.querySelector("[data-add-to-cart-button]") as HTMLButtonElement;
+    const form = rootElement.closest("form") as HTMLFormElement;
+    if (!form) throw new Error("ProductAddToCart: missing parent <form>");
+    const quantitySelector = form.querySelector("quantity-selector");
 
-    function getSelectedVariantId() {
-      if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
+    let isAvailable = button.dataset.availableForSale === "true";
 
-      const variantIdInput = productRoot.querySelector("[data-variant-id]") as HTMLInputElement;
-      if (!variantIdInput)
-        throw new Error("ProductAddToCart: missing [data-variant-id] inside product root");
-
-      return variantIdInput.value;
-    }
-
-    const variantSelector = productRoot.querySelector("[data-variant-selector]") as HTMLElement;
-    if (!variantSelector)
-      throw new Error("ProductAddToCart: missing [data-variant-selector] inside product root");
-
-    const variants: Variant[] = JSON.parse(variantSelector.dataset.variants ?? "[]");
-    let selectedVariantAvailableForSale = Boolean(
-      variants.find((variant) => variant.id === getSelectedVariantId())?.availableForSale,
-    );
-
-    function getSelectedQuantity() {
-      if (!productRoot) throw new Error("ProductAddToCart: missing [data-product-root]");
-
-      const quantityInput = productRoot.querySelector(
-        "quantity-selector [data-input]",
-      ) as HTMLInputElement;
-      if (!quantityInput)
-        throw new Error("ProductAddToCart: missing quantity-selector inside product root");
-
-      return Number(quantityInput.value);
-    }
-
-    async function handleAddToCart() {
-      const variantId = getSelectedVariantId();
-      const quantity = getSelectedQuantity();
-
-      if (!variantId) throw new Error("ProductAddToCart: variantId is required");
-
-      if (!Number.isFinite(quantity) || quantity < 1)
-        throw new Error("ProductAddToCart: quantity must be at least 1");
+    async function handleSubmit(event: SubmitEvent) {
+      event.preventDefault();
+      const data = new FormData(form);
+      const variantId = String(data.get("merchandiseId") ?? "");
+      const quantity = Number(data.get("quantity") ?? 1);
+      if (!variantId || !Number.isFinite(quantity) || quantity < 1) return;
 
       button.disabled = true;
-      button.setAttribute("data-loading", "true");
-      document.body.style.cursor = "wait";
-
+      button.dataset.loading = "true";
       try {
         await addToCart(variantId, quantity);
         setCartOpen(true);
-      } catch (error) {
-        console.error("[ProductAddToCart] Error:", error);
       } finally {
-        button.removeAttribute("data-loading");
-        button.disabled = !selectedVariantAvailableForSale;
-        document.body.style.cursor = "";
+        delete button.dataset.loading;
+        button.disabled = !isAvailable;
       }
     }
 
     function handleVariantChange(event: Event) {
-      handleVariantAvailability((event as EventProductVariantChange).detail.availableForSale);
+      const { availableForSale, quantityAvailable } = (event as EventProductVariantChange).detail
+        .variant;
+      isAvailable = availableForSale;
+      button.dataset.availableForSale = String(availableForSale);
+      button.disabled = !availableForSale;
+      // Null when inventory isn't tracked or the token can't read it.
+      if (quantityAvailable != null && quantityAvailable > 0) {
+        quantitySelector?.setAttribute("max", String(quantityAvailable));
+      } else {
+        quantitySelector?.removeAttribute("max");
+      }
     }
-
-    function handleVariantAvailability(available: boolean) {
-      selectedVariantAvailableForSale = available;
-      button.setAttribute("data-available-for-sale", String(available));
-      button.disabled = !available;
-    }
-
-    handleVariantAvailability(selectedVariantAvailableForSale);
 
     productRoot.addEventListener("product:variant-change", handleVariantChange);
-    button.addEventListener("click", handleAddToCart);
+    form.addEventListener("submit", handleSubmit);
+    productRoot.dispatchEvent(new CustomEvent("product:request-variant-update", { bubbles: true }));
 
     return () => {
       productRoot.removeEventListener("product:variant-change", handleVariantChange);
-      button.removeEventListener("click", handleAddToCart);
+      form.removeEventListener("submit", handleSubmit);
     };
   }
 
@@ -118,11 +99,6 @@
 
   [data-product-add-to-cart] [data-add-to-cart-button][data-available-for-sale="false"]::before {
     content: "Sold Out";
-  }
-
-  [data-product-add-to-cart] [data-add-to-cart-button][data-available-for-sale="false"] {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 
   [data-product-add-to-cart] [data-add-to-cart-button][data-loading="true"]::before {

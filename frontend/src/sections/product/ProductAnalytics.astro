@@ -1,0 +1,20 @@
+<script>
+  import { trackProductView, type AnalyticsProduct } from "@lib/analytics/track";
+  import type { EventProductVariantChange } from "@lib/events";
+
+  // One product view per page, with the variant the page settles on (URL selection included).
+  document.addEventListener("astro:page-load", () => {
+    document.querySelectorAll<HTMLElement>("[data-product-analytics]").forEach((productRoot) => {
+      const product = JSON.parse(productRoot.dataset.productAnalytics ?? "{}") as AnalyticsProduct;
+      productRoot.addEventListener(
+        "product:variant-change",
+        (event) => {
+          const { variant } = (event as EventProductVariantChange).detail;
+          trackProductView(product, variant);
+        },
+        { once: true },
+      );
+      productRoot.dispatchEvent(new CustomEvent("product:request-variant-update"));
+    });
+  });
+</script>

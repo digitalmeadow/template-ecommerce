@@ -13,7 +13,7 @@
 
 <script>
   import { animate, motionValue } from "motion";
-  import { easeSweep, sweepDuration } from "@styles/animations";
+  import { easeInOut, pageTransitionDuration } from "@lib/animations";
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -37,7 +37,7 @@
     const progress = motionValue(0);
     apply(element, 0);
     const unsubscribe = progress.on("change", (value) => apply(element, value));
-    const animation = animate(progress, 1, { duration: sweepDuration, ease: easeSweep });
+    const animation = animate(progress, 1, { duration: pageTransitionDuration, ease: easeInOut });
     // stop() never settles `finished`, so resolve manually on interrupt.
     return new Promise<boolean>((resolve) => {
       stopCurrent = () => {

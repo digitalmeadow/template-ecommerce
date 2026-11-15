@@ -1,4 +1,5 @@
 import type { CartLineFragment } from "shopify/generated/graphql";
+import type { CartMessage } from "@lib/shopify/cartActions";
 
 // Public surface of custom elements that other components call into.
 export interface OverlayElement extends HTMLElement {
@@ -9,5 +10,6 @@ export interface OverlayElement extends HTMLElement {
 }
 
 export interface CartLineItemElement extends HTMLElement {
-  init(line: CartLineFragment): void;
+  init(line: CartLineFragment, messages: CartMessage[]): void;
+  setPending(isPending: boolean): void;
 }

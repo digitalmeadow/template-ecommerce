@@ -1,0 +1,22 @@
+---
+// One group, the first open: opening another closes it.
+import Accordion from "@layouts/Accordion.astro";
+import PortableText from "@fields/PortableText.astro";
+import { lorem, paragraph } from "../fixtures/content";
+
+const items = [
+  { summary: "Shipping", text: "Orders ship within two working days from our warehouse." },
+  { summary: "Returns", text: "Unridden boards can be returned within 30 days." },
+  { summary: "Warranty", text: lorem.long },
+];
+---
+
+<div class="g-container-sm">
+  {items.map((item, index) => (
+    <Accordion summary={item.summary} group="style-guide" initOpen={index === 0}>
+      <div slot="content">
+        <PortableText value={paragraph(item.text)} />
+      </div>
+    </Accordion>
+  ))}
+</div>

@@ -1,20 +1,42 @@
 ---
 import PriceDisplay from "@blocks/PriceDisplay.astro";
+import type { MoneyFragment, PriceRangeFragment } from "shopify/generated/graphql";
+
+interface Props {
+  priceRange: PriceRangeFragment;
+  compareAtPriceRange: PriceRangeFragment;
+  /* Product pages: the variant the page opens on, whose price follows the selection. */
+  variant?: { price: MoneyFragment; compareAtPrice?: MoneyFragment | null } | undefined;
+}
+
+const { priceRange, compareAtPriceRange, variant }: Props = Astro.props;
+
+const price = variant?.price ?? priceRange.minVariantPrice;
+const compareAt = variant ? variant.compareAtPrice : compareAtPriceRange.minVariantPrice;
+const isRange =
+  !variant && Number(priceRange.maxVariantPrice.amount) > Number(priceRange.minVariantPrice.amount);
+const isDiscounted = !!compareAt && Number(compareAt.amount) > Number(price.amount);
 ---
 
-<div class="product-price" data-product-price>
-  <PriceDisplay variant="compare-at" data-price-compare-at hidden />
-  <PriceDisplay data-price />
+<div class="product-price" data-product-price={variant ? "variant" : "range"}>
+  <PriceDisplay
+    variant="compare-at"
+    data-price-compare-at
+    amount={isDiscounted ? compareAt.amount : undefined}
+    currency={isDiscounted ? compareAt.currencyCode : undefined}
+    // Astro stringifies booleans on custom elements, so `false` would still render `hidden`.
+    hidden={!isDiscounted || undefined}
+  />
+  <PriceDisplay
+    data-price
+    amount={price.amount}
+    currency={price.currencyCode}
+    prefix={isRange ? "from" : undefined}
+  />
 </div>
 
 <script>
-  import type { PricesPerLocale } from "@lib/fetches/productShopifySanity";
-  import { DEFAULT_LOCALE, getStoredLocale } from "@lib/shopify/locale";
   import type { EventProductVariantChange } from "@lib/events";
-
-  type PriceVariant = NonNullable<
-    PricesPerLocale[keyof PricesPerLocale]
-  >["variants"]["edges"][number]["node"];
 
   function initialiseProductPrice(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
@@ -23,79 +45,32 @@ import PriceDisplay from "@blocks/PriceDisplay.astro";
     const priceElement = rootElement.querySelector("[data-price]") as HTMLElement;
     const compareAtElement = rootElement.querySelector("[data-price-compare-at]") as HTMLElement;
 
-    const pricesPerLocale = JSON.parse(productRoot.dataset.prices ?? "{}") as PricesPerLocale;
+    function handleVariantChange(event: Event) {
+      const { price, compareAtPrice } = (event as EventProductVariantChange).detail.variant;
+      priceElement.setAttribute("amount", price.amount);
+      priceElement.setAttribute("currency", price.currencyCode);
 
-    // Locales Shopify has no market for are omitted at build; show the default market's prices.
-    function localePrices() {
-      return pricesPerLocale[getStoredLocale()] ?? pricesPerLocale[DEFAULT_LOCALE];
-    }
-
-    const priceData = localePrices();
-
-    if (priceData && priceData.variants.edges.length) {
-      const variants = priceData.variants.edges.map((edge) => edge.node);
-      variants.sort((a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount));
-
-      const cheapest = variants[0];
-      const mostExpensive = variants[variants.length - 1];
-
-      priceElement.setAttribute("amount", String(cheapest.price.amount));
-      priceElement.setAttribute("currency", cheapest.price.currencyCode);
-      compareAtElement.setAttribute("currency", cheapest.price.currencyCode);
-
-      if (parseFloat(mostExpensive.price.amount) > parseFloat(cheapest.price.amount)) {
-        priceElement.setAttribute("prefix", "from");
-      } else {
-        priceElement.removeAttribute("prefix");
+      const isDiscounted = !!compareAtPrice && Number(compareAtPrice.amount) > Number(price.amount);
+      if (compareAtPrice) {
+        compareAtElement.setAttribute("amount", compareAtPrice.amount);
+        compareAtElement.setAttribute("currency", compareAtPrice.currencyCode);
       }
-
-      renderCompareAt(cheapest);
-    }
-
-    function renderCompareAt({ price, compareAtPrice }: PriceVariant) {
-      const isDiscounted =
-        !!compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat(price.amount);
-      if (isDiscounted) compareAtElement.setAttribute("amount", String(compareAtPrice.amount));
       compareAtElement.hidden = !isDiscounted;
     }
 
-    function handleVariantChange(event: EventProductVariantChange) {
-      const { variantId } = event.detail;
-
-      if (!variantId) throw new Error("ProductPrice: missing variantId in variant-change event");
-      const variant = localePrices()?.variants.edges.find(
-        (edge) => edge.node.id === variantId,
-      )?.node;
-      if (!variant)
-        throw new Error(`ProductPrice: variant with ID ${variantId} not found in price data`);
-
-      const { price } = variant;
-
-      priceElement.setAttribute("amount", String(price.amount));
-      priceElement.setAttribute("currency", price.currencyCode);
-      compareAtElement.setAttribute("currency", price.currencyCode);
-      priceElement.removeAttribute("prefix");
-      renderCompareAt(variant);
-    }
-
-    productRoot.addEventListener("product:variant-change", handleVariantChange as EventListener);
+    productRoot.addEventListener("product:variant-change", handleVariantChange);
     productRoot.dispatchEvent(new CustomEvent("product:request-variant-update", { bubbles: true }));
 
-    return () => {
-      productRoot.removeEventListener(
-        "product:variant-change",
-        handleVariantChange as EventListener,
-      );
-    };
+    return () => productRoot.removeEventListener("product:variant-change", handleVariantChange);
   }
 
   let cleanups: (() => void)[] = [];
 
   document.addEventListener("astro:page-load", () => {
     cleanups = [];
-    document.querySelectorAll<HTMLElement>("[data-product-price]").forEach((rootElement) => {
-      cleanups.push(initialiseProductPrice(rootElement));
-    });
+    document
+      .querySelectorAll<HTMLElement>('[data-product-price="variant"]')
+      .forEach((rootElement) => cleanups.push(initialiseProductPrice(rootElement)));
   });
 
   document.addEventListener("astro:before-swap", () => {

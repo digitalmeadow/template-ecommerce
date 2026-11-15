@@ -1,0 +1,104 @@
+/* g-flex-row or g-flex-column, placed with a position: g-flex-row g-align-center-left. */
+.g-flex-row {
+  display: flex;
+}
+.g-flex-column {
+  display: flex;
+  flex-direction: column;
+}
+.g-flex-row.g-align-top-left {
+  align-items: start;
+  justify-content: start;
+}
+.g-flex-row.g-align-top-center {
+  align-items: start;
+  justify-content: center;
+}
+.g-flex-row.g-align-top-right {
+  align-items: start;
+  justify-content: end;
+}
+.g-flex-row.g-align-center-left {
+  align-items: center;
+  justify-content: start;
+}
+.g-flex-row.g-align-center-center {
+  align-items: center;
+  justify-content: center;
+}
+.g-flex-row.g-align-center-right {
+  align-items: center;
+  justify-content: end;
+}
+.g-flex-row.g-align-bottom-left {
+  align-items: end;
+  justify-content: start;
+}
+.g-flex-row.g-align-bottom-center {
+  align-items: end;
+  justify-content: center;
+}
+.g-flex-row.g-align-bottom-right {
+  align-items: end;
+  justify-content: end;
+}
+.g-flex-column.g-align-top-left {
+  align-items: start;
+  justify-content: start;
+}
+.g-flex-column.g-align-top-center {
+  align-items: center;
+  justify-content: start;
+}
+.g-flex-column.g-align-top-right {
+  align-items: end;
+  justify-content: start;
+}
+.g-flex-column.g-align-center-left {
+  align-items: start;
+  justify-content: center;
+}
+.g-flex-column.g-align-center-center {
+  align-items: center;
+  justify-content: center;
+}
+.g-flex-column.g-align-center-right {
+  align-items: end;
+  justify-content: center;
+}
+.g-flex-column.g-align-bottom-left {
+  align-items: start;
+  justify-content: end;
+}
+.g-flex-column.g-align-bottom-center {
+  align-items: center;
+  justify-content: end;
+}
+.g-flex-column.g-align-bottom-right {
+  align-items: end;
+  justify-content: end;
+}
+.g-justify-between {
+  justify-content: space-between;
+}
+.g-flex-wrap {
+  flex-wrap: wrap;
+}
+.g-flex-1 {
+  flex: 1;
+}
+.g-flex-none {
+  flex: none;
+}
+.g-align-self-top {
+  align-self: start;
+}
+.g-align-self-center {
+  align-self: center;
+}
+.g-align-self-bottom {
+  align-self: end;
+}
+.g-align-self-stretch {
+  align-self: stretch;
+}

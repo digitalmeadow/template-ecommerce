@@ -1,0 +1,52 @@
+---
+import PageLayout from "@layouts/PageLayout.astro";
+import { DEFAULT_LOCALE, getRenderLocale } from "@lib/shopify/locale";
+import { getShopPolicies } from "@lib/shopify/shop";
+import { truncate } from "@lib/sanity/meta";
+
+// Legal pages authored in Shopify admin (Settings → Policies), at Shopify's own paths.
+export async function getStaticPaths() {
+  const policies = await getShopPolicies(DEFAULT_LOCALE);
+  return policies.map((policy) => ({ params: { handle: policy.handle } }));
+}
+
+const policies = await getShopPolicies(getRenderLocale(Astro));
+const policy = policies.find((candidate) => candidate.handle === Astro.params.handle);
+if (!policy) return Astro.rewrite("/404");
+
+const description = truncate(
+  policy.body
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim(),
+);
+---
+
+<PageLayout metaData={{ title: policy.title, description, image: null }}>
+  <article class="policy g-page-margin">
+    <div class="policy-body g-container-sm">
+      <h1 class="g-heading-3">{policy.title}</h1>
+      <div class="body" set:html={policy.body} />
+    </div>
+  </article>
+</PageLayout>
+
+<style>
+  .policy {
+    padding-top: var(--size-40);
+  }
+
+  .policy-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-10);
+  }
+
+  .body {
+    line-height: var(--line-height-body);
+  }
+
+  .body :global(* + *) {
+    margin-top: var(--size-4);
+  }
+</style>

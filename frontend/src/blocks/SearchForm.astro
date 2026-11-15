@@ -1,0 +1,120 @@
+---
+import { getRenderLocale, localizeHref } from "@lib/shopify/locale";
+
+const locale = getRenderLocale(Astro);
+---
+
+<search-form data-locale={locale.path}>
+  <form class="search-form" method="get" action={localizeHref("/search", locale)} role="search">
+    <label class="g-form-field">
+      <span class="g-sr-only">Search products</span>
+      <input
+        type="search"
+        name="q"
+        placeholder="Search"
+        autocomplete="off"
+        aria-controls="predictive-search-results"
+        aria-expanded="false"
+      />
+    </label>
+  </form>
+  <div id="predictive-search-results" class="results" data-search-results hidden></div>
+</search-form>
+
+<script>
+  const PARTIAL_PATH = "/partials/predictive-search";
+  const DEBOUNCE_MS = 150;
+
+  // Plain GET to /search without JS; with it, results appear as you type.
+  class SearchFormElement extends HTMLElement {
+    private input!: HTMLInputElement;
+    private results!: HTMLElement;
+    private controller?: AbortController;
+    private timer?: ReturnType<typeof setTimeout>;
+
+    connectedCallback() {
+      this.input = this.querySelector("input[name=q]")!;
+      this.results = this.querySelector("[data-search-results]")!;
+      this.input.addEventListener("input", this.handleInput);
+      this.addEventListener("keydown", this.handleKeydown);
+      document.addEventListener("click", this.handleDocumentClick);
+    }
+
+    disconnectedCallback() {
+      this.input.removeEventListener("input", this.handleInput);
+      this.removeEventListener("keydown", this.handleKeydown);
+      document.removeEventListener("click", this.handleDocumentClick);
+      this.controller?.abort();
+      clearTimeout(this.timer);
+    }
+
+    private handleInput = () => {
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.search(this.input.value.trim()), DEBOUNCE_MS);
+    };
+
+    private handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") this.close();
+    };
+
+    private handleDocumentClick = (event: MouseEvent) => {
+      if (!this.contains(event.target as Node)) this.close();
+    };
+
+    private close() {
+      this.results.hidden = true;
+      this.input.setAttribute("aria-expanded", "false");
+    }
+
+    private async search(query: string) {
+      this.controller?.abort();
+      if (!query) return this.close();
+      this.controller = new AbortController();
+      const params = new URLSearchParams({ q: query, locale: this.dataset.locale ?? "" });
+      try {
+        const response = await fetch(`${PARTIAL_PATH}?${params}`, {
+          signal: this.controller.signal,
+        });
+        if (!response.ok) throw new Error(`Predictive search responded ${response.status}`);
+        this.results.innerHTML = await response.text();
+        this.results.hidden = false;
+        this.input.setAttribute("aria-expanded", "true");
+      } catch (error) {
+        if (!this.controller.signal.aborted) console.error(error);
+      }
+    }
+  }
+
+  customElements.define("search-form", SearchFormElement);
+</script>
+
+<style>
+  search-form {
+    position: relative;
+    display: block;
+  }
+
+  .results {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + var(--size-2));
+    left: 0;
+    width: max(100%, var(--max-w-80));
+    padding: var(--size-4);
+    background-color: var(--color-background);
+    border: var(--border-width-1) solid var(--color-rule);
+  }
+
+  .results :global(ul) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2);
+    margin-bottom: var(--size-4);
+  }
+
+  .results :global(li a) {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--size-3);
+  }
+</style>

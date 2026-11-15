@@ -1,12 +1,7 @@
 fragment Footer on Footer {
   __typename
   _id
-
-  textRaw
   navigationItems {
     ...Button
-  }
-  mediaBackground {
-    ...Media
   }
 }

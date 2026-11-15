@@ -5,50 +5,66 @@ import ProductVariantSelector from "@sections/product/ProductVariantSelector.ast
 import ProductPrice from "@sections/product/ProductPrice.astro";
 import QuantitySelector from "@blocks/QuantitySelector.astro";
 import FontSizeFillWidth from "@layouts/FontSizeFillWidth.astro";
+import { getRenderLocale } from "@lib/shopify/locale";
+import { getInitialVariant } from "@lib/shopify/variants";
 
 interface Props {
   productData: ProductShopifySanity;
 }
 
 const { productData }: Props = Astro.props;
+const { shopify } = productData;
+const initialVariant = getInitialVariant(shopify.variants.nodes);
 ---
 
 <div class="product-purchase">
   <FontSizeFillWidth>
     <h1>{productData.shopify?.title}</h1>
   </FontSizeFillWidth>
-  <ProductPrice />
+  <ProductPrice
+    priceRange={shopify.priceRange}
+    compareAtPriceRange={shopify.compareAtPriceRange}
+    variant={initialVariant}
+  />
 
-  <div class="variant-selector">
-    <ProductVariantSelector productData={productData} />
-  </div>
+  <form class="purchase-form" method="post" action="/api/cart">
+    <input type="hidden" name="locale" value={getRenderLocale(Astro).path} />
 
-  <div class="purchase">
-    <ProductAddToCart />
-    <QuantitySelector />
-  </div>
+    <div class="variant-selector">
+      <ProductVariantSelector productData={productData} />
+    </div>
+
+    <div class="purchase">
+      <ProductAddToCart isAvailable={Boolean(initialVariant?.availableForSale)} />
+      <QuantitySelector name="quantity" />
+    </div>
+  </form>
 </div>
 
 <style>
-  h1 {
-    margin-bottom: var(--s20);
-    text-transform: uppercase;
-  }
-
-  .variant-selector {
-    margin-top: var(--s40);
-  }
-
   .product-purchase {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
   }
 
+  h1 {
+    margin-bottom: var(--size-5);
+    text-transform: uppercase;
+  }
+
+  .purchase-form {
+    display: contents;
+  }
+
+  .variant-selector,
   .purchase {
-    margin-top: var(--s40);
+    margin-top: var(--size-10);
+  }
+
+  .purchase {
     display: flex;
     align-items: center;
-    gap: var(--s24);
+    gap: var(--size-6);
   }
 </style>

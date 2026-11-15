@@ -1,0 +1,42 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  type: "checkboxGroup" | "radioGroup";
+  required: boolean;
+  options: string[];
+}
+
+// One component for radio and checkbox groups: they differ only in input type and validation.
+const { id, name, label, type, required, options }: Props = Astro.props;
+const inputType = type === "checkboxGroup" ? "checkbox" : "radio";
+---
+
+<div
+  class="choices"
+  role={inputType === "radio" ? "radiogroup" : undefined}
+  data-required-group={inputType === "checkbox" && required ? "" : undefined}
+  data-group-name={name}
+  data-group-label={label}
+>
+  {options.map((option, index) => (
+    <label class="g-form-choice" for={`${id}-${index}`}>
+      <input
+        id={`${id}-${index}`}
+        type={inputType}
+        name={name}
+        value={option}
+        required={inputType === "radio" && required}
+      />
+      {option}
+    </label>
+  ))}
+</div>
+
+<style>
+  .choices {
+    display: grid;
+    gap: var(--size-2-5);
+  }
+</style>

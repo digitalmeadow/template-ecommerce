@@ -1,0 +1,82 @@
+/* core (raw) → scheme (swapped per colour scheme) → roles. Components use roles only. */
+
+:root {
+  --core-cream: #f6f2e5;
+  --core-brown: #3e3832;
+  --core-ink: #1a1815;
+  --core-linen: #ede7dc;
+
+  --core-yellow: #ebb137;
+  --core-orange: #df6536;
+  --core-green: #2c6469;
+  --core-blue: #3469a1;
+  --core-purple: #b20155;
+}
+
+:root,
+[data-color-scheme="light"] {
+  --scheme-background: var(--core-cream);
+  --scheme-foreground: var(--core-brown);
+  --scheme-accent: var(--core-yellow);
+  --scheme-on-accent: var(--core-brown);
+  --scheme-focus: var(--core-purple);
+  --scheme-error: var(--core-orange);
+  /* Native controls (checkboxes, selects, date pickers) draw to match. */
+  color-scheme: light;
+}
+
+[data-color-scheme="dark"] {
+  --scheme-background: var(--core-ink);
+  --scheme-foreground: var(--core-linen);
+  --scheme-accent: var(--core-yellow);
+  --scheme-on-accent: var(--core-ink);
+  --scheme-focus: var(--core-yellow);
+  --scheme-error: var(--core-orange);
+  color-scheme: dark;
+}
+
+/* Redeclared with every scheme: color-mix() resolves where it's declared, not where it's used. */
+:root,
+[data-color-scheme] {
+  --contrast-64: color-mix(in oklab, var(--scheme-foreground) 64%, var(--scheme-background));
+  --contrast-40: color-mix(in oklab, var(--scheme-foreground) 40%, var(--scheme-background));
+  /* Lab, not oklab: oklab crushes near-black, so these vanished on dark schemes. */
+  --contrast-16: color-mix(in lab, var(--scheme-foreground) 16%, var(--scheme-background));
+  --contrast-8: color-mix(in lab, var(--scheme-foreground) 8%, var(--scheme-background));
+  --contrast-4: color-mix(in lab, var(--scheme-foreground) 4%, var(--scheme-background));
+
+  /* See-through foreground, for tints, borders and overlays. Dark scheme makes them light. */
+  --alpha-5: color-mix(in srgb, var(--scheme-foreground) 5%, transparent);
+  --alpha-10: color-mix(in srgb, var(--scheme-foreground) 10%, transparent);
+  --alpha-15: color-mix(in srgb, var(--scheme-foreground) 15%, transparent);
+  --alpha-20: color-mix(in srgb, var(--scheme-foreground) 20%, transparent);
+  --alpha-30: color-mix(in srgb, var(--scheme-foreground) 30%, transparent);
+  --alpha-40: color-mix(in srgb, var(--scheme-foreground) 40%, transparent);
+  --alpha-50: color-mix(in srgb, var(--scheme-foreground) 50%, transparent);
+  --alpha-60: color-mix(in srgb, var(--scheme-foreground) 60%, transparent);
+  --alpha-80: color-mix(in srgb, var(--scheme-foreground) 80%, transparent);
+  --alpha-90: color-mix(in srgb, var(--scheme-foreground) 90%, transparent);
+  --alpha-92: color-mix(in srgb, var(--scheme-foreground) 92%, transparent);
+  --alpha-95: color-mix(in srgb, var(--scheme-foreground) 95%, transparent);
+
+  --color-background: var(--scheme-background);
+  --color-text: var(--scheme-foreground);
+  --color-text-muted: var(--contrast-64);
+  --color-text-subtle: var(--contrast-40);
+  --color-rule: var(--contrast-16);
+  --color-surface: var(--contrast-4);
+  --color-surface-strong: var(--contrast-8);
+  --color-accent: var(--scheme-accent);
+  --color-on-accent: var(--scheme-on-accent);
+  --color-inverse-background: var(--scheme-foreground);
+  --color-inverse-text: var(--scheme-background);
+  --color-focus: var(--scheme-focus);
+  --color-error: var(--scheme-error);
+
+  /* The brand's highlight colours, the same in every scheme: link underlines (g-underline-*), accents. */
+  --color-highlight-yellow: var(--core-yellow);
+  --color-highlight-orange: var(--core-orange);
+  --color-highlight-green: var(--core-green);
+  --color-highlight-blue: var(--core-blue);
+  --color-highlight-purple: var(--core-purple);
+}

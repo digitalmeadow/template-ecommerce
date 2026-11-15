@@ -1,5 +1,8 @@
 export const HONEYPOT_FIELD_NAME = "company-website";
 
+// Validates against the CMS form and saves a `formSubmission` document (pages/api/forms.ts).
+export const FORM_ENDPOINT = "/api/forms";
+
 export const FORM_ID_FIELD_NAME = "formId";
 
 export const CONSENT_VALUE = "yes";

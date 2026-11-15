@@ -100,14 +100,14 @@ export default function ProductVariantSelector({ productData, className }: Props
   if (!productData) return null;
 
   const options = productData.shopify.options || [];
-  const variants = productData.shopify.variants.edges;
+  const variants = productData.shopify.variants.nodes;
   const isSingleDefaultVariant =
-    variants.length === 1 && variants[0].node.title === DEFAULT_VARIANT_TITLE;
+    variants.length === 1 && variants[0].title === DEFAULT_VARIANT_TITLE;
 
-  const variantsForMatching: Variant[] = variants.map((edge) => ({
-    id: edge.node.id,
-    selectedOptions: edge.node.selectedOptions,
-    availableForSale: edge.node.availableForSale,
+  const variantsForMatching: Variant[] = variants.map((variant) => ({
+    id: variant.id,
+    selectedOptions: variant.selectedOptions,
+    availableForSale: variant.availableForSale,
   }));
 
   const shopifyId = shopifyIdFromGid(productData.shopify.id);
@@ -126,7 +126,7 @@ export default function ProductVariantSelector({ productData, className }: Props
             <fieldset key={option.name} className="option-fieldset m-0 border-none p-0">
               <legend>{option.name}:</legend>
               <div className="option-values flex flex-wrap gap-[var(--s8)]">
-                {option.values.map((value, valueIndex) => (
+                {option.optionValues.map(({ name: value }, valueIndex) => (
                   <label
                     key={value}
                     className="text-link cursor-pointer"

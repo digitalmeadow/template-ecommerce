@@ -2,6 +2,7 @@
 import type { SectionCollectionFragment } from "sanity/generated/graphql";
 import { fetchShopifyCollectionWithThumbnails } from "@lib/fetches/collectionShopifySanity";
 import ProductThumbnailsGrid from "./product/ProductThumbnailsGrid.astro";
+import { getRenderLocale } from "@lib/shopify/locale";
 
 interface Props {
   section: SectionCollectionFragment;
@@ -10,18 +11,20 @@ interface Props {
 const { section }: Props = Astro.props;
 
 const handle = section.collection?.shopify?.handle?.current;
-const collection = handle ? await fetchShopifyCollectionWithThumbnails(handle) : null;
+const collection = handle
+  ? await fetchShopifyCollectionWithThumbnails(handle, getRenderLocale(Astro))
+  : null;
 ---
 
 {collection && (
   <section
     data-color-scheme={section.colorScheme ?? undefined}
-    class="section-collection u-container"
+    class="section-collection g-page-margin g-section-md"
     id={section.id ?? undefined}
   >
-    <h2>
+    <h2 class="heading g-heading-4">
       Collection: {section.collection?.shopify?.title}
-      <sup>({collection.shopify?.products.edges.length ?? 0})</sup>
+      <sup>({collection.shopify?.products.nodes.length ?? 0})</sup>
     </h2>
 
     <ProductThumbnailsGrid productsData={collection.productThumbnails} />
@@ -29,10 +32,8 @@ const collection = handle ? await fetchShopifyCollectionWithThumbnails(handle) :
 )}
 
 <style>
-  .section-collection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  .heading {
+    margin-bottom: var(--size-10);
     text-align: center;
   }
 </style>

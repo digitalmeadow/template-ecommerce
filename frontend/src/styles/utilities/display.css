@@ -1,0 +1,67 @@
+.g-display-none {
+  display: none;
+}
+
+.g-display-block {
+  display: block;
+}
+
+.g-display-flex {
+  display: flex;
+}
+
+.g-display-inline-flex {
+  display: inline-flex;
+}
+
+.g-display-grid {
+  display: grid;
+}
+
+@media (max-width: 48rem) {
+  .g-display-sm-none {
+    display: none;
+  }
+
+  .g-display-sm-block {
+    display: block;
+  }
+
+  .g-display-sm-flex {
+    display: flex;
+  }
+
+  .g-display-sm-grid {
+    display: grid;
+  }
+}
+
+.g-overflow-hidden {
+  overflow: hidden;
+}
+
+.g-overflow-clip {
+  overflow: clip;
+}
+
+.g-overflow-auto {
+  overflow: auto;
+}
+
+.g-z-index-1 {
+  position: relative;
+  z-index: 1;
+}
+
+.g-z-index-2 {
+  position: relative;
+  z-index: 2;
+}
+
+.g-pointer-events-none {
+  pointer-events: none;
+}
+
+.g-pointer-events-auto {
+  pointer-events: auto;
+}

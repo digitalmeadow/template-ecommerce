@@ -1,0 +1,8 @@
+/* Global interaction states, applied in base/document.css. */
+:root {
+  /* Colour is --color-focus, so the ring follows the colour scheme. */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  --opacity-disabled: 0.4;
+}

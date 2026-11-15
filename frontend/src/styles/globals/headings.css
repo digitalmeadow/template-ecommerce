@@ -1,0 +1,58 @@
+/* Heading tags and their class twins, for when the look and the tag differ (h2.g-heading-4). */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.g-heading-1,
+.g-heading-2,
+.g-heading-3,
+.g-heading-4,
+.g-heading-5,
+.g-heading-6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-bold);
+}
+
+h1,
+.g-heading-1 {
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-display);
+  letter-spacing: var(--letter-spacing-display);
+}
+
+h2,
+.g-heading-2 {
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-display);
+  letter-spacing: var(--letter-spacing-display);
+}
+
+h3,
+.g-heading-3 {
+  font-size: var(--font-size-h3);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-large);
+}
+
+h4,
+.g-heading-4 {
+  font-size: var(--font-size-h4);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-large);
+}
+
+h5,
+.g-heading-5 {
+  font-size: var(--font-size-h5);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+h6,
+.g-heading-6 {
+  font-size: var(--font-size-h6);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}

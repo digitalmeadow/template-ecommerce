@@ -7,8 +7,7 @@ import { schemaTypes } from "./schemas";
 import { muxInput } from "sanity-plugin-mux-input";
 import { media } from "sanity-plugin-media";
 import { resolveDocumentActions } from "./document/resolveDocumentActions";
-import { locations } from "./presentation/locations";
-import { PREVIEW_WEBSITE_URL, SHOPIFY_DOCUMENT_TYPES, SINGLETON_DOCUMENT_TYPES } from "./config";
+import { GENERATED_DOCUMENT_TYPES, PREVIEW_WEBSITE_URL, SINGLETON_DOCUMENT_TYPES } from "./config";
 
 export default defineConfig({
   name: "default",
@@ -22,7 +21,6 @@ export default defineConfig({
     // Side-by-side preview of the drafts site. No click-to-edit: overlays need GROQ content source maps.
     presentationTool({
       previewUrl: { initial: PREVIEW_WEBSITE_URL },
-      resolve: { locations },
     }),
     muxInput({ mp4_support: "standard" }),
     media(),
@@ -36,7 +34,7 @@ export default defineConfig({
       templates.filter(
         (template) =>
           !SINGLETON_DOCUMENT_TYPES.includes(template.schemaType) &&
-          !SHOPIFY_DOCUMENT_TYPES.includes(template.schemaType),
+          !GENERATED_DOCUMENT_TYPES.includes(template.schemaType),
       ),
   },
 

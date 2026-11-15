@@ -1,4 +1,4 @@
-import { shopifyClient, shopifyRequestWithContext } from "shopify/client";
+import { shopifyClient } from "shopify/client";
 import { sanityClient } from "sanity-nextjs/client.server";
 import {
   type ProductFragment as ShopifyProductFragment,
@@ -109,7 +109,7 @@ export async function fetchProductShopifySanity(
 }
 
 function fetchProductPricesPage(countryCode: CountryCode, cursor: string | null) {
-  return shopifyRequestWithContext(shopifyProductPricesQuery, {
+  return shopifyClient.requestWithContext(shopifyProductPricesQuery, {
     countryCode,
     cursor,
   });

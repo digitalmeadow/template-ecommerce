@@ -1,0 +1,12 @@
+---
+// The drawer with this browser's real cart (from /api/cart), opened from a button as the header does.
+import Cart from "@components/cart/Cart.astro";
+import { cart } from "../fixtures/settings";
+---
+
+<div class="g-section-md g-page-margin">
+  <button class="g-button" type="button" data-trigger-overlay-open="cart">
+    Open cart
+  </button>
+</div>
+<Cart cartData={cart} />

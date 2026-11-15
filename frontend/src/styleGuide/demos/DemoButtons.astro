@@ -1,0 +1,21 @@
+---
+// Each button at rest, then disabled.
+---
+
+<div class="g-flex-column g-gap-10">
+  {[false, true].map((disabled) => (
+    <div class="g-flex-row g-align-center-left g-flex-wrap g-gap-5">
+      <button class="g-button" type="button" disabled={disabled}>
+        Add to cart
+      </button>
+      <button class="g-button-secondary" type="button" disabled={disabled}>
+        View details
+      </button>
+      <button class="g-button-icon" type="button" aria-label="Next" disabled={disabled}>
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M2 8h12M9 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </button>
+    </div>
+  ))}
+</div>

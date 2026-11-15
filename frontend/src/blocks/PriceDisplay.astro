@@ -1,5 +1,7 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import { formatMoney } from "@lib/shopify/money";
+import { getHtmlLang, getRenderLocale } from "@lib/shopify/locale";
 
 interface Props extends HTMLAttributes<"span"> {
   variant?: "standard" | "compare-at";
@@ -8,33 +10,38 @@ interface Props extends HTMLAttributes<"span"> {
   prefix?: string;
 }
 
-const { variant = "standard", ...attributes }: Props = Astro.props;
+const { variant = "standard", amount, currency, prefix, ...attributes }: Props = Astro.props;
+
+// Rendered into the static HTML, so prices never wait on JS.
+const formatted =
+  amount && currency ? formatMoney(amount, currency, getHtmlLang(getRenderLocale(Astro))) : "";
 ---
 
-<price-display variant={variant} {...attributes}>
-  <span data-price-prefix></span>
-  <span data-price-value></span>
+<price-display
+  variant={variant}
+  amount={amount}
+  currency={currency}
+  prefix={prefix}
+  data-variant={variant}
+  data-prefixed={prefix ? "true" : "false"}
+  {...attributes}
+>
+  <span data-price-prefix>{prefix}</span>
+  <span data-price-value>{formatted}</span>
 </price-display>
 
 <script>
-  import { getCurrency, getStoredLocale } from "@lib/shopify/locale";
+  import { formatMoney } from "@lib/shopify/money";
 
   class PriceDisplayElement extends HTMLElement {
     private prefixElement!: HTMLSpanElement;
     private priceElement!: HTMLSpanElement;
-    private locale!: string;
-    private currency!: string;
 
-    static observedAttributes = ["amount", "currency", "locale", "variant", "prefix"];
+    static observedAttributes = ["amount", "currency", "variant", "prefix"];
 
     connectedCallback() {
       this.prefixElement = this.querySelector("[data-price-prefix]")!;
       this.priceElement = this.querySelector("[data-price-value]")!;
-
-      this.locale = this.getAttribute("locale") || getStoredLocale();
-      this.currency = this.getAttribute("currency") || getCurrency();
-
-      this.updatePrice();
     }
 
     attributeChangedCallback() {
@@ -44,22 +51,14 @@ const { variant = "standard", ...attributes }: Props = Astro.props;
 
     updatePrice() {
       const amount = this.getAttribute("amount");
-      const currency = this.getAttribute("currency") || this.currency;
-      const variant = this.getAttribute("variant");
+      const currency = this.getAttribute("currency");
       const prefix = this.getAttribute("prefix");
 
-      const numericAmount = Number(amount || 0);
-
-      this.setAttribute("data-variant", variant || "standard");
-
-      this.prefixElement.textContent = prefix;
+      this.dataset.variant = this.getAttribute("variant") || "standard";
       this.dataset.prefixed = prefix ? "true" : "false";
-
-      this.priceElement.textContent = new Intl.NumberFormat(this.locale, {
-        style: "currency",
-        currency: currency,
-        currencyDisplay: "code",
-      }).format(numericAmount);
+      this.prefixElement.textContent = prefix;
+      this.priceElement.textContent =
+        amount && currency ? formatMoney(amount, currency, document.documentElement.lang) : "";
     }
   }
 
@@ -77,15 +76,15 @@ const { variant = "standard", ...attributes }: Props = Astro.props;
   }
 
   price-display[data-variant="compare-at"] span {
-    text-decoration: line-through;
-    opacity: 0.7;
+    color: var(--color-text-muted);
+    text-decoration-line: line-through;
   }
 
   [data-price-prefix] {
     display: none;
   }
 
-  price-display[data-prefixed]:not([data-prefixed="false"]) [data-price-prefix] {
+  price-display[data-prefixed="true"] [data-price-prefix] {
     display: inline;
   }
 </style>

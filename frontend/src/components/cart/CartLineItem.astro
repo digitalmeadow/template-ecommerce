@@ -10,7 +10,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     </a>
 
     <div class="info">
-      <a data-link class="text-link-wrapper">
+      <a data-link class="title-link">
         <div class="titles">
           <span class="product-title" data-title></span>
           <span class="variant-title" data-variant-title></span>
@@ -20,7 +20,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       <div class="inventory">
         <QuantitySelector data-quantity-selector />
         <button
-          class="text-link underline-color-orange remove-button"
+          class="remove-button g-text-link g-underline-orange"
           type="button"
           data-remove-button
           aria-label="Remove item from cart"
@@ -28,6 +28,8 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
           Remove
         </button>
       </div>
+
+      <p class="line-message g-form-error" role="status" data-line-message></p>
 
       <div class="prices">
         <div data-compare-at-wrapper hidden>
@@ -41,11 +43,12 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 
 <script>
   import { resolveSanityHref } from "@lib/sanity/resolve";
-  import { getCurrency } from "@lib/shopify/locale";
+  import { getPageLocale, localizeHref } from "@lib/shopify/locale";
   import { updateLineQuantity, removeLine } from "@stores/cart";
   import { DEFAULT_VARIANT_TITLE } from "@lib/shopify/variants";
   import type { EventQuantityChanged } from "@lib/events";
   import type { CartLineFragment } from "shopify/generated/graphql";
+  import type { CartMessage } from "@lib/shopify/cartActions";
 
   class CartLineItemElement extends HTMLElement {
     linkElements: NodeListOf<HTMLAnchorElement> | undefined;
@@ -54,15 +57,18 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     variantTitleElement!: HTMLElement;
     removeButton!: HTMLButtonElement;
     quantitySelector!: HTMLElement;
+    messageElement!: HTMLElement;
 
     priceDisplay!: HTMLElement;
     compareAtWrapper!: HTMLElement;
     compareAtDisplay!: HTMLElement;
 
     line?: CartLineFragment;
+    messages: CartMessage[] = [];
 
-    init(line: CartLineFragment) {
+    init(line: CartLineFragment, messages: CartMessage[]) {
       this.line = line;
+      this.messages = messages;
       this.render();
     }
 
@@ -73,6 +79,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       this.variantTitleElement = this.querySelector("[data-variant-title]")!;
       this.removeButton = this.querySelector("[data-remove-button]")!;
       this.quantitySelector = this.querySelector("quantity-selector")!;
+      this.messageElement = this.querySelector("[data-line-message]")!;
 
       this.priceDisplay = this.querySelector("[data-price]")!;
       this.compareAtWrapper = this.querySelector("[data-compare-at-wrapper]")!;
@@ -87,27 +94,20 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       this.removeEventListener("quantity-selector:quantity-changed", this.handleQuantityChange);
     }
 
-    setRemoving(isRemoving: boolean) {
-      if (isRemoving) {
-        this.setAttribute("data-state", "removing");
-        this.removeButton.textContent = "Removing";
-        this.removeButton.disabled = true;
-      } else {
-        this.removeAttribute("data-state");
-        this.removeButton.textContent = "Remove";
-        this.removeButton.disabled = false;
-      }
+    setPending(isPending: boolean) {
+      this.toggleAttribute("data-pending", isPending);
+      this.removeButton.disabled = isPending;
     }
 
     private render() {
       if (!this.line) return;
 
       const { merchandise, quantity, cost, id } = this.line;
-      const { product, title: variantTitle, compareAtPrice, image: variantImage } = merchandise;
+      const { product, title: variantTitle, image: variantImage, quantityAvailable } = merchandise;
 
       this.dataset.lineId = id;
 
-      const href = resolveSanityHref("product", product.handle);
+      const href = localizeHref(resolveSanityHref("product", product.handle), getPageLocale());
       for (const linkElement of this.linkElements!) {
         linkElement.href = href;
       }
@@ -115,67 +115,41 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       this.titleElement.textContent = product.title;
       this.variantTitleElement.textContent = variantTitle;
 
-      const isSingleDefaultVariant =
-        variantTitle === DEFAULT_VARIANT_TITLE && product.variants?.edges?.length === 1;
-      this.dataset.singleDefaultVariant = String(isSingleDefaultVariant);
+      this.dataset.singleDefaultVariant = String(variantTitle === DEFAULT_VARIANT_TITLE);
 
-      const imageUrl = variantImage?.url ?? product.variants?.edges?.[0]?.node?.image?.url;
+      const imageUrl = variantImage?.thumbnailUrl ?? product.featuredImage?.thumbnailUrl;
       if (imageUrl) {
-        this.imageElement.src = `${imageUrl}?width=128&height=128&crop=center`;
+        this.imageElement.src = imageUrl;
         this.imageElement.dataset.loaded = "true";
       }
 
       this.quantitySelector.setAttribute("initial", String(quantity));
-
-      this.priceDisplay.setAttribute("amount", String(cost.totalAmount.amount ?? 0));
-      this.priceDisplay.setAttribute("currency", cost.totalAmount.currencyCode ?? getCurrency());
-
-      if (compareAtPrice) {
-        const compareAtTotal = Number(compareAtPrice.amount) * quantity;
-        this.compareAtDisplay.setAttribute("amount", String(compareAtTotal));
-        this.compareAtDisplay.setAttribute(
-          "currency",
-          compareAtPrice.currencyCode ?? getCurrency(),
-        );
+      // Null when inventory isn't tracked or the token can't read it.
+      if (quantityAvailable != null && quantityAvailable > 0) {
+        this.quantitySelector.setAttribute("max", String(Math.max(quantityAvailable, quantity)));
       }
-      this.compareAtWrapper.hidden = !compareAtPrice;
+
+      this.priceDisplay.setAttribute("amount", cost.totalAmount.amount);
+      this.priceDisplay.setAttribute("currency", cost.totalAmount.currencyCode);
+
+      const compareAt = cost.compareAtAmountPerQuantity;
+      const isDiscounted =
+        !!compareAt && Number(compareAt.amount) > Number(cost.amountPerQuantity.amount);
+      if (compareAt && isDiscounted) {
+        this.compareAtDisplay.setAttribute("amount", String(Number(compareAt.amount) * quantity));
+        this.compareAtDisplay.setAttribute("currency", compareAt.currencyCode);
+      }
+      this.compareAtWrapper.hidden = !isDiscounted;
+
+      this.messageElement.textContent = this.messages.map((message) => message.message).join(" ");
     }
 
-    private handleRemove = async () => {
-      if (!this.line) return;
-
-      this.setRemoving(true);
-      document.body.style.cursor = "wait";
-
-      try {
-        await removeLine(this.line.id);
-      } catch (error) {
-        console.error("Failed to remove cart line", error);
-        this.setRemoving(false);
-      } finally {
-        document.body.style.cursor = "";
-      }
+    private handleRemove = () => {
+      if (this.line) removeLine(this.line.id);
     };
 
-    private handleQuantityChange = async (event: Event) => {
-      const { detail, target } = event as EventQuantityChanged;
-      const quantitySelectorElement = target as HTMLElement;
-
-      if (!this.line) return;
-
-      const newQuantity = detail.value;
-
-      quantitySelectorElement.setAttribute("data-state", "updating");
-      document.body.style.cursor = "wait";
-
-      try {
-        await updateLineQuantity(this.line.id, newQuantity);
-      } catch (error) {
-        console.error("Failed to update cart quantity", error);
-      } finally {
-        document.body.style.cursor = "";
-        quantitySelectorElement.removeAttribute("data-state");
-      }
+    private handleQuantityChange = (event: Event) => {
+      if (this.line) updateLineQuantity(this.line.id, (event as EventQuantityChanged).detail.value);
     };
   }
 
@@ -190,20 +164,22 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 
   .cart-line-item {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: var(--gutter);
   }
 
   .thumbnail {
-    width: 4rem;
-    height: 4rem;
-    object-fit: cover;
-    background-color: var(--color-text);
+    width: var(--size-16);
+    height: var(--size-16);
+    background-color: var(--color-surface);
   }
 
   [data-image] {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     opacity: 0;
-    transition: opacity var(--transition-media-load);
+    transition: opacity var(--transition-media);
   }
 
   [data-image][data-loaded]:not([data-loaded="false"]) {
@@ -213,7 +189,13 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
   .info {
     display: flex;
     flex-direction: column;
-    gap: var(--s4);
+    gap: var(--size-1);
+  }
+
+  .titles {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 1ch;
   }
 
   cart-line-item[data-single-default-variant]:not([data-single-default-variant="false"])
@@ -221,25 +203,26 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     display: none;
   }
 
+  .variant-title {
+    color: var(--color-text-muted);
+  }
+
   .inventory {
     display: flex;
-    align-items: center;
-    gap: var(--s16);
     flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4);
   }
 
   .remove-button {
     align-self: start;
   }
 
-  cart-line-item[data-state="removing"] {
-    opacity: 0.5;
-    pointer-events: none;
+  cart-line-item[data-pending] [data-price] {
+    opacity: var(--opacity-disabled);
   }
 
-  .titles {
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: 1ch;
+  .line-message:empty {
+    display: none;
   }
 </style>

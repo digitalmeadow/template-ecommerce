@@ -11,12 +11,13 @@ const { productsData }: Props = Astro.props;
 ---
 
 {productsData && productsData.length > 0 && (
-  <section class="product-related u-container">
+  <section class="product-related g-page-margin g-section-md">
     <div class="top">
-      <h2>Related Products</h2>
+      <h2 class="g-heading-5">Related Products</h2>
 
       <div class="carousel-controls">
         <button
+          class="g-button-icon"
           type="button"
           data-carousel-trigger-prev="product-related-carousel"
           aria-label="Previous related products"
@@ -24,6 +25,7 @@ const { productsData }: Props = Astro.props;
           ←
         </button>
         <button
+          class="g-button-icon"
           type="button"
           data-carousel-trigger-next="product-related-carousel"
           aria-label="Next related products"
@@ -46,30 +48,27 @@ const { productsData }: Props = Astro.props;
 )}
 
 <style>
-  .product-related {
-    margin-top: var(--s80);
-  }
-
   .top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--s16);
-    column-gap: var(--s4);
+    gap: var(--size-1);
+    margin-bottom: var(--size-4);
   }
 
   .carousel-controls {
     display: flex;
-    gap: var(--s4);
+    gap: var(--size-1);
   }
 
   .carousel-item {
     width: calc(4 * var(--column) + 3 * var(--gutter));
     margin-right: var(--gutter);
   }
-  @media (max-width: 64rem) {
+
+  @media (max-width: 48rem) {
     .carousel-item {
-      width: calc(8 * var(--column) + 7 * var(--gutter));
+      width: calc(3 * var(--column) + 2 * var(--gutter));
     }
   }
 </style>

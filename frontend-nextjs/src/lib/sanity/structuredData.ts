@@ -155,7 +155,7 @@ export function buildProductSchema(
       priceCurrency: minVariantPrice.currencyCode,
       lowPrice: minVariantPrice.amount,
       highPrice: maxVariantPrice.amount,
-      offerCount: shopify.variants.edges.length,
+      offerCount: shopify.variants.nodes.length,
       availability: shopify.availableForSale
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",

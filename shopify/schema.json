@@ -1039,6 +1039,12 @@
             "deprecationReason": null
           },
           {
+            "name": "CREATED_AT",
+            "description": "Sort by the `created_at` value.",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "RELEVANCE",
             "description": "Sort by relevance to the search terms when the `query` parameter is specified on the connection.\nDon't use this sort key when no search query is specified.\n",
             "isDeprecated": false,
@@ -1224,6 +1230,113 @@
       },
       {
         "kind": "INTERFACE",
+        "name": "BaseCartDiscountApplication",
+        "description": "Captures the intent of a discount source at the time it was applied to a cart.\nThis includes the discount value, how it's allocated across entitled items, and\nwhich line types it targets.\n\nThe actual discounted amounts on specific cart lines are represented by [`CartDiscountAllocation`](https://shopify.dev/docs/api/storefront/current/interfaces/CartDiscountAllocation)\nobjects, which reference this application.\n",
+        "fields": [
+          {
+            "name": "allocationMethod",
+            "description": "The method by which the discount's value is allocated to its entitled items.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationAllocationMethod",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "targetSelection",
+            "description": "Which lines of targetType that the discount is allocated over.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationTargetSelection",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "targetType",
+            "description": "The type of line that the discount is applicable towards.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationTargetType",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "totalAllocatedAmount",
+            "description": "The total amount allocated by this discount application across all entitled items.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "MoneyV2",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "value",
+            "description": "The value of the discount application.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "UNION",
+                "name": "PricingValue",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": [
+          {
+            "kind": "OBJECT",
+            "name": "CartAutomaticDiscountApplication",
+            "ofType": null
+          },
+          {
+            "kind": "OBJECT",
+            "name": "CartCodeDiscountApplication",
+            "ofType": null
+          },
+          {
+            "kind": "OBJECT",
+            "name": "CartCustomDiscountApplication",
+            "ofType": null
+          }
+        ]
+      },
+      {
+        "kind": "INTERFACE",
         "name": "BaseCartLine",
         "description": "Defines the shared fields for items in a shopping cart. Implemented by [`CartLine`](https://shopify.dev/docs/api/storefront/current/objects/CartLine) for individual merchandise and [`ComponentizableCartLine`](https://shopify.dev/docs/api/storefront/current/objects/ComponentizableCartLine) for grouped merchandise like bundles.\n\nEach implementation includes the merchandise being purchased, quantity, cost breakdown, applied discounts, custom attributes, and any associated [`SellingPlan`](https://shopify.dev/docs/api/storefront/current/objects/SellingPlan).\n",
         "fields": [
@@ -1297,7 +1410,18 @@
           {
             "name": "discountAllocations",
             "description": "The discounts that have been applied to the cart line.",
-            "args": [],
+            "args": [
+              {
+                "name": "lineLevelOnly",
+                "description": "When true, returns only line-level (product) discount allocations. When false, returns all discount allocations including order-level discounts.",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                },
+                "defaultValue": "true"
+              }
+            ],
             "type": {
               "kind": "NON_NULL",
               "name": null,
@@ -1389,6 +1513,18 @@
             "type": {
               "kind": "OBJECT",
               "name": "SellingPlanAllocation",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "viewKey",
+            "description": "A stable identifier for the line matching the value exposed in Liquid via the `view_key` filter and accepted as input on `cartLinesUpdate` and `cartLinesRemove`.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -2540,6 +2676,30 @@
             "deprecationReason": "Use `cart.lines[].discountAllocations(lineLevelOnly: false)` and `cart.deliveryGroups[].discountAllocations` instead."
           },
           {
+            "name": "discountApplications",
+            "description": "The discount applications applied to the cart.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "INTERFACE",
+                    "name": "BaseCartDiscountApplication",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "discountCodes",
             "description": "The case-insensitive discount codes that the customer added at checkout.",
             "args": [],
@@ -2837,7 +2997,7 @@
           },
           {
             "name": "copyFromCustomerAddressId",
-            "description": "Copies details from the customer address to an address on this cart.",
+            "description": "Copies details from the customer address to an address on this cart. The address is copied as-is, regardless of `validationStrategy`. Validation can be requested on later delivery address updates and always occurs in checkout.",
             "type": {
               "kind": "SCALAR",
               "name": "ID",
@@ -2959,6 +3119,22 @@
             "deprecationReason": null
           },
           {
+            "name": "sourceDiscountApplication",
+            "description": "The discount application that created this allocation, with corrected value semantics.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INTERFACE",
+                "name": "BaseCartDiscountApplication",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "targetType",
             "description": "The type of line that the discount is applicable towards.",
             "args": [],
@@ -2996,6 +3172,119 @@
           {
             "kind": "INTERFACE",
             "name": "CartDiscountAllocation",
+            "ofType": null
+          }
+        ],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "CartAutomaticDiscountApplication",
+        "description": "The discount application automatically applied based on prerequisites.",
+        "fields": [
+          {
+            "name": "allocationMethod",
+            "description": "The method by which the discount's value is allocated to its entitled items.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationAllocationMethod",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "targetSelection",
+            "description": "Which lines of targetType that the discount is allocated over.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationTargetSelection",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "targetType",
+            "description": "The type of line that the discount is applicable towards.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationTargetType",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "title",
+            "description": "The title of the discount.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "totalAllocatedAmount",
+            "description": "The total amount allocated by this discount application across all entitled items.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "MoneyV2",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "value",
+            "description": "The value of the discount application.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "UNION",
+                "name": "PricingValue",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [
+          {
+            "kind": "INTERFACE",
+            "name": "BaseCartDiscountApplication",
             "ofType": null
           }
         ],
@@ -3464,6 +3753,22 @@
             "deprecationReason": null
           },
           {
+            "name": "sourceDiscountApplication",
+            "description": "The discount application that created this allocation, with corrected value semantics.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INTERFACE",
+                "name": "BaseCartDiscountApplication",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "targetType",
             "description": "The type of line that the discount is applicable towards.",
             "args": [],
@@ -3485,6 +3790,119 @@
           {
             "kind": "INTERFACE",
             "name": "CartDiscountAllocation",
+            "ofType": null
+          }
+        ],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "CartCodeDiscountApplication",
+        "description": "The discount application applied using a discount code.",
+        "fields": [
+          {
+            "name": "allocationMethod",
+            "description": "The method by which the discount's value is allocated to its entitled items.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationAllocationMethod",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "code",
+            "description": "The code used to apply the discount.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "targetSelection",
+            "description": "Which lines of targetType that the discount is allocated over.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationTargetSelection",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "targetType",
+            "description": "The type of line that the discount is applicable towards.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationTargetType",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "totalAllocatedAmount",
+            "description": "The total amount allocated by this discount application across all entitled items.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "MoneyV2",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "value",
+            "description": "The value of the discount application.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "UNION",
+                "name": "PricingValue",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [
+          {
+            "kind": "INTERFACE",
+            "name": "BaseCartDiscountApplication",
             "ofType": null
           }
         ],
@@ -3998,6 +4416,22 @@
             "deprecationReason": null
           },
           {
+            "name": "sourceDiscountApplication",
+            "description": "The discount application that created this allocation, with corrected value semantics.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INTERFACE",
+                "name": "BaseCartDiscountApplication",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "targetType",
             "description": "The type of line that the discount is applicable towards.",
             "args": [],
@@ -4035,6 +4469,119 @@
           {
             "kind": "INTERFACE",
             "name": "CartDiscountAllocation",
+            "ofType": null
+          }
+        ],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "CartCustomDiscountApplication",
+        "description": "The discount application applied by a custom script or function.",
+        "fields": [
+          {
+            "name": "allocationMethod",
+            "description": "The method by which the discount's value is allocated to its entitled items.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationAllocationMethod",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "targetSelection",
+            "description": "Which lines of targetType that the discount is allocated over.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationTargetSelection",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "targetType",
+            "description": "The type of line that the discount is applicable towards.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "DiscountApplicationTargetType",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "title",
+            "description": "The title of the discount.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "totalAllocatedAmount",
+            "description": "The total amount allocated by this discount application across all entitled items.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "MoneyV2",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "value",
+            "description": "The value of the discount application.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "UNION",
+                "name": "PricingValue",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [
+          {
+            "kind": "INTERFACE",
+            "name": "BaseCartDiscountApplication",
             "ofType": null
           }
         ],
@@ -4931,6 +5478,30 @@
             "deprecationReason": null
           },
           {
+            "name": "discountAllocations",
+            "description": "The discount allocations applied to the delivery group.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "INTERFACE",
+                    "name": "CartDiscountAllocation",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "groupType",
             "description": "The type of merchandise in the delivery group.",
             "args": [],
@@ -5463,6 +6034,22 @@
               "ofType": {
                 "kind": "OBJECT",
                 "name": "MoneyV2",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "sourceDiscountApplication",
+            "description": "The discount application that created this allocation, with corrected value semantics.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INTERFACE",
+                "name": "BaseCartDiscountApplication",
                 "ofType": null
               }
             },
@@ -6501,6 +7088,16 @@
               }
             },
             "defaultValue": null
+          },
+          {
+            "name": "sourceName",
+            "description": "The source name of the channel to use for order attribution.\nThe value must match the source name of a channel that the client, identified by the storefront access token, owns.\n",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null
           }
         ],
         "interfaces": null,
@@ -6635,7 +7232,18 @@
           {
             "name": "discountAllocations",
             "description": "The discounts that have been applied to the cart line.",
-            "args": [],
+            "args": [
+              {
+                "name": "lineLevelOnly",
+                "description": "When true, returns only line-level (product) discount allocations. When false, returns all discount allocations including order-level discounts.",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                },
+                "defaultValue": "true"
+              }
+            ],
             "type": {
               "kind": "NON_NULL",
               "name": null,
@@ -6755,6 +7363,18 @@
             "type": {
               "kind": "OBJECT",
               "name": "SellingPlanAllocation",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "viewKey",
+            "description": "A stable identifier for the line matching the value exposed in Liquid via the `view_key` filter and accepted as input on `cartLinesUpdate` and `cartLinesRemove`.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -7101,15 +7721,21 @@
         "inputFields": [
           {
             "name": "id",
-            "description": "The ID of the merchandise line.",
+            "description": "The ID of the merchandise line. Mutually exclusive with `viewKey`.",
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "ID",
-                "ofType": null
-              }
+              "kind": "SCALAR",
+              "name": "ID",
+              "ofType": null
+            },
+            "defaultValue": null
+          },
+          {
+            "name": "viewKey",
+            "description": "The `view_key` of the merchandise line, as exposed in Liquid via the cart line `view_key` filter. Mutually exclusive with `id`.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "defaultValue": null
           },
@@ -8176,7 +8802,7 @@
           },
           {
             "name": "validationStrategy",
-            "description": "Defines what kind of address validation is requested.",
+            "description": "Defines what kind of address validation is requested. Doesn't apply to addresses copied with `copyFromCustomerAddressId`, which are copied as-is. Validation can be requested on later delivery address updates and always occurs in checkout.",
             "type": {
               "kind": "ENUM",
               "name": "DeliveryAddressValidationStrategy",
@@ -8241,7 +8867,7 @@
           },
           {
             "name": "validationStrategy",
-            "description": "Defines what kind of address validation is requested.",
+            "description": "Defines what kind of address validation is requested. Doesn't apply to addresses copied with `copyFromCustomerAddressId`, which are copied as-is. Validation can be requested on later delivery address updates and always occurs in checkout.",
             "type": {
               "kind": "ENUM",
               "name": "DeliveryAddressValidationStrategy",
@@ -8815,6 +9441,12 @@
             "description": "Only one-time purchase is available for B2B orders.",
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "PRODUCT_UNAVAILABLE_IN_BUYER_LOCATION",
+            "description": "The product is unavailable in the current buyer location.",
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "possibleTypes": null
@@ -9367,6 +9999,12 @@
           {
             "name": "ID",
             "description": "Sort by the `id` value.",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "CREATED_AT",
+            "description": "Sort by the `created_at` value.",
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -10325,7 +10963,18 @@
           {
             "name": "discountAllocations",
             "description": "The discounts that have been applied to the cart line.",
-            "args": [],
+            "args": [
+              {
+                "name": "lineLevelOnly",
+                "description": "When true, returns only line-level (product) discount allocations. When false, returns all discount allocations including order-level discounts.",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                },
+                "defaultValue": "true"
+              }
+            ],
             "type": {
               "kind": "NON_NULL",
               "name": null,
@@ -10441,6 +11090,18 @@
             "type": {
               "kind": "OBJECT",
               "name": "SellingPlanAllocation",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "viewKey",
+            "description": "A stable identifier for the line matching the value exposed in Liquid via the `view_key` filter and accepted as input on `cartLinesUpdate` and `cartLinesRemove`.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -15283,7 +15944,7 @@
           },
           {
             "name": "STRICT",
-            "description": "Strict validation is performed, i.e. all fields in the address are validated\naccording to Shopify's checkout rules. If the address fails validation, the cart will not be updated.\n",
+            "description": "Strict validation is performed, i.e. all fields in the address are validated\naccording to Shopify's checkout rules. If the address fails validation, the cart will not be updated.\nDoesn't apply to addresses copied with `copyFromCustomerAddressId`, which are copied as-is.\nValidation can be requested on later delivery address updates and always occurs in checkout.\n",
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -17695,7 +18356,7 @@
           },
           {
             "name": "BN",
-            "description": "Bangla.",
+            "description": "Bengali.",
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -18313,7 +18974,7 @@
           },
           {
             "name": "SR",
-            "description": "Serbian.",
+            "description": "Serbian (Latin).",
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -19077,6 +19738,12 @@
           {
             "name": "DISTANCE",
             "description": "Sort by the `distance` value.",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "CREATED_AT",
+            "description": "Sort by the `created_at` value.",
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -22888,21 +23555,35 @@
               },
               {
                 "name": "lineIds",
-                "description": "The merchandise line IDs to remove.\n\nThe input must not contain more than `250` values.",
+                "description": "The merchandise line IDs to remove. Mutually exclusive with `viewKeys`.\n\nThe input must not contain more than `250` values.",
                 "type": {
-                  "kind": "NON_NULL",
+                  "kind": "LIST",
                   "name": null,
                   "ofType": {
-                    "kind": "LIST",
+                    "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
-                      "kind": "NON_NULL",
-                      "name": null,
-                      "ofType": {
-                        "kind": "SCALAR",
-                        "name": "ID",
-                        "ofType": null
-                      }
+                      "kind": "SCALAR",
+                      "name": "ID",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null
+              },
+              {
+                "name": "viewKeys",
+                "description": "The merchandise line `view_key` values to remove, as exposed in Liquid via the cart line `view_key` filter. Mutually exclusive with `lineIds`.\n\nThe input must not contain more than `250` values.",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
                     }
                   }
                 },
@@ -23812,20 +24493,6 @@
                   "ofType": {
                     "kind": "SCALAR",
                     "name": "String",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null
-              },
-              {
-                "name": "paymentRequest",
-                "description": "A payment request object.",
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "INPUT_OBJECT",
-                    "name": "ShopPayPaymentRequestInput",
                     "ofType": null
                   }
                 },
@@ -25572,6 +26239,12 @@
             "deprecationReason": null
           },
           {
+            "name": "CREATED_AT",
+            "description": "Sort by the `created_at` value.",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "RELEVANCE",
             "description": "Sort by relevance to the search terms when the `query` parameter is specified on the connection.\nDon't use this sort key when no search query is specified.\n",
             "isDeprecated": false,
@@ -26048,6 +26721,12 @@
           {
             "name": "ID",
             "description": "Sort by the `id` value.",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "CREATED_AT",
+            "description": "Sort by the `created_at` value.",
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -27993,6 +28672,12 @@
             "deprecationReason": null
           },
           {
+            "name": "CREATED_AT",
+            "description": "Sort by the `created_at` value.",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "RELEVANCE",
             "description": "Sort by relevance to the search terms when the `query` parameter is specified on the connection.\nDon't use this sort key when no search query is specified.\n",
             "isDeprecated": false,
@@ -29406,6 +30091,12 @@
             "description": "Sort by relevance to the search terms when the `query` parameter is specified on the connection.\nDon't use this sort key when no search query is specified.\n",
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "CREATED_AT",
+            "description": "Sort by the `created_at` value.",
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "possibleTypes": null
@@ -30701,24 +31392,6 @@
                 "defaultValue": null
               },
               {
-                "name": "searchableFields",
-                "description": "Specifies the list of fields to search for page, article, and collection results. If omitted, pages, articles, and collections are searched by title. Product results always search all product fields and ignore this argument.\n\nThe input must not contain more than `250` values.",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "ENUM",
-                      "name": "SearchableField",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null
-              },
-              {
                 "name": "types",
                 "description": "The types of resources to search for.\n\nThe input must not contain more than `250` values.",
                 "type": {
@@ -31041,7 +31714,7 @@
           },
           {
             "name": "search",
-            "description": "Returns paginated search results for [`Product`](https://shopify.dev/docs/api/storefront/current/objects/Product), [`Page`](https://shopify.dev/docs/api/storefront/current/objects/Page), and [`Article`](https://shopify.dev/docs/api/storefront/current/objects/Article) resources based on a query string. Results are sorted by relevance by default.\n\nThe response includes the total result count and available product filters for building [faceted search interfaces](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/products-collections/filter-products). A search returns up to 1,000 results. Use the [`prefix`](https://shopify.dev/docs/api/storefront/current/enums/SearchPrefixQueryType) argument to enable partial word matching on the last search term, allowing queries like \"winter snow\" to match \"snowboard\" or \"snowshoe\".\n",
+            "description": "Returns paginated search results for [`Product`](https://shopify.dev/docs/api/storefront/current/objects/Product), [`Page`](https://shopify.dev/docs/api/storefront/current/objects/Page), and [`Article`](https://shopify.dev/docs/api/storefront/current/objects/Article) resources based on a query string. Results are sorted by relevance by default.\n\nThe response includes the total result count and available product filters for building [faceted search interfaces](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/products-collections/filter-products). A search returns up to 1,000 results. When product results are included, a search returns up to 2 pages or articles, on the first page of results only. To get more pages and articles, run a separate search with `types: [PAGE, ARTICLE]`. Product results match partial words automatically. For page and article results, use the [`prefix`](https://shopify.dev/docs/api/storefront/current/enums/SearchPrefixQueryType) argument to match partial words on the last search term, so that a query like \"winter snow\" can match pages that contain \"snowboard\" or \"snowshoe\".\n",
             "args": [
               {
                 "name": "first",
@@ -31119,7 +31792,7 @@
               },
               {
                 "name": "prefix",
-                "description": "Specifies whether to perform a partial word match on the last search term.",
+                "description": "For page and article results, specifies whether to match partial words on the last search term. Product results match partial words automatically.",
                 "type": {
                   "kind": "ENUM",
                   "name": "SearchPrefixQueryType",
@@ -31451,20 +32124,20 @@
       {
         "kind": "ENUM",
         "name": "SearchPrefixQueryType",
-        "description": "Specifies whether to perform a partial word match on the last search term.",
+        "description": "For page and article results, specifies whether to match partial words on the last search term. Product results match partial words automatically.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
           {
             "name": "LAST",
-            "description": "Perform a partial word match on the last search term.",
+            "description": "For page and article results, match partial words on the last search term.",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
             "name": "NONE",
-            "description": "Don't perform a partial word match on the last search term.",
+            "description": "For page and article results, don't match partial words on the last search term.",
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -35428,6 +36101,18 @@
             "deprecationReason": null
           },
           {
+            "name": "shopUser",
+            "description": "The Shop user that authorized the payment request.",
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "ShopPayPaymentRequestShopUser",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "token",
             "description": "The token of the receipt.",
             "args": [],
@@ -35475,16 +36160,12 @@
             "description": "The payment request associated with the Shop Pay payment request session.",
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "ShopPayPaymentRequest",
-                "ofType": null
-              }
+              "kind": "OBJECT",
+              "name": "ShopPayPaymentRequest",
+              "ofType": null
             },
-            "isDeprecated": false,
-            "deprecationReason": null
+            "isDeprecated": true,
+            "deprecationReason": "This field is deprecated and will be removed in a future version."
           },
           {
             "name": "sourceIdentifier",
@@ -35715,6 +36396,29 @@
           }
         ],
         "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "ShopPayPaymentRequestShopUser",
+        "description": "Represents the Shop user that authorized a Shop Pay payment request.",
+        "fields": [
+          {
+            "name": "publicId",
+            "description": "The public ID of the Shop user.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
         "enumValues": null,
         "possibleTypes": null
       },
@@ -39927,6 +40631,16 @@
           "MUTATION"
         ],
         "args": [
+          {
+            "name": "channelId",
+            "description": "The channel ID used for context. Overrides the channel from API credentials.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "ID",
+              "ofType": null
+            },
+            "defaultValue": null
+          },
           {
             "name": "country",
             "description": "The country code for context. For example, `CA`.",

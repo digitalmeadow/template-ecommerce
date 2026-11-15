@@ -19,10 +19,10 @@ const { locationNoticeData, waitForConsent }: Props = Astro.props;
     <div class="location-notice" role="status">
       <p data-message />
       <div class="actions">
-        <button class="text-link underline-color-orange" type="button" data-dismiss>
+        <button class="g-text-link g-underline-orange" type="button" data-dismiss>
           {locationNoticeData.dismissLabel}
         </button>
-        <button class="text-link underline-color-green" type="button" data-switch />
+        <button class="g-text-link g-underline-green" type="button" data-switch />
       </div>
     </div>
   </location-notice>
@@ -30,34 +30,38 @@ const { locationNoticeData, waitForConsent }: Props = Astro.props;
 
 <script>
   import { getConsent, subscribeToConsent } from "@lib/consent/consent";
-  import { getStoredLocale, LOCALE_STORAGE_KEY, type LocaleCode } from "@lib/shopify/locale";
+  import { isConsentRequired } from "@lib/consent/customerPrivacy";
+  import { getPageLocale, switchLocale, type Locale } from "@lib/shopify/locale";
   import { dismissLocationNotice, fillMarket, suggestedLocale } from "@lib/shopify/geo";
 
   // Suggests the visitor's own store; never redirects.
   class LocationNoticeElement extends HTMLElement {
-    private suggestion: LocaleCode | null = null;
+    private suggestion: Locale | null = null;
     private unsubscribe?: () => void;
 
     connectedCallback() {
       this.querySelector("[data-dismiss]")!.addEventListener("click", this.handleDismiss);
       this.querySelector("[data-switch]")!.addEventListener("click", this.handleSwitch);
 
-      if (!("waitForConsent" in this.dataset) || getConsent() !== null) {
-        this.suggest();
-      } else {
-        this.unsubscribe = subscribeToConsent(() => {
-          this.unsubscribe?.();
-          this.suggest();
-        });
-      }
+      this.suggestAfterBanner();
     }
 
     disconnectedCallback() {
       this.unsubscribe?.();
     }
 
+    private async suggestAfterBanner() {
+      const isBannerShowing =
+        "waitForConsent" in this.dataset && getConsent() === null && (await isConsentRequired());
+      if (!isBannerShowing) return this.suggest();
+      this.unsubscribe = subscribeToConsent(() => {
+        this.unsubscribe?.();
+        this.suggest();
+      });
+    }
+
     private async suggest() {
-      this.suggestion = await suggestedLocale(getStoredLocale());
+      this.suggestion = await suggestedLocale(getPageLocale());
       if (!this.suggestion) return;
 
       this.querySelector("[data-message]")!.textContent = fillMarket(
@@ -77,9 +81,7 @@ const { locationNoticeData, waitForConsent }: Props = Astro.props;
     };
 
     private handleSwitch = () => {
-      if (!this.suggestion) return;
-      localStorage.setItem(LOCALE_STORAGE_KEY, this.suggestion);
-      window.location.reload();
+      if (this.suggestion) switchLocale(this.suggestion);
     };
   }
 
@@ -101,19 +103,18 @@ const { locationNoticeData, waitForConsent }: Props = Astro.props;
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: var(--margin) var(--margin-dynamic);
-
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: var(--margin);
     text-align: center;
-
     background-color: var(--color-background);
+    border-top: var(--border-width-1) solid var(--color-rule);
   }
 
   .actions {
     display: flex;
-    gap: var(--s16);
     flex-wrap: wrap;
+    gap: var(--size-4);
   }
 </style>

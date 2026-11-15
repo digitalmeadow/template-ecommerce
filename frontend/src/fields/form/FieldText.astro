@@ -2,20 +2,16 @@
 interface Props {
   id: string;
   name: string;
-  label: string;
   type: "text" | "email" | "tel";
   placeholder: string;
   required: boolean;
-  errorId?: string;
+  errorId: string;
   autocomplete?: string;
 }
 
-const { id, name, label, type, placeholder, required, errorId, autocomplete }: Props = Astro.props;
+const { id, name, type, placeholder, required, errorId, autocomplete }: Props = Astro.props;
 ---
 
-<label class="visually-hidden" for={id}>
-  {label}
-</label>
 <input
   id={id}
   name={name}
@@ -25,15 +21,3 @@ const { id, name, label, type, placeholder, required, errorId, autocomplete }: P
   autocomplete={autocomplete}
   aria-describedby={errorId}
 />
-
-<style>
-  /* Padding on the control, not the wrapper, so the whole row is a click target. */
-  input {
-    padding: var(--s20) 0;
-    cursor: text;
-  }
-
-  input:focus-visible {
-    outline: none;
-  }
-</style>

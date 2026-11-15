@@ -1,0 +1,26 @@
+/* Order matters: tokens → base → globals → utilities, so a utility beats a global it's added to. */
+@import "./tokens/colors.css";
+@import "./tokens/sizes.css";
+@import "./tokens/grid.css";
+@import "./tokens/fonts.css";
+@import "./tokens/text.css";
+@import "./tokens/motion.css";
+@import "./tokens/states.css";
+
+@import "./base/reset.css";
+@import "./base/document.css";
+@import "./base/animate.css";
+
+@import "./globals/headings.css";
+@import "./globals/buttons.css";
+@import "./globals/forms.css";
+@import "./globals/decoration.css";
+@import "./globals/sr-only.css";
+
+@import "./utilities/layout.css";
+@import "./utilities/grid.css";
+@import "./utilities/flex.css";
+@import "./utilities/spacing.css";
+@import "./utilities/display.css";
+@import "./utilities/text.css";
+@import "./utilities/color.css";

@@ -44,18 +44,20 @@ type Documents = {
     "fragment AnnouncementBanner on AnnouncementBanner {\n  __typename\n  _id\n  _updatedAt\n  enabled\n  textRaw\n}": typeof types.AnnouncementBannerFragmentDoc,
     "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}": typeof types.CartFragmentDoc,
     "fragment CookieConsent on CookieConsent {\n  __typename\n  _id\n  messageRaw\n  acceptLabel\n  declineLabel\n}": typeof types.CookieConsentFragmentDoc,
-    "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}": typeof types.FooterFragmentDoc,
+    "fragment Footer on Footer {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": typeof types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": typeof types.HeaderFragmentDoc,
     "fragment LocationNotice on LocationNotice {\n  __typename\n  _id\n  message\n  switchLabel\n  dismissLabel\n}": typeof types.LocationNoticeFragmentDoc,
     "fragment MetaSettings on MetaSettings {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n}": typeof types.MetaSettingsFragmentDoc,
     "fragment OrganisationSettings on OrganisationSettings {\n  __typename\n  _id\n  type\n  name\n  description\n  logo {\n    ...SanityImage\n  }\n  foundingDate\n  founders\n  numberOfEmployees\n  telephone\n  areaServed\n  knowsAbout\n  sameAs\n  address {\n    ...PostalAddress\n  }\n}": typeof types.OrganisationSettingsFragmentDoc,
     "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Collection\n    }\n  }\n": typeof types.CollectionByHandleQueryDocument,
     "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n": typeof types.CollectionsQueryDocument,
+    "\n  query FormsQuery {\n    allForm {\n      ...Form\n    }\n  }\n": typeof types.FormsQueryDocument,
     "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n    allAnnouncementBanner {\n      ...AnnouncementBanner\n    }\n    allCookieConsent {\n      ...CookieConsent\n    }\n    allLocationNotice {\n      ...LocationNotice\n    }\n  }\n": typeof types.GlobalsQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": typeof types.HomeQueryDocument,
     "\n  query PageQuery($slug: String!) {\n    allPage(where: { slug: { current: { eq: $slug } } }) {\n      ...Page\n    }\n  }\n": typeof types.PageQueryDocument,
     "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n": typeof types.PagesQueryDocument,
     "\n  query ProductThumbnailByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...ProductThumbnail\n    }\n  }\n": typeof types.ProductThumbnailByHandleQueryDocument,
+    "\n  query ProductThumbnailsQuery {\n    allProduct {\n      ...ProductThumbnail\n    }\n  }\n": typeof types.ProductThumbnailsQueryDocument,
     "\n  query ProductByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Product\n    }\n  }\n": typeof types.ProductByHandleQueryDocument,
     "\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n": typeof types.ProductsQueryDocument,
 };
@@ -90,18 +92,20 @@ const documents: Documents = {
     "fragment AnnouncementBanner on AnnouncementBanner {\n  __typename\n  _id\n  _updatedAt\n  enabled\n  textRaw\n}": types.AnnouncementBannerFragmentDoc,
     "fragment Cart on Cart {\n  __typename\n  _id\n  emptyMessageRaw\n  noteRaw\n}": types.CartFragmentDoc,
     "fragment CookieConsent on CookieConsent {\n  __typename\n  _id\n  messageRaw\n  acceptLabel\n  declineLabel\n}": types.CookieConsentFragmentDoc,
-    "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}": types.FooterFragmentDoc,
+    "fragment Footer on Footer {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": types.FooterFragmentDoc,
     "fragment Header on Header {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}": types.HeaderFragmentDoc,
     "fragment LocationNotice on LocationNotice {\n  __typename\n  _id\n  message\n  switchLabel\n  dismissLabel\n}": types.LocationNoticeFragmentDoc,
     "fragment MetaSettings on MetaSettings {\n  __typename\n  _id\n  meta {\n    ...Meta\n  }\n}": types.MetaSettingsFragmentDoc,
     "fragment OrganisationSettings on OrganisationSettings {\n  __typename\n  _id\n  type\n  name\n  description\n  logo {\n    ...SanityImage\n  }\n  foundingDate\n  founders\n  numberOfEmployees\n  telephone\n  areaServed\n  knowsAbout\n  sameAs\n  address {\n    ...PostalAddress\n  }\n}": types.OrganisationSettingsFragmentDoc,
     "\n  query CollectionByHandleQuery($handle: String!) {\n    allCollection(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Collection\n    }\n  }\n": types.CollectionByHandleQueryDocument,
     "\n  query CollectionsQuery {\n    allCollection {\n      ...Collection\n    }\n  }\n": types.CollectionsQueryDocument,
+    "\n  query FormsQuery {\n    allForm {\n      ...Form\n    }\n  }\n": types.FormsQueryDocument,
     "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n    allAnnouncementBanner {\n      ...AnnouncementBanner\n    }\n    allCookieConsent {\n      ...CookieConsent\n    }\n    allLocationNotice {\n      ...LocationNotice\n    }\n  }\n": types.GlobalsQueryDocument,
     "\n  query HomeQuery {\n    allHome {\n      ...Home\n    }\n  }\n": types.HomeQueryDocument,
     "\n  query PageQuery($slug: String!) {\n    allPage(where: { slug: { current: { eq: $slug } } }) {\n      ...Page\n    }\n  }\n": types.PageQueryDocument,
     "\n  query PagesQuery {\n    allPage {\n      ...Page\n    }\n  }\n": types.PagesQueryDocument,
     "\n  query ProductThumbnailByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...ProductThumbnail\n    }\n  }\n": types.ProductThumbnailByHandleQueryDocument,
+    "\n  query ProductThumbnailsQuery {\n    allProduct {\n      ...ProductThumbnail\n    }\n  }\n": types.ProductThumbnailsQueryDocument,
     "\n  query ProductByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...Product\n    }\n  }\n": types.ProductByHandleQueryDocument,
     "\n  query ProductsQuery {\n    allProduct {\n      ...Product\n    }\n  }\n": types.ProductsQueryDocument,
 };
@@ -243,7 +247,7 @@ export function graphql(source: "fragment CookieConsent on CookieConsent {\n  __
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}"): (typeof documents)["fragment Footer on Footer {\n  __typename\n  _id\n  textRaw\n  navigationItems {\n    ...Button\n  }\n  mediaBackground {\n    ...Media\n  }\n}"];
+export function graphql(source: "fragment Footer on Footer {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}"): (typeof documents)["fragment Footer on Footer {\n  __typename\n  _id\n  navigationItems {\n    ...Button\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -271,6 +275,10 @@ export function graphql(source: "\n  query CollectionsQuery {\n    allCollection
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  query FormsQuery {\n    allForm {\n      ...Form\n    }\n  }\n"): (typeof documents)["\n  query FormsQuery {\n    allForm {\n      ...Form\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n    allAnnouncementBanner {\n      ...AnnouncementBanner\n    }\n    allCookieConsent {\n      ...CookieConsent\n    }\n    allLocationNotice {\n      ...LocationNotice\n    }\n  }\n"): (typeof documents)["\n  query GlobalsQuery {\n    allHeader {\n      ...Header\n    }\n    allFooter {\n      ...Footer\n    }\n    allCart {\n      ...Cart\n    }\n    allMetaSettings {\n      ...MetaSettings\n    }\n    allOrganisationSettings {\n      ...OrganisationSettings\n    }\n    allAnalyticsSettings {\n      ...AnalyticsSettings\n    }\n    allAnnouncementBanner {\n      ...AnnouncementBanner\n    }\n    allCookieConsent {\n      ...CookieConsent\n    }\n    allLocationNotice {\n      ...LocationNotice\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -288,6 +296,10 @@ export function graphql(source: "\n  query PagesQuery {\n    allPage {\n      ..
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ProductThumbnailByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...ProductThumbnail\n    }\n  }\n"): (typeof documents)["\n  query ProductThumbnailByHandleQuery($handle: String!) {\n    allProduct(where: { shopify: { handle: { current: { eq: $handle } } } }) {\n      ...ProductThumbnail\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProductThumbnailsQuery {\n    allProduct {\n      ...ProductThumbnail\n    }\n  }\n"): (typeof documents)["\n  query ProductThumbnailsQuery {\n    allProduct {\n      ...ProductThumbnail\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

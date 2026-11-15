@@ -1,0 +1,58 @@
+---
+// One entry on a bare page, loaded by the style guide's frames (or opened directly).
+// `?scheme=dark` sets the scheme. Dev and preview only: injected by astro.config.mjs.
+import "@styles/index.css";
+import { ClientRouter } from "astro:transitions";
+import Grid from "@dev/Grid.astro";
+import ScriptAnimations from "@scripts/ScriptAnimations.astro";
+import ScriptMeasurements from "@scripts/ScriptMeasurements.astro";
+import SectionsRenderer from "@sections/SectionsRenderer.astro";
+import { getHtmlLang, getRenderLocale } from "@lib/shopify/locale";
+import { findEntry } from "./entries";
+import { isScheme } from "./entry";
+
+const entry = findEntry(Astro.params.id);
+if (!entry) return new Response("Not found", { status: 404 });
+
+const scheme = Astro.url.searchParams.get("scheme");
+const colorScheme = isScheme(scheme) && scheme !== "light" ? scheme : undefined;
+const section = "section" in entry.render ? entry.render.section : null;
+const shown = "component" in entry.render ? entry.render : null;
+const Component = shown?.component;
+const locale = getRenderLocale(Astro);
+
+Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
+---
+
+<html lang={getHtmlLang(locale)} data-locale={locale.path} data-color-scheme={colorScheme}>
+  <head>
+    <ClientRouter />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{entry.group}: {entry.title}</title>
+    <link
+      rel="preload"
+      href="/fonts/ArchivoNarrow-Variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <ScriptMeasurements />
+    <ScriptAnimations />
+  </head>
+  <body>
+    {section && <SectionsRenderer sections={[section]} />}
+    {Component &&
+      (shown?.padded ? (
+        <div class="g-section-md">
+          <div class="g-page-margin">
+            <Component {...shown?.props} />
+          </div>
+        </div>
+      ) : (
+        <Component {...shown?.props} />
+      ))}
+    <Grid />
+  </body>
+</html>

@@ -20,12 +20,7 @@ export const $cart = persistentJSON<CartFragment | undefined>(getCartStorageKey(
 // Last mutation's failure, for the cart UI to announce; cleared by the next success.
 export const $cartError = atom<string | null>(null);
 
-export const $cartCount = computed($cart, (cart): number => {
-  if (!cart?.lines?.edges) return 0;
-  return cart.lines.edges.reduce((sum, edge) => {
-    return sum + (edge.node.__typename === "CartLine" ? edge.node.quantity : 0);
-  }, 0);
-});
+export const $cartCount = computed($cart, (cart): number => cart?.totalQuantity ?? 0);
 
 export const $cartTotal = computed(
   $cart,
@@ -43,12 +38,7 @@ export const $checkoutUrl = computed($cart, (cart): string | null => {
   return cart.checkoutUrl;
 });
 
-export const $cartLines = computed($cart, (cart): CartLineFragment[] => {
-  if (!cart?.lines?.edges) return [];
-  return cart.lines.edges
-    .filter((edge) => edge.node.__typename === "CartLine")
-    .map((edge) => edge.node as CartLineFragment);
-});
+export const $cartLines = computed($cart, (cart): CartLineFragment[] => cart?.lines.nodes ?? []);
 
 function getStoredCountryCode() {
   return getCountryCode(getStoredLocale());
@@ -66,7 +56,7 @@ export async function loadCart(): Promise<void> {
   try {
     const { cart } = await shopifyClient.request(cartByIdQuery, {
       cartId,
-      countryCode: getStoredCountryCode(),
+      country: getStoredCountryCode(),
     });
     // Expired or completed carts come back null.
     $cart.set(cart ?? undefined);
@@ -78,12 +68,12 @@ export async function loadCart(): Promise<void> {
 async function createCart(variantId: string, quantity: number = 1): Promise<void> {
   try {
     const { cartCreate } = await shopifyClient.request(cartCreateMutation, {
-      cartInput: {
+      input: {
         lines: [{ merchandiseId: variantId, quantity }],
         // Fixes checkout currency to the market; @inContext alone only prices the response.
         buyerIdentity: { countryCode: getStoredCountryCode() },
       },
-      countryCode: getStoredCountryCode(),
+      country: getStoredCountryCode(),
     });
 
     applyCartPayload(cartCreate, variantId);
@@ -104,7 +94,7 @@ export async function addToCart(variantId: string, quantity: number = 1): Promis
     const { cartLinesAdd } = await shopifyClient.request(cartLinesAddMutation, {
       cartId,
       lines: [{ merchandiseId: variantId, quantity }],
-      countryCode: getStoredCountryCode(),
+      country: getStoredCountryCode(),
     });
     applyCartPayload(cartLinesAdd, variantId);
   } catch (error) {
@@ -120,7 +110,7 @@ export async function updateLineQuantity(lineId: string, quantity: number): Prom
     const { cartLinesUpdate } = await shopifyClient.request(cartLinesUpdateMutation, {
       cartId,
       lines: [{ id: lineId, quantity }],
-      countryCode: getStoredCountryCode(),
+      country: getStoredCountryCode(),
     });
     applyCartPayload(cartLinesUpdate);
   } catch (error) {
@@ -136,7 +126,7 @@ export async function removeLine(lineId: string): Promise<void> {
     const { cartLinesRemove } = await shopifyClient.request(cartLinesRemoveMutation, {
       cartId,
       lineIds: [lineId],
-      countryCode: getStoredCountryCode(),
+      country: getStoredCountryCode(),
     });
     applyCartPayload(cartLinesRemove);
   } catch (error) {
@@ -156,9 +146,7 @@ const GENERIC_ERROR = "Something went wrong updating your cart. Please try again
 const UNAVAILABLE_ERROR = "This item isn't available in your region.";
 
 function hasMerchandise(cart: CartFragment, variantId: string): boolean {
-  return cart.lines.edges.some(
-    (edge) => edge.node.__typename === "CartLine" && edge.node.merchandise.id === variantId,
-  );
+  return cart.lines.nodes.some((line) => line.merchandise.id === variantId);
 }
 
 function applyCartPayload(payload: CartPayload | null | undefined, addedVariantId?: string) {

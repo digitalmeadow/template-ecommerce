@@ -1,0 +1,86 @@
+---
+export const prerender = false;
+export const partial = true;
+
+import PriceDisplay from "@blocks/PriceDisplay.astro";
+import { predictiveSearchQuery } from "shopify/queries/search";
+import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
+import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
+import { getLocale, localizeHref } from "@lib/shopify/locale";
+import { resolveSanityHref } from "@lib/sanity/resolve";
+
+const RESULTS_PER_TYPE = 5;
+
+// Results for the header search as you type (`?q=&locale=`).
+const query = Astro.url.searchParams.get("q")?.trim() ?? "";
+const locale = getLocale(Astro.url.searchParams.get("locale") ?? undefined);
+Astro.locals.locale = locale;
+Astro.response.headers.set("cache-control", PRIVATE_CACHE_CONTROL);
+
+const { predictiveSearch } = query
+  ? await createBuyerShopifyClient(Astro.request).request(predictiveSearchQuery, {
+      query,
+      limit: RESULTS_PER_TYPE,
+      country: locale.country,
+      language: locale.language,
+    })
+  : { predictiveSearch: null };
+
+const searchHref = `${localizeHref("/search", locale)}?q=${encodeURIComponent(query)}`;
+const hasResults =
+  !!predictiveSearch &&
+  (predictiveSearch.products.length > 0 ||
+    predictiveSearch.collections.length > 0 ||
+    predictiveSearch.queries.length > 0);
+---
+
+<div class="predictive-search-results">
+  {hasResults && predictiveSearch ? (
+    <>
+      {predictiveSearch.queries.length > 0 && (
+        <ul class="queries">
+          {predictiveSearch.queries.map((suggestion) => (
+            <li>
+              <a
+                href={`${localizeHref("/search", locale)}?q=${encodeURIComponent(suggestion.text)}`}
+              >
+                {suggestion.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {predictiveSearch.products.length > 0 && (
+        <ul class="products">
+          {predictiveSearch.products.map((product) => (
+            <li>
+              <a href={localizeHref(resolveSanityHref("product", product.handle), locale)}>
+                <span>{product.title}</span>
+                <PriceDisplay
+                  amount={product.priceRange.minVariantPrice.amount}
+                  currency={product.priceRange.minVariantPrice.currencyCode}
+                />
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {predictiveSearch.collections.length > 0 && (
+        <ul class="collections">
+          {predictiveSearch.collections.map((collection) => (
+            <li>
+              <a href={localizeHref(resolveSanityHref("collection", collection.handle), locale)}>
+                {collection.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      <a class="view-all g-text-link" href={searchHref}>
+        View all results
+      </a>
+    </>
+  ) : (
+    query && <p class="empty">No results for “{query}”.</p>
+  )}
+</div>

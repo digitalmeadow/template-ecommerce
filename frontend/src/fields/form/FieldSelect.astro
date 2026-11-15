@@ -2,37 +2,20 @@
 interface Props {
   id: string;
   name: string;
-  label: string;
   placeholder: string;
   required: boolean;
   options: string[];
-  errorId?: string;
+  errorId: string;
 }
 
-const { id, name, label, placeholder, required, options, errorId }: Props = Astro.props;
+const { id, name, placeholder, required, options, errorId }: Props = Astro.props;
 ---
 
-<label class="visually-hidden" for={id}>
-  {label}
-</label>
-<select id={id} name={name} required={required} aria-describedby={errorId}>
-  <option value="">{placeholder}</option>
-  {options.map((option) => (
-    <option value={option}>{option}</option>
-  ))}
-</select>
-
-<style>
-  select {
-    padding: var(--s20) 0;
-    cursor: pointer;
-  }
-
-  select:has(option[value=""]:checked) {
-    opacity: 0.5;
-  }
-
-  select:focus-visible {
-    outline: none;
-  }
-</style>
+<div class="g-select">
+  <select id={id} name={name} required={required} aria-describedby={errorId}>
+    <option value="">{placeholder}</option>
+    {options.map((option) => (
+      <option value={option}>{option}</option>
+    ))}
+  </select>
+</div>

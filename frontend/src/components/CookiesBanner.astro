@@ -15,10 +15,10 @@ const { cookieConsentData }: Props = Astro.props;
     <div class="cookie-banner" data-banner>
       <PortableText value={cookieConsentData.messageRaw} />
       <div class="actions" data-actions>
-        <button class="text-link underline-color-orange" type="button" data-decline-button>
+        <button class="g-text-link g-underline-orange" type="button" data-decline-button>
           {cookieConsentData.declineLabel}
         </button>
-        <button class="text-link underline-color-green" type="button" data-accept-button>
+        <button class="g-text-link g-underline-green" type="button" data-accept-button>
           {cookieConsentData.acceptLabel}
         </button>
       </div>
@@ -28,6 +28,7 @@ const { cookieConsentData }: Props = Astro.props;
 
 <script>
   import { getConsent, setConsent } from "@lib/consent/consent";
+  import { isConsentRequired } from "@lib/consent/customerPrivacy";
 
   class CookieBannerElement extends HTMLElement {
     private banner!: HTMLElement;
@@ -42,10 +43,12 @@ const { cookieConsentData }: Props = Astro.props;
       this.acceptButton.addEventListener("click", this.handleAccept);
       this.declineButton.addEventListener("click", this.handleDecline);
 
+      this.hide();
+      // Only where the visitor's region needs an explicit choice (Shopify decides).
       if (getConsent() === null) {
-        this.show();
-      } else {
-        this.hide();
+        isConsentRequired().then((isRequired) => {
+          if (isRequired && getConsent() === null) this.show();
+        });
       }
     }
 
@@ -93,19 +96,18 @@ const { cookieConsentData }: Props = Astro.props;
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: var(--margin) var(--margin-dynamic);
-
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: var(--margin);
     text-align: center;
-
     background-color: var(--color-background);
+    border-top: var(--border-width-1) solid var(--color-rule);
   }
 
   .actions {
     display: flex;
-    gap: var(--s16);
     flex-wrap: wrap;
+    gap: var(--size-4);
   }
 </style>

@@ -18,13 +18,13 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 </overlay-root>
 
 <script>
+  import { lockScroll, unlockScroll } from "@lib/scrollLock";
   import { trapFocus } from "@lib/focus";
 
   class OverlayElement extends HTMLElement {
     private backdrop!: HTMLElement;
     private panel!: HTMLElement;
     private previouslyFocused: HTMLElement | null = null;
-    private previousScrollY: number = 0;
     isOpen: boolean = false;
 
     connectedCallback() {
@@ -49,34 +49,6 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
       if (this.isOpen) this.dismiss();
     }
 
-    lockScroll() {
-      this.previousScrollY = window.pageYOffset;
-      const scrollingElement = document.scrollingElement as HTMLElement | null;
-      if (scrollingElement) {
-        scrollingElement.style.overflow = "hidden";
-        scrollingElement.style.top = -this.previousScrollY + "px";
-        scrollingElement.style.position = "fixed";
-        scrollingElement.style.width = "100%";
-        scrollingElement.style.paddingRight = "var(--scrollbar)";
-      }
-    }
-
-    unlockScroll(restoreScroll = true) {
-      const scrollingElement = document.scrollingElement as HTMLElement | null;
-      if (scrollingElement) {
-        scrollingElement.style.overflow = "";
-        scrollingElement.style.top = "";
-        scrollingElement.style.position = "";
-        scrollingElement.style.width = "";
-        scrollingElement.style.paddingRight = "";
-        if (!restoreScroll) return;
-        const previousScrollBehavior = document.documentElement.style.scrollBehavior;
-        document.documentElement.style.scrollBehavior = "auto";
-        window.scrollTo(0, this.previousScrollY);
-        document.documentElement.style.scrollBehavior = previousScrollBehavior;
-      }
-    }
-
     open() {
       if (this.isOpen) return;
       this.isOpen = true;
@@ -91,7 +63,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 
       this.dispatchEvent(new CustomEvent("overlay:opened"));
       this.render();
-      this.lockScroll();
+      lockScroll();
     }
 
     handleCloseClick = () => {
@@ -123,7 +95,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 
       this.dispatchEvent(new CustomEvent("overlay:closed"));
       this.render();
-      this.unlockScroll();
+      unlockScroll();
     }
 
     // Navigating away: the new page owns scroll and focus, so close without restoring either.
@@ -137,7 +109,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 
       this.dispatchEvent(new CustomEvent("overlay:closed"));
       this.render();
-      this.unlockScroll(false);
+      unlockScroll();
     };
 
     toggle() {
@@ -208,77 +180,57 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
   .backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background-color: var(--alpha-50);
     opacity: 0;
     transition: opacity var(--transition-default);
-  }
-
-  overlay-root[data-state]:not([data-state="false"]) .backdrop {
-    opacity: 1;
   }
 
   .panel {
     position: fixed;
-
+    top: 0;
+    right: 0;
+    height: 100%;
     display: grid;
     grid-template-rows: auto 1fr;
-
+    padding: var(--margin);
     background-color: var(--color-background);
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     outline: none;
   }
 
   .panel.fullscreen {
-    top: 0;
-    right: 0;
-    height: 100%;
     width: 100%;
-    padding: var(--s24);
-
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-default);
   }
-  overlay-root[data-state]:not([data-state="false"]) .panel.fullscreen {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  @media (max-width: 32rem) {
-    .panel.fullscreen {
-      padding: var(--margin);
-    }
-  }
 
   .panel.right {
-    top: 0;
-    right: 0;
-    height: 100%;
-    width: 30rem;
-    padding: var(--margin);
-
+    width: var(--max-w-120);
     transform: translateX(100%);
     transition: transform var(--transition-default);
   }
-  overlay-root[data-state]:not([data-state="false"]) .panel.right {
-    transform: translateX(0);
+
+  overlay-root[data-state]:not([data-state="false"]) :is(.backdrop, .panel.fullscreen) {
+    opacity: 1;
+    pointer-events: auto;
   }
-  @media (max-width: 32rem) {
+
+  overlay-root[data-state]:not([data-state="false"]) .panel.right {
+    transform: none;
+  }
+
+  /* On phones the side panel becomes a sheet rising from the bottom. */
+  @media (max-width: 48rem) {
     .panel.right {
       top: auto;
       bottom: 0;
-
       width: 100%;
-      height: calc(100svh - var(--s120));
-      padding: var(--s20) var(--margin) var(--s40) var(--margin);
-
-      border-top-left-radius: var(--border-radius);
-      border-top-right-radius: var(--border-radius);
-
+      height: calc(100svh - var(--size-30));
+      padding-block: var(--size-5) var(--size-10);
+      border-top-left-radius: var(--radius-lg);
+      border-top-right-radius: var(--radius-lg);
       transform: translateY(100%);
-    }
-    overlay-root[data-state]:not([data-state="false"]) .panel.right {
-      transform: translateY(0);
     }
   }
 </style>

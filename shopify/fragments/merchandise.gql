@@ -1,7 +1,29 @@
 fragment Merchandise on ProductVariant {
-  ...ProductVariant
-
+  id
+  title
+  sku
+  availableForSale
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  price {
+    ...Money
+  }
+  compareAtPrice {
+    ...Money
+  }
+  image {
+    ...Image
+  }
   product {
-    ...Product
+    id
+    title
+    handle
+    vendor
+    featuredImage {
+      ...Image
+    }
   }
 }

@@ -1,5 +1,5 @@
 ---
-const columns = Array.from({ length: 24 });
+const columns = Array.from({ length: 16 });
 ---
 
 <div id="grid-visualizer" style="display: none;">
@@ -13,24 +13,29 @@ const columns = Array.from({ length: 24 });
 <style>
   .grid {
     position: fixed;
-    grid-area: 1 / 1 / -1 / -1;
-    z-index: 100;
     top: 0;
-    left: 50%;
-    width: var(--container-width);
-    height: 100vh;
+    left: var(--margin);
+    z-index: 100;
     display: grid;
     grid-template-columns: repeat(var(--column-count), 1fr);
     column-gap: var(--gutter);
+    width: var(--container-width);
+    height: 100vh;
     pointer-events: none;
-    transform: translateX(-50%);
-    mix-blend-mode: difference;
+    opacity: 0.12;
   }
 
   .column {
-    height: 100%;
     width: 100%;
-    background-color: #111111;
+    height: 100%;
+    background-color: var(--color-accent);
+  }
+
+  /* The grid has 4 columns below the breakpoint (tokens/grid.css). */
+  @media (max-width: 48rem) {
+    .column:nth-child(n + 5) {
+      display: none;
+    }
   }
 </style>
 

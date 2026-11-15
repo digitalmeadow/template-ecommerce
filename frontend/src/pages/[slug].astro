@@ -6,6 +6,7 @@ import { buildPagePaths, loadPageProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
 import { buildBreadcrumbSchema } from "@lib/sanity/structuredData";
 import { hasHeroHeading } from "@lib/sanity/sections";
+import { getRenderLocale } from "@lib/shopify/locale";
 
 export async function getStaticPaths() {
   return buildPagePaths();
@@ -19,10 +20,12 @@ const { pageData } = resolved;
 
 <PageLayout
   metaData={resolveMeta(pageData)}
-  jsonLd={[buildBreadcrumbSchema(Astro.url.pathname, pageData.title, Astro.site)]}
+  jsonLd={[
+    buildBreadcrumbSchema(Astro.url.pathname, pageData.title, Astro.site, getRenderLocale(Astro)),
+  ]}
 >
   {!hasHeroHeading(pageData.sections) && pageData.title && (
-    <h1 class="visually-hidden">{pageData.title}</h1>
+    <h1 class="g-sr-only">{pageData.title}</h1>
   )}
   <SectionsRenderer sections={pageData.sections} />
 </PageLayout>

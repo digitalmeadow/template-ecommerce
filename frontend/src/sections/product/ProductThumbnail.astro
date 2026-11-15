@@ -2,6 +2,7 @@
 import SanityMedia from "@fields/SanityMedia.astro";
 import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
 import { resolveSanityHref } from "@lib/sanity/resolve";
+import { localizeHref, getRenderLocale } from "@lib/shopify/locale";
 import ProductPrice from "./ProductPrice.astro";
 
 interface Props {
@@ -13,18 +14,26 @@ const { productData }: Props = Astro.props;
 const handle = productData.sanity.shopify?.handle?.current ?? productData.shopify.handle;
 ---
 
-<a href={resolveSanityHref("product", handle)}>
+<a href={localizeHref(resolveSanityHref("product", handle), getRenderLocale(Astro))}>
   <article
     class="product-thumbnail"
     data-product-root
-    data-prices={JSON.stringify(productData.pricesPerLocale)}
+    data-analytics-item={JSON.stringify({
+      id: productData.shopify.id,
+      title: productData.shopify.title,
+      price: productData.shopify.priceRange.minVariantPrice.amount,
+      currencyCode: productData.shopify.priceRange.minVariantPrice.currencyCode,
+    })}
   >
     <div class="media">
       <SanityMedia mediaData={productData.sanity.mediaThumbnail} layout="cover" />
     </div>
-    <h3 class="title">{productData.shopify?.title}</h3>
+    <h3 class="title g-heading-6">{productData.shopify?.title}</h3>
     <div class="price">
-      <ProductPrice />
+      <ProductPrice
+        priceRange={productData.shopify.priceRange}
+        compareAtPriceRange={productData.shopify.compareAtPriceRange}
+      />
     </div>
   </article>
 </a>
@@ -58,6 +67,6 @@ const handle = productData.sanity.shopify?.handle?.current ?? productData.shopif
   }
 
   .title {
-    margin-top: var(--s4);
+    margin-top: var(--size-1);
   }
 </style>

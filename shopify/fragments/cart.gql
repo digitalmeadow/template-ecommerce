@@ -1,39 +1,62 @@
 fragment Cart on Cart {
   id
+  updatedAt
+  checkoutUrl
+  totalQuantity
+  note
+  attributes {
+    key
+    value
+  }
   buyerIdentity {
     countryCode
   }
-  checkoutUrl
+  cost {
+    subtotalAmount {
+      ...Money
+    }
+    totalAmount {
+      ...Money
+    }
+  }
   discountCodes {
     applicable
     code
   }
-  cost {
-    totalAmount {
+  appliedGiftCards {
+    id
+    lastCharacters
+    amountUsed {
       ...Money
     }
   }
-  lines(first: 20) {
-    edges {
-      node {
-        ...CartLine
-      }
+  lines(first: 100) {
+    nodes {
+      ...CartLine
     }
   }
 }
 
-fragment CartLine on CartLine {
-  __typename
+fragment CartLine on BaseCartLine {
   id
-
   quantity
-  discountAllocations {
-    discountedAmount {
-      ...Money
-    }
+  attributes {
+    key
+    value
   }
   cost {
     totalAmount {
+      ...Money
+    }
+    amountPerQuantity {
+      ...Money
+    }
+    compareAtAmountPerQuantity {
+      ...Money
+    }
+  }
+  discountAllocations {
+    discountedAmount {
       ...Money
     }
   }

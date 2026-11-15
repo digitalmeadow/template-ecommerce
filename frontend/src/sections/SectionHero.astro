@@ -14,16 +14,13 @@ const characters = (section.heading ?? "").trim().split("");
 
 <section
   data-color-scheme={section.colorScheme ?? undefined}
-  class="section-hero u-container"
+  class="section-hero g-page-margin"
   id={section.id ?? undefined}
 >
   <FontSizeFillWidth>
     <h1 data-text-animate-colors aria-label={section.heading}>
       {characters.map((char) => (
-        // The reset makes spans inline-flex, which collapses a lone space to zero width.
-        <span class="text-inherit" aria-hidden="true">
-          {char === " " ? "\u00a0" : char}
-        </span>
+        <span aria-hidden="true">{char}</span>
       ))}
     </h1>
   </FontSizeFillWidth>
@@ -31,27 +28,28 @@ const characters = (section.heading ?? "").trim().split("");
 
 <style>
   .section-hero {
-    margin-top: var(--s200);
-    margin-bottom: var(--s40);
-  }
-  @media (max-width: 64rem) {
-    .section-hero {
-      margin-top: calc(var(--s200) + var(--s24));
-    }
+    padding-block: var(--size-40) var(--size-10);
   }
 
   h1 {
     text-transform: uppercase;
+    white-space: pre;
+  }
+
+  @media (max-width: 48rem) {
+    .section-hero {
+      padding-top: calc(var(--size-40) + var(--size-6));
+    }
   }
 </style>
 
 <script>
   const COLORS = [
-    "var(--color-green)",
-    "var(--color-blue)",
-    "var(--color-purple)",
-    "var(--color-yellow)",
-    "var(--color-orange)",
+    "var(--color-highlight-green)",
+    "var(--color-highlight-blue)",
+    "var(--color-highlight-purple)",
+    "var(--color-highlight-yellow)",
+    "var(--color-highlight-orange)",
   ];
 
   let cleanups: (() => void)[] = [];

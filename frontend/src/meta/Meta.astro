@@ -1,11 +1,14 @@
 ---
 import type { MetaSettingsFragment } from "sanity/generated/graphql";
 import { truncate, type ResolvedMeta } from "@lib/sanity/meta";
+import { getHtmlLang, LOCALE_LIST, localizeHref, type Locale } from "@lib/shopify/locale";
 
 interface Props {
   metaData: ResolvedMeta | null | undefined;
   metaSettingsData: MetaSettingsFragment | null | undefined;
-  locale: string;
+  locale: Locale;
+  /* The page's path in its own locale. */
+  pathname: string;
   siteName?: string | null;
   /* Last-resort description, so no page ever ships without one. */
   organisationDescription?: string | null;
@@ -17,6 +20,7 @@ const {
   metaData,
   metaSettingsData,
   locale,
+  pathname,
   siteName,
   organisationDescription,
   ogType = "website",
@@ -34,7 +38,13 @@ const description =
 const image = metaData?.image || metaSettingsData?.meta?.image;
 
 // Astro.site (not an env var) so canonicals can never drift from the sitemap.
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const canonicalUrl = new URL(pathname, Astro.site).href;
+
+const alternates = LOCALE_LIST.map((alternateLocale) => ({
+  hreflang: getHtmlLang(alternateLocale),
+  href: new URL(localizeHref(pathname, alternateLocale), Astro.site).href,
+}));
+const defaultAlternate = alternates[0];
 
 // Sanity asset URLs are already absolute; the static fallback is not.
 const imageUrl = image?.asset?.url ?? new URL("/og.jpg", Astro.site).href;
@@ -50,7 +60,7 @@ const imageAlt = image?.asset?.altText || title;
 <meta property="og:image" content={imageUrl} />
 <meta property="og:image:alt" content={imageAlt} />
 <meta property="og:url" content={canonicalUrl} />
-<meta property="og:locale" content={locale.replace("-", "_")} />
+<meta property="og:locale" content={getHtmlLang(locale).replace("-", "_")} />
 {siteName && <meta property="og:site_name" content={siteName} />}
 
 <meta name="twitter:card" content="summary_large_image" />
@@ -59,4 +69,11 @@ const imageAlt = image?.asset?.altText || title;
 <meta name="twitter:image" content={imageUrl} />
 
 <link rel="canonical" href={canonicalUrl} />
+{alternates.length > 1 &&
+  alternates.map((alternate) => (
+    <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+  ))}
+{alternates.length > 1 && defaultAlternate && (
+  <link rel="alternate" hreflang="x-default" href={defaultAlternate.href} />
+)}
 {noindex && <meta name="robots" content="noindex, nofollow" />}

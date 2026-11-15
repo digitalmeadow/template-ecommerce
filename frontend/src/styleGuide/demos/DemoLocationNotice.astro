@@ -1,0 +1,28 @@
+---
+// The notice needs a geo header, which dev and the preview site don't have, so it's shown here
+// suggesting the first other locale.
+import LocationNotice from "@components/LocationNotice.astro";
+import { locationNotice } from "../fixtures/settings";
+---
+
+<LocationNotice locationNoticeData={locationNotice} waitForConsent={false} />
+
+<script>
+  import { LOCALE_LIST, getPageLocale } from "@lib/shopify/locale";
+  import { fillMarket } from "@lib/shopify/geo";
+
+  document.addEventListener("astro:page-load", async () => {
+    await customElements.whenDefined("location-notice");
+    const current = getPageLocale();
+    const suggestion = LOCALE_LIST.find((locale) => locale !== current) ?? current;
+
+    document.querySelectorAll<HTMLElement>("location-notice").forEach((notice) => {
+      const message = notice.querySelector("[data-message]");
+      const switchButton = notice.querySelector("[data-switch]");
+      if (message) message.textContent = fillMarket(notice.dataset.message, suggestion);
+      if (switchButton)
+        switchButton.textContent = fillMarket(notice.dataset.switchLabel, suggestion);
+      notice.dataset.visible = "";
+    });
+  });
+</script>

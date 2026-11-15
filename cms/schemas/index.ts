@@ -24,6 +24,8 @@ import { formField } from "./fields/formField";
 import { formGroup } from "./fields/formGroup";
 import { formConsent } from "./fields/formConsent";
 import { form } from "./documents/form";
+import { formAnswer } from "./fields/formAnswer";
+import { formSubmission } from "./documents/formSubmission";
 import { sectionSchemas } from "./sections/sections";
 import { announcementBanner } from "./settings/announcementBanner";
 import { cookieConsent } from "./settings/cookieConsent";
@@ -44,6 +46,7 @@ export const schemaTypes = [
   formField,
   formGroup,
   formConsent,
+  formAnswer,
 
   ...sectionSchemas,
 
@@ -53,6 +56,7 @@ export const schemaTypes = [
   productVariant,
   collection,
   form,
+  formSubmission,
 
   metaSettings,
   organisationSettings,

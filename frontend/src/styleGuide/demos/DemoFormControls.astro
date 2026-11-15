@@ -1,0 +1,48 @@
+---
+// Native controls inside the global form classes: rest, invalid and disabled.
+---
+
+<div class="g-grid-cols-2 g-gap-10">
+  <label class="g-form-field">
+    Text
+    <input type="text" placeholder="Placeholder" />
+  </label>
+  <label class="g-form-field">
+    Dropdown
+    <select>
+      <option>Order</option>
+      <option>Returns</option>
+    </select>
+  </label>
+  <label class="g-form-field">
+    Invalid
+    <input type="email" value="rider@" aria-invalid="true" />
+    <span class="g-form-error g-text-small">Enter a valid email address.</span>
+  </label>
+  <label class="g-form-field">
+    Disabled
+    <input type="text" placeholder="Placeholder" disabled />
+  </label>
+  <label class="g-form-field">
+    Long text
+    <textarea placeholder="How can we help?"></textarea>
+  </label>
+  <fieldset class="g-form-field">
+    <legend>Choices</legend>
+    <label class="g-form-choice">
+      <input type="checkbox" checked /> Checked
+    </label>
+    <label class="g-form-choice">
+      <input type="checkbox" /> Unchecked
+    </label>
+    <label class="g-form-choice">
+      <input type="radio" name="sg-radio" checked /> Selected
+    </label>
+    <label class="g-form-choice">
+      <input type="radio" name="sg-radio" /> Not selected
+    </label>
+    <label class="g-form-choice">
+      <input type="checkbox" checked disabled /> Disabled
+    </label>
+  </fieldset>
+</div>

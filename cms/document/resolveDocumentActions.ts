@@ -18,6 +18,11 @@ export function resolveDocumentActions(
       return action.action !== "duplicate";
     }
 
+    // A record of what was sent: it can be deleted, never edited or re-published.
+    if (schemaType === "formSubmission") {
+      return action.action === "delete";
+    }
+
     if (schemaType === "productVariant") {
       return action.action !== "duplicate" && action.action !== "unpublish";
     }

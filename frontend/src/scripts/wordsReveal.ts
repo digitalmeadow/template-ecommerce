@@ -1,5 +1,5 @@
 import { interpolate, scroll } from "motion";
-import { clamp01, damp, easeOutCubicFn } from "@styles/animations";
+import { clamp01, damp, easeOutFn } from "@lib/animations";
 import { splitIntoWords } from "@utils/splitIntoWords";
 
 // Share of total progress a single word spends fading — the wider it is, the more words
@@ -54,7 +54,7 @@ const buildWordPainter = (layout: HTMLElement) => {
   const mixers = words.map((_, wordIndex) => {
     const start = wordIndex * step;
     const end = Math.min(start + WORD_FADE_WINDOW, 1);
-    return interpolate([start, end], [MUTED_OPACITY, 1], { ease: easeOutCubicFn });
+    return interpolate([start, end], [MUTED_OPACITY, 1], { ease: easeOutFn });
   });
 
   return (progress: number) => {

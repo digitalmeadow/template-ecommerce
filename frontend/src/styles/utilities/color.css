@@ -1,0 +1,45 @@
+/* Role colours, so they follow the section's data-color-scheme. To theme a whole section, set the
+   scheme rather than these. */
+.g-text-color-default {
+  color: var(--color-text);
+}
+
+.g-text-color-muted {
+  color: var(--color-text-muted);
+}
+
+.g-text-color-subtle {
+  color: var(--color-text-subtle);
+}
+
+.g-text-color-accent {
+  color: var(--color-accent);
+}
+
+.g-text-color-error {
+  color: var(--color-error);
+}
+
+.g-text-color-inverse {
+  color: var(--color-inverse-text);
+}
+
+.g-background-color-default {
+  background-color: var(--color-background);
+}
+
+.g-background-color-surface {
+  background-color: var(--color-surface);
+}
+
+.g-background-color-surface-strong {
+  background-color: var(--color-surface-strong);
+}
+
+.g-background-color-accent {
+  background-color: var(--color-accent);
+}
+
+.g-background-color-inverse {
+  background-color: var(--color-inverse-background);
+}

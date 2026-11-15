@@ -1,49 +1,41 @@
 ---
-import { DEFAULT_LOCALE, LOCALE_CONFIG } from "@lib/shopify/locale";
+import { LOCALE_LIST, getRenderLocale } from "@lib/shopify/locale";
 import { getLocalization } from "@lib/shopify/localization";
 
-const currentLocale = DEFAULT_LOCALE;
+const currentLocale = getRenderLocale(Astro);
 
-const localization = await getLocalization();
-const availableCountries = localization.availableCountries;
-
-const localeOptions = Object.entries(LOCALE_CONFIG)
-  .filter(([_, config]) =>
-    availableCountries.some(
-      (country) =>
-        country.isoCode === config.country && country.currency.isoCode === config.currency,
-    ),
-  )
-  .map(([locale, config]) => ({
-    locale,
-    label: `${config.label} (${config.currency})`,
-  }));
+// Only markets Shopify serves; the currency label is Shopify's, never configured.
+const { availableCountries } = await getLocalization();
+const localeOptions = LOCALE_LIST.flatMap((locale) => {
+  const country = availableCountries.find((available) => available.isoCode === locale.country);
+  return country
+    ? [{ path: locale.path, label: `${locale.label} (${country.currency.isoCode})` }]
+    : [];
+});
 ---
 
-<locale-selector>
-  <select aria-label="Select market">
-    {localeOptions.map((option) => (
-      <option value={option.locale} selected={option.locale === currentLocale}>
-        {option.label}
-      </option>
-    ))}
-  </select>
-</locale-selector>
+{localeOptions.length > 1 && (
+  <locale-selector class="g-select">
+    <select aria-label="Select market">
+      {localeOptions.map((option) => (
+        <option value={option.path} selected={option.path === currentLocale.path}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </locale-selector>
+)}
 
 <script>
-  import { isValidLocale, LOCALE_STORAGE_KEY } from "@lib/shopify/locale";
+  import { getLocale, getPageLocale, switchLocale } from "@lib/shopify/locale";
 
   class LocaleSelectorElement extends HTMLElement {
     private select!: HTMLSelectElement;
 
     connectedCallback() {
       this.select = this.querySelector("select") as HTMLSelectElement;
-
-      const storedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
-      if (storedLocale && isValidLocale(storedLocale)) {
-        this.select.value = storedLocale;
-      }
-
+      // The header persists across navigations; resync in case it was rendered for another page.
+      this.select.value = getPageLocale().path;
       this.select.addEventListener("change", this.handleChange);
     }
 
@@ -52,8 +44,7 @@ const localeOptions = Object.entries(LOCALE_CONFIG)
     }
 
     private handleChange = () => {
-      localStorage.setItem(LOCALE_STORAGE_KEY, this.select.value);
-      window.location.reload();
+      switchLocale(getLocale(this.select.value));
     };
   }
 

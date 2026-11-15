@@ -1,0 +1,191 @@
+/* Page grid: 16 columns, 4 on mobile. g-col-N spans N, g-offset-N skips N. On mobile every column
+   spans the full width unless it has an -sm class. */
+.g-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--column-count), minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+/* Nested grid on the page grid's own columns: give it a span, then place children with g-col/g-offset. */
+.g-subgrid {
+  display: grid;
+  grid-template-columns: subgrid;
+}
+.g-col-1 {
+  grid-column-end: span 1;
+}
+.g-col-2 {
+  grid-column-end: span 2;
+}
+.g-col-3 {
+  grid-column-end: span 3;
+}
+.g-col-4 {
+  grid-column-end: span 4;
+}
+.g-col-5 {
+  grid-column-end: span 5;
+}
+.g-col-6 {
+  grid-column-end: span 6;
+}
+.g-col-7 {
+  grid-column-end: span 7;
+}
+.g-col-8 {
+  grid-column-end: span 8;
+}
+.g-col-9 {
+  grid-column-end: span 9;
+}
+.g-col-10 {
+  grid-column-end: span 10;
+}
+.g-col-11 {
+  grid-column-end: span 11;
+}
+.g-col-12 {
+  grid-column-end: span 12;
+}
+.g-col-13 {
+  grid-column-end: span 13;
+}
+.g-col-14 {
+  grid-column-end: span 14;
+}
+.g-col-15 {
+  grid-column-end: span 15;
+}
+.g-col-16 {
+  grid-column-end: span 16;
+}
+.g-offset-1 {
+  grid-column-start: 2;
+}
+.g-offset-2 {
+  grid-column-start: 3;
+}
+.g-offset-3 {
+  grid-column-start: 4;
+}
+.g-offset-4 {
+  grid-column-start: 5;
+}
+.g-offset-5 {
+  grid-column-start: 6;
+}
+.g-offset-6 {
+  grid-column-start: 7;
+}
+.g-offset-7 {
+  grid-column-start: 8;
+}
+.g-offset-8 {
+  grid-column-start: 9;
+}
+.g-offset-9 {
+  grid-column-start: 10;
+}
+.g-offset-10 {
+  grid-column-start: 11;
+}
+.g-offset-11 {
+  grid-column-start: 12;
+}
+.g-offset-12 {
+  grid-column-start: 13;
+}
+.g-offset-13 {
+  grid-column-start: 14;
+}
+.g-offset-14 {
+  grid-column-start: 15;
+}
+.g-offset-15 {
+  grid-column-start: 16;
+}
+/* Equal columns, independent of the page grid. */
+.g-grid-cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+.g-grid-cols-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+.g-grid-cols-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+@media (max-width: 48rem) {
+  .g-col-1,
+  .g-col-2,
+  .g-col-3,
+  .g-col-4,
+  .g-col-5,
+  .g-col-6,
+  .g-col-7,
+  .g-col-8,
+  .g-col-9,
+  .g-col-10,
+  .g-col-11,
+  .g-col-12,
+  .g-col-13,
+  .g-col-14,
+  .g-col-15,
+  .g-col-16,
+  .g-offset-1,
+  .g-offset-2,
+  .g-offset-3,
+  .g-offset-4,
+  .g-offset-5,
+  .g-offset-6,
+  .g-offset-7,
+  .g-offset-8,
+  .g-offset-9,
+  .g-offset-10,
+  .g-offset-11,
+  .g-offset-12,
+  .g-offset-13,
+  .g-offset-14,
+  .g-offset-15 {
+    grid-column: auto / span var(--column-count);
+  }
+  .g-col-sm-1 {
+    grid-column-end: span 1;
+  }
+  .g-col-sm-2 {
+    grid-column-end: span 2;
+  }
+  .g-col-sm-3 {
+    grid-column-end: span 3;
+  }
+  .g-col-sm-4 {
+    grid-column-end: span 4;
+  }
+  .g-offset-sm-0 {
+    grid-column-start: auto;
+  }
+  .g-offset-sm-1 {
+    grid-column-start: 2;
+  }
+  .g-offset-sm-2 {
+    grid-column-start: 3;
+  }
+  .g-offset-sm-3 {
+    grid-column-start: 4;
+  }
+  .g-order-sm-first {
+    order: -1;
+  }
+  .g-order-sm-last {
+    order: 1;
+  }
+  .g-grid-cols-2,
+  .g-grid-cols-3,
+  .g-grid-cols-4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

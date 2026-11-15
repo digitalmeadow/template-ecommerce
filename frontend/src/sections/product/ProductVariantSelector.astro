@@ -1,7 +1,12 @@
 ---
 import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import { shopifyIdFromGid } from "shopify/utils/ids";
-import { DEFAULT_VARIANT_TITLE, type Variant } from "@lib/shopify/variants";
+import {
+  getInitialVariant,
+  isSingleDefaultVariant,
+  toSelection,
+  type Variant,
+} from "@lib/shopify/variants";
 
 interface Props {
   productData: ProductShopifySanity;
@@ -9,138 +14,172 @@ interface Props {
 
 const { productData }: Props = Astro.props;
 
-const options = productData.shopify.options || [];
-const variants = productData.shopify.variants.edges;
-const isSingleDefaultVariant =
-  variants.length === 1 && variants[0].node.title === DEFAULT_VARIANT_TITLE;
-
-const variantsForMatching: Variant[] = variants.map((edge) => ({
-  id: edge.node.id,
-  selectedOptions: edge.node.selectedOptions,
-  availableForSale: edge.node.availableForSale,
+const options = productData.shopify.options;
+const variants: Variant[] = productData.shopify.variants.nodes.map((variant) => ({
+  id: variant.id,
+  title: variant.title,
+  selectedOptions: variant.selectedOptions,
+  availableForSale: variant.availableForSale,
+  quantityAvailable: variant.quantityAvailable,
+  price: variant.price,
+  compareAtPrice: variant.compareAtPrice,
 }));
 
+// Static HTML opens on the first available variant; the script then applies any URL selection.
+const initialVariant = getInitialVariant(variants);
+const initialSelection = initialVariant ? toSelection(initialVariant) : {};
 const shopifyId = shopifyIdFromGid(productData.shopify.id);
 ---
 
-<div
-  class="variant-selector"
-  data-variant-selector
-  data-variants={JSON.stringify(variantsForMatching)}
->
-  {!isSingleDefaultVariant &&
+<div class="variant-selector" data-variant-selector data-variants={JSON.stringify(variants)}>
+  {!isSingleDefaultVariant(variants) &&
     options.map((option) => {
       const radioIdPrefix = `${shopifyId}-${option.name.toLowerCase()}`;
       return (
-        <fieldset class="option-fieldset">
+        <fieldset>
           <legend>{option.name}:</legend>
           <div class="option-values">
-            {option.values.map((value) => (
-              <label
-                class="text-link"
-                for={`${radioIdPrefix}-${value}`}
-                data-active={value === option.values[0] ? "" : undefined}
-              >
-                <input
-                  class="visually-hidden"
-                  type="radio"
-                  name={option.name}
-                  id={`${radioIdPrefix}-${value}`}
-                  data-option-input
-                  data-option-name={option.name}
-                  value={value}
-                  checked={value === option.values[0]}
-                />
-                {value}
-              </label>
-            ))}
+            {option.optionValues.map((optionValue) => {
+              const isChecked = initialSelection[option.name] === optionValue.name;
+              const swatchImage = optionValue.swatch?.image?.previewImage?.url;
+              const swatchColor = optionValue.swatch?.color;
+              return (
+                <label
+                  class="g-text-link-hover"
+                  for={`${radioIdPrefix}-${optionValue.name}`}
+                  data-active={isChecked ? "" : undefined}
+                >
+                  <input
+                    class="g-sr-only"
+                    type="radio"
+                    name={option.name}
+                    id={`${radioIdPrefix}-${optionValue.name}`}
+                    data-option-input
+                    value={optionValue.name}
+                    checked={isChecked}
+                  />
+                  {swatchImage ? (
+                    <img class="swatch" src={swatchImage} alt="" />
+                  ) : swatchColor ? (
+                    <span class="swatch" style={`--swatch-color: ${swatchColor}`} />
+                  ) : null}
+                  {optionValue.name}
+                </label>
+              );
+            })}
           </div>
         </fieldset>
       );
     })}
-  <input type="hidden" data-variant-id />
+  <input type="hidden" name="merchandiseId" value={initialVariant?.id} data-variant-id />
 </div>
 
 <script>
-  import type { Variant } from "@lib/shopify/variants";
-  import type { EventProductVariantChangeDetail } from "@lib/events";
+  import {
+    findVariant,
+    getInitialVariant,
+    resolveVariant,
+    toSelection,
+    type Variant,
+  } from "@lib/shopify/variants";
+  import type { EventProductLiveData, EventProductVariantChangeDetail } from "@lib/events";
 
   function initialiseVariantSelector(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
     if (!productRoot) throw new Error("ProductVariantSelector: missing [data-product-root]");
 
     const optionInputs = Array.from(
-      rootElement.querySelectorAll("[data-option-input]"),
-    ) as HTMLInputElement[];
+      rootElement.querySelectorAll<HTMLInputElement>("[data-option-input]"),
+    );
     const variantIdInput = rootElement.querySelector("[data-variant-id]") as HTMLInputElement;
+    const optionNames = [...new Set(optionInputs.map((input) => input.name))];
 
-    const variantsJson = rootElement.dataset.variants;
-    if (!variantsJson) throw new Error("ProductVariantSelector: missing variants data");
-    const variants: Variant[] = JSON.parse(variantsJson);
+    let variants = JSON.parse(rootElement.dataset.variants ?? "[]") as Variant[];
+    let selected = getInitialVariant(variants);
+    if (!selected) return () => {};
 
-    function getSelectedOptions() {
-      const checkedInputs = optionInputs.filter((input) => input.checked);
-      return checkedInputs.map((input) => ({
-        name: input.dataset.optionName!,
-        value: input.value,
-      }));
-    }
+    // `?Color=Red&Size=M`, or Liquid's `?variant=<id>` from Shopify emails and old links.
+    function readUrlVariant(): Variant | undefined {
+      const params = new URLSearchParams(window.location.search);
+      const variantId = params.get("variant");
+      if (variantId) return variants.find((variant) => variant.id.endsWith(`/${variantId}`));
 
-    function findMatchingVariant() {
-      const selectedOptions = getSelectedOptions();
-
-      const uniqueOptionNames = new Set(optionInputs.map((input) => input.dataset.optionName));
-      if (selectedOptions.length < uniqueOptionNames.size) return null;
-
-      const variant = variants.find((candidate) =>
-        selectedOptions.every((selected) =>
-          candidate.selectedOptions.some(
-            (option) => option.name === selected.name && option.value === selected.value,
-          ),
-        ),
+      const urlSelection = Object.fromEntries(
+        optionNames.flatMap((name) => (params.has(name) ? [[name, params.get(name)!]] : [])),
       );
-
-      return variant || null;
+      if (!Object.keys(urlSelection).length || !selected) return undefined;
+      return findVariant(variants, { ...toSelection(selected), ...urlSelection });
     }
 
-    function updateVariantId() {
-      const variant = findMatchingVariant();
-      if (!variant) return;
+    function writeUrl(variant: Variant) {
+      if (!optionNames.length) return;
+      const url = new URL(window.location.href);
+      url.searchParams.delete("variant");
+      for (const [name, value] of Object.entries(toSelection(variant))) {
+        url.searchParams.set(name, value);
+      }
+      history.replaceState(history.state, "", url);
+    }
 
-      variantIdInput.value = variant.id;
+    function renderOptions(variant: Variant) {
+      const selection = toSelection(variant);
+      for (const input of optionInputs) {
+        const candidate = findVariant(variants, { ...selection, [input.name]: input.value });
+        const label = input.closest("label");
+        input.checked = selection[input.name] === input.value;
+        label?.toggleAttribute("data-active", input.checked);
+        label?.setAttribute("data-exists", String(Boolean(candidate)));
+        label?.setAttribute("data-available", String(Boolean(candidate?.availableForSale)));
+      }
+    }
 
-      const detail: EventProductVariantChangeDetail = {
-        variantId: variant.id,
-        availableForSale: variant.availableForSale,
-      };
+    function emitVariant() {
+      if (!selected) return;
+      const detail: EventProductVariantChangeDetail = { variant: selected };
       productRoot.dispatchEvent(
-        new CustomEvent("product:variant-change", {
-          bubbles: true,
-          detail,
-        }),
+        new CustomEvent("product:variant-change", { bubbles: true, detail }),
       );
     }
 
-    function updateUI() {
-      optionInputs.forEach((input) => {
-        input.closest("label")?.toggleAttribute("data-active", input.checked);
-      });
+    function select(variant: Variant) {
+      selected = variant;
+      variantIdInput.value = variant.id;
+      renderOptions(variant);
+      emitVariant();
     }
 
-    function handleOptionChange() {
-      updateUI();
-      updateVariantId();
+    function handleOptionChange(event: Event) {
+      const input = event.target as HTMLInputElement;
+      if (!selected) return;
+      const variant = resolveVariant(variants, toSelection(selected), input.name, input.value);
+      if (!variant) return;
+      select(variant);
+      writeUrl(variant);
+    }
+
+    function handleLiveData(event: Event) {
+      const live = new Map(
+        (event as EventProductLiveData).detail.variants.map((variant) => [variant.id, variant]),
+      );
+      variants = variants.map((variant) => ({ ...variant, ...live.get(variant.id) }));
+      const current = variants.find((variant) => variant.id === selected?.id);
+      if (current) select(current);
     }
 
     optionInputs.forEach((input) => input.addEventListener("change", handleOptionChange));
-    productRoot.addEventListener("product:request-variant-update", updateVariantId);
+    productRoot.addEventListener("product:request-variant-update", emitVariant);
+    productRoot.addEventListener("product:live-data", handleLiveData);
 
-    updateUI();
-    updateVariantId();
+    const urlVariant = readUrlVariant();
+    select(urlVariant ?? selected);
+    if (urlVariant && new URLSearchParams(window.location.search).has("variant")) {
+      writeUrl(urlVariant);
+    }
 
     return () => {
       optionInputs.forEach((input) => input.removeEventListener("change", handleOptionChange));
-      productRoot.removeEventListener("product:request-variant-update", updateVariantId);
+      productRoot.removeEventListener("product:request-variant-update", emitVariant);
+      productRoot.removeEventListener("product:live-data", handleLiveData);
     };
   }
 
@@ -163,22 +202,40 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
   .variant-selector {
     display: flex;
     flex-direction: column;
-    gap: var(--s16);
+    gap: var(--size-4);
   }
 
-  .option-fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
+  legend {
+    margin-bottom: var(--size-2);
   }
 
   .option-values {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--s8);
+    gap: var(--size-2);
   }
 
   label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-1);
     cursor: pointer;
+  }
+
+  /* No variant with this value alongside the current selection; picking it switches the others. */
+  label[data-exists="false"] {
+    color: var(--color-text-subtle);
+  }
+
+  label[data-exists="true"][data-available="false"] {
+    text-decoration-line: line-through;
+  }
+
+  .swatch {
+    width: 1em;
+    height: 1em;
+    border-radius: var(--radius-full);
+    background-color: var(--swatch-color);
+    object-fit: cover;
   }
 </style>

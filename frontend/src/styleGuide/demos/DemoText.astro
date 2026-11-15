@@ -1,0 +1,23 @@
+---
+import { lorem } from "../fixtures/content";
+
+const sizes = ["large", "medium", "regular", "small", "tiny"] as const;
+---
+
+<div class="g-flex-column g-gap-10">
+  {sizes.map((size) => (
+    <div class="g-flex-column g-gap-2-5">
+      <p class="g-text-tiny g-text-color-muted">.g-text-{size}</p>
+      <p class={`g-text-${size} g-max-w-160`}>{lorem.medium}</p>
+    </div>
+  ))}
+  <div class="g-flex-row g-flex-wrap g-gap-5 g-rule g-pt-10">
+    <span class="g-font-weight-regular">Regular</span>
+    <span class="g-font-weight-bold">Bold</span>
+    <span class="g-text-italic">Italic</span>
+    <span class="g-text-uppercase">Uppercase</span>
+    <span class="g-text-color-muted">Muted</span>
+    <span class="g-text-color-subtle">Subtle</span>
+    <span class="g-text-color-error">Error</span>
+  </div>
+</div>

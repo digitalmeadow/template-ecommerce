@@ -9,16 +9,29 @@ fragment CollectionCore on Collection {
 fragment Collection on Collection {
   ...CollectionCore
 
-  products(first: 42, after: $productCursor, sortKey: MANUAL) {
-    edges {
-      cursor
-      node {
-        ...Product
-      }
+  products(first: $first, after: $after, filters: $filters, sortKey: $sortKey, reverse: $reverse) {
+    filters {
+      ...ProductFilterGroup
+    }
+    nodes {
+      ...ProductCard
     }
     pageInfo {
       hasNextPage
       endCursor
     }
+  }
+}
+
+# A facet and its values; each value's `input` is the ProductFilter that selects it.
+fragment ProductFilterGroup on Filter {
+  id
+  label
+  type
+  values {
+    id
+    label
+    count
+    input
   }
 }

@@ -20,7 +20,7 @@
 
 <script>
   import { animate } from "motion";
-  import { easeOutCubic } from "@styles/animations";
+  import { easeOut } from "@lib/animations";
 
   class FilterElement extends HTMLElement {
     private optionInputs: HTMLInputElement[] = [];
@@ -126,10 +126,10 @@
       }
 
       const token = ++this.fadeToken;
-      animate(fade, { opacity: 0 }, { duration: 0.15, ease: easeOutCubic }).finished.then(() => {
+      animate(fade, { opacity: 0 }, { duration: 0.15, ease: easeOut }).finished.then(() => {
         if (token !== this.fadeToken) return;
         this.applyMatches();
-        animate(fade, { opacity: 1 }, { duration: 0.25, ease: easeOutCubic });
+        animate(fade, { opacity: 1 }, { duration: 0.25, ease: easeOut });
       });
     }
 

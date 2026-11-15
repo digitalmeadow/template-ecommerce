@@ -18,50 +18,29 @@
     },
   },
   // Every `context: "client"` var in astro.config.mjs is inlined at build time, so only the
-  // server secrets below are read at runtime. `secrets.required` fails the deploy if CI has not
-  // uploaded them; it isn't inherited, so it's repeated per environment.
+  // server secrets below are read at runtime. `secrets.required` fails the deploy if the Worker
+  // lacks them; it isn't inherited, so it's repeated per environment.
+  // Each env is its own Worker, selected by the `CLOUDFLARE_ENV` build variable.
   "env": {
-    "api": {
-      "secrets": {
-        "required": [
-          "SANITY_WEBHOOK_SECRET",
-          "SHOPIFY_SANITY_SYNC_SECRET",
-          "SANITY_VIEWER_API_TOKEN",
-          "SANITY_EDITOR_API_TOKEN",
-          "GIT_API_TOKEN",
-        ],
-      },
-    },
     "production": {
       "secrets": {
         "required": [
-          "SANITY_WEBHOOK_SECRET",
-          "SHOPIFY_SANITY_SYNC_SECRET",
           "SANITY_VIEWER_API_TOKEN",
           "SANITY_EDITOR_API_TOKEN",
-          "GIT_API_TOKEN",
+          "SHOPIFY_SANITY_SYNC_SECRET",
+          "SHOPIFY_PRIVATE_API_TOKEN",
         ],
       },
+      // Non-production branches deploy here as Previews.
+      "previews": {},
     },
     "production-preview": {
       "secrets": {
         "required": [
-          "SANITY_WEBHOOK_SECRET",
-          "SHOPIFY_SANITY_SYNC_SECRET",
           "SANITY_VIEWER_API_TOKEN",
           "SANITY_EDITOR_API_TOKEN",
-          "GIT_API_TOKEN",
-        ],
-      },
-    },
-    "staging": {
-      "secrets": {
-        "required": [
-          "SANITY_WEBHOOK_SECRET",
           "SHOPIFY_SANITY_SYNC_SECRET",
-          "SANITY_VIEWER_API_TOKEN",
-          "SANITY_EDITOR_API_TOKEN",
-          "GIT_API_TOKEN",
+          "SHOPIFY_PRIVATE_API_TOKEN",
         ],
       },
     },

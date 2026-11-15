@@ -1,13 +1,5 @@
 ---
-import "@styles/reset.css";
-import "@styles/base.css";
-import "@styles/colors.css";
-import "@styles/spacing.css";
-import "@styles/text.css";
-import "@styles/elements.css";
-import "@styles/forms.css";
-import "@styles/animations.css";
-import "@styles/fonts.css";
+import "@styles/index.css";
 
 import { ClientRouter } from "astro:transitions";
 import Header from "@components/Header.astro";
@@ -15,7 +7,7 @@ import Footer from "@components/Footer.astro";
 import Grid from "@dev/Grid.astro";
 import Meta from "@meta/Meta.astro";
 import JsonLd from "@meta/JsonLd.astro";
-import { DEFAULT_LOCALE, LOCALE_CONFIG } from "@lib/shopify/locale";
+import { getHtmlLang, localizeHref, getRenderLocale } from "@lib/shopify/locale";
 import CookiesBanner from "@components/CookiesBanner.astro";
 import AnnouncementBanner from "@components/AnnouncementBanner.astro";
 import LocationNotice from "@components/LocationNotice.astro";
@@ -31,7 +23,7 @@ import {
   buildWebSiteSchema,
   type JsonLdSchema,
 } from "@lib/sanity/structuredData";
-import { PREVIEW } from "astro:env/client";
+import { INDEXABLE, PREVIEW } from "astro:env/client";
 import { THEME_COLOR } from "@config";
 
 interface Props {
@@ -39,13 +31,15 @@ interface Props {
   ogType?: "website" | "article" | "product";
   /* Page-level structured data. A prop because <slot /> renders inside <main>, not <head>. */
   jsonLd?: (JsonLdSchema | undefined)[];
+  /* Pages that shouldn't appear in search results (e.g. search itself). */
+  noindex?: boolean;
 }
 
-const { metaData, ogType, jsonLd = [] }: Props = Astro.props;
+const { metaData, ogType, jsonLd = [], noindex = false }: Props = Astro.props;
 
-// Static pages are market-neutral; the stored locale is applied client-side.
-const currentLocale = DEFAULT_LOCALE;
-const localeConfig = LOCALE_CONFIG[currentLocale];
+const locale = getRenderLocale(Astro);
+// Other locales render the default locale's page, so Astro.url is the unprefixed path.
+const pathname = localizeHref(Astro.url.pathname, locale);
 
 const {
   headerData,
@@ -60,7 +54,7 @@ const {
 } = await getGlobals();
 
 const organisationSchema = buildOrganisationSchema(organisationSettingsData, Astro.site);
-const webSiteSchema = buildWebSiteSchema(organisationSettingsData, Astro.site, currentLocale);
+const webSiteSchema = buildWebSiteSchema(organisationSettingsData, Astro.site, locale);
 
 // The preview site is otherwise a fully indexable duplicate of live.
 const isPreview = PREVIEW === "true";
@@ -68,11 +62,8 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
 ---
 
 <html
-  lang={currentLocale}
-  data-locale={currentLocale}
-  data-currency={localeConfig.currency}
-  data-country={localeConfig.country}
-  data-language={localeConfig.language}
+  lang={getHtmlLang(locale)}
+  data-locale={locale.path}
   transition:name="root"
   transition:animate="none"
 >
@@ -98,11 +89,12 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     <Meta
       metaData={metaData}
       metaSettingsData={metaSettingsData}
-      locale={currentLocale}
+      locale={locale}
+      pathname={pathname}
       siteName={organisationSettingsData?.name}
       organisationDescription={organisationSettingsData?.description}
       ogType={ogType}
-      noindex={isPreview}
+      noindex={!INDEXABLE || noindex}
     />
 
     <JsonLd schema={organisationSchema} />
@@ -113,7 +105,7 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
 
     <link
       rel="preload"
-      href="/fonts/BIZUDMincho-Regular.woff2"
+      href="/fonts/ArchivoNarrow-Variable.woff2"
       as="font"
       type="font/woff2"
       crossorigin
@@ -170,8 +162,10 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
 
 <style>
   /* Header overlays the top of main; the announcement banner, when present, gets its own row. */
+  /* minmax(0, …): a wide child (a carousel's slide strip) must never size the page. */
   body {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto 1fr;
   }
 
@@ -198,7 +192,7 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     z-index: 100;
     top: 0;
     left: 0;
-    padding: var(--s12) var(--s20);
+    padding: var(--size-3) var(--size-5);
     background-color: var(--color-text);
     color: var(--color-background);
     transform: translateY(-100%);

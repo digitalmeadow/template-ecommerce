@@ -1,0 +1,29 @@
+---
+// Every field type in the two-column layout SectionForm gives them.
+import FormField from "@fields/FormField.astro";
+import { formFields } from "../fixtures/content";
+---
+
+<div class="demo-form-fields">
+  {Object.values(formFields).map((field) => (
+    <FormField field={field} prefix="sg-fields" />
+  ))}
+</div>
+
+<style>
+  .demo-form-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--size-6) var(--gutter);
+  }
+
+  .demo-form-fields > :global([data-width="full"]) {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 48rem) {
+    .demo-form-fields {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

@@ -1,6 +1,8 @@
 fragment ProductVariant on ProductVariant {
   id
   title
+  sku
+  barcode
   availableForSale
   quantityAvailable
 
@@ -19,5 +21,20 @@ fragment ProductVariant on ProductVariant {
 
   image {
     ...Image
+  }
+}
+
+# What changes between builds: re-fetched on product pages so price and stock are live.
+fragment ProductVariantLive on ProductVariant {
+  id
+  availableForSale
+  quantityAvailable
+
+  price {
+    ...Money
+  }
+
+  compareAtPrice {
+    ...Money
   }
 }

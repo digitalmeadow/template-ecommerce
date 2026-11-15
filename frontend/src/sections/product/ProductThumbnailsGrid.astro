@@ -19,33 +19,28 @@ const { productsData }: Props = Astro.props;
 
 <style>
   .grid {
-    width: min(100%, var(--container-width));
-    margin: var(--s40) auto 0;
-
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--gutter);
   }
-  @media (max-width: 32rem) {
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
 
-  .grid-item {
-    width: 100%;
-  }
-
-  .grid > .grid-item:nth-child(6n + 1) {
+  /* Every sixth card leads, at twice the size. */
+  .grid-item:nth-child(6n + 1) {
     grid-row: span 2;
     grid-column: span 2;
   }
-  @media (max-width: 32rem) {
-    .grid > .grid-item:nth-child(6n + 1) {
+
+  @media (max-width: 48rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-item:nth-child(6n + 1) {
       grid-row: span 1;
       grid-column: span 1;
     }
-    .grid > .grid-item:nth-child(5n + 1) {
+
+    .grid-item:nth-child(5n + 1) {
       grid-row: span 2;
       grid-column: span 2;
     }

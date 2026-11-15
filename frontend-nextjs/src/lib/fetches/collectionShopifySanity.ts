@@ -26,9 +26,11 @@ export const fetchShopifyCollectionWithThumbnails = buildScopedByKey(
   async (handle): Promise<ShopifyCollectionWithThumbnails> => {
     const shopifyCollectionResult = await shopifyClient.request(shopifyCollectionByHandleQuery, {
       handle,
+      first: 24,
+      sortKey: "COLLECTION_DEFAULT",
     });
     const shopifyCollection = shopifyCollectionResult.collection;
-    const productHandles = shopifyCollection?.products?.edges.map((edge) => edge.node.handle) ?? [];
+    const productHandles = shopifyCollection?.products?.nodes.map((node) => node.handle) ?? [];
 
     return {
       shopify: shopifyCollection,

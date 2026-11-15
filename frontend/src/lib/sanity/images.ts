@@ -48,7 +48,7 @@ export function getSanityImageProps({
   if (!sanityImage?.asset?.url) return null;
 
   const [desktop, tablet, mobile] = sizes;
-  const sizesAttr = `(min-width: 64rem) ${desktop}vw, (min-width: 32rem) ${tablet}vw, ${mobile}vw`;
+  const sizesAttr = `(min-width: 64rem) ${desktop}vw, (min-width: 48rem) ${tablet}vw, ${mobile}vw`;
   const widths = [64, 96, 128, 192, 256, 400, 600, 800, 1000, 1400, 1800, 2200];
 
   const rect = getCropRect(sanityImage);

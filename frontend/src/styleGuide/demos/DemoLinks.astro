@@ -1,0 +1,38 @@
+---
+// Rest, then active (`data-active`): hover any of them for the highlighter stroke.
+const underlines = ["yellow", "orange", "green", "blue", "purple"] as const;
+---
+
+<div class="g-flex-column g-gap-10">
+  <p class="g-text-medium g-max-w-160">
+    Body copy with an{" "}
+    <a class="g-text-link" href="#links">
+      inline link
+    </a>{" "}
+    in the middle of a sentence.
+  </p>
+
+  <div class="g-grid-cols-3">
+    <p class="g-text-tiny g-text-color-muted">Class</p>
+    <p class="g-text-tiny g-text-color-muted">Rest</p>
+    <p class="g-text-tiny g-text-color-muted">Active</p>
+    {underlines.map((color) => (
+      <>
+        <code class="g-text-small">.g-text-link.g-underline-{color}</code>
+        <a class={`g-text-link g-underline-${color}`} href="#links">
+          Shop the range
+        </a>
+        <a class={`g-text-link g-underline-${color}`} href="#links" data-active>
+          Shop the range
+        </a>
+      </>
+    ))}
+    <code class="g-text-small">.g-text-link-hover</code>
+    <a class="g-text-link-hover" href="#links">
+      Shop the range
+    </a>
+    <a class="g-text-link-hover" href="#links" aria-current="page">
+      Shop the range
+    </a>
+  </div>
+</div>

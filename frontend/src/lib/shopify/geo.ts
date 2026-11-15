@@ -1,4 +1,4 @@
-import { LOCALE_CONFIG, type LocaleCode } from "@lib/shopify/locale";
+import { LOCALE_LIST, type Locale } from "@lib/shopify/locale";
 
 export const GEO_ENDPOINT = "/api/geo";
 const GEO_SESSION_STORAGE_KEY = "geo-country";
@@ -20,13 +20,12 @@ async function fetchGeoCountry(): Promise<string | null> {
   }
 }
 
-function localeForCountry(country: string): LocaleCode | null {
-  const locales = Object.keys(LOCALE_CONFIG) as LocaleCode[];
-  return locales.find((locale) => LOCALE_CONFIG[locale].country === country) ?? null;
+function localeForCountry(country: string): Locale | null {
+  return LOCALE_LIST.find((locale) => locale.country === country) ?? null;
 }
 
 /** The store to suggest, or null when the visitor is in it, has no store, or said no to it. */
-export async function suggestedLocale(current: LocaleCode): Promise<LocaleCode | null> {
+export async function suggestedLocale(current: Locale): Promise<Locale | null> {
   const country = await fetchGeoCountry();
   if (!country) return null;
   if (localStorage.getItem(LOCATION_NOTICE_DISMISSED_STORAGE_KEY) === country) return null;
@@ -35,10 +34,10 @@ export async function suggestedLocale(current: LocaleCode): Promise<LocaleCode |
   return locale && locale !== current ? locale : null;
 }
 
-export function dismissLocationNotice(locale: LocaleCode) {
-  localStorage.setItem(LOCATION_NOTICE_DISMISSED_STORAGE_KEY, LOCALE_CONFIG[locale].country);
+export function dismissLocationNotice(locale: Locale) {
+  localStorage.setItem(LOCATION_NOTICE_DISMISSED_STORAGE_KEY, locale.country);
 }
 
-export function fillMarket(template: string | null | undefined, locale: LocaleCode): string {
-  return (template ?? "").replaceAll("{market}", LOCALE_CONFIG[locale].label);
+export function fillMarket(template: string | null | undefined, locale: Locale): string {
+  return (template ?? "").replaceAll("{market}", locale.label);
 }

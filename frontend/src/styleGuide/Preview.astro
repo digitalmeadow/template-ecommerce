@@ -1,0 +1,311 @@
+---
+// One entry in an iframe: sections respond to the viewport, so only a frame shows the real
+// mobile layout. Wider than the column, it scales down to fit; the handle drags it narrower.
+import { WIDTHS, type Entry, type Scheme, type WidthId } from "./entry";
+
+interface Props {
+  entry: Entry;
+  scheme: Scheme;
+  width: WidthId;
+}
+
+const { entry, scheme, width }: Props = Astro.props;
+
+const src = `/style-guide/frame/${entry.id}${scheme === "light" ? "" : `?scheme=${scheme}`}`;
+const widthIds = Object.keys(WIDTHS) as WidthId[];
+---
+
+<style-guide-preview
+  class="preview"
+  id={entry.id}
+  width={width}
+  scheme={scheme}
+  height={entry.height}
+>
+  <div class="head">
+    <h3 class="title">
+      <a href={`#${entry.id}`}>{entry.title}</a>
+    </h3>
+    <div class="actions">
+      <span class="size" data-size></span>
+      <div class="segments" role="group" aria-label="Width">
+        {widthIds.map((id) => (
+          <button type="button" data-width={id} aria-pressed={id === width ? "true" : "false"}>
+            {id}
+          </button>
+        ))}
+      </div>
+      <a class="open" href={src} target="_blank" data-open>
+        Open ↗
+      </a>
+    </div>
+  </div>
+  <div class="stage" data-stage>
+    <div class="device" data-device>
+      <iframe src={src} title={`${entry.group}: ${entry.title}`} loading="lazy" data-frame></iframe>
+      <button class="handle" type="button" aria-label="Drag to resize" data-handle></button>
+    </div>
+  </div>
+</style-guide-preview>
+
+<script>
+  import { WIDTHS, isScheme, isWidthId, type Scheme, type WidthId } from "./entry";
+
+  const MIN_WIDTH = 320;
+  const FALLBACK_HEIGHT = 480;
+
+  class StyleGuidePreviewElement extends HTMLElement {
+    private frame: HTMLIFrameElement | null = null;
+    private stage: HTMLElement | null = null;
+    private device: HTMLElement | null = null;
+    private stageObserver: ResizeObserver | null = null;
+    private contentObserver: ResizeObserver | null = null;
+    // Null fills the column; a number is an exact frame width in px.
+    private frameWidth: number | null = null;
+    private preset: WidthId | null = null;
+    private scheme: Scheme = "light";
+    private grid = false;
+    private contentHeight = FALLBACK_HEIGHT;
+
+    connectedCallback() {
+      this.frame = this.querySelector("[data-frame]");
+      this.stage = this.querySelector("[data-stage]");
+      this.device = this.querySelector("[data-device]");
+      const width = this.getAttribute("width");
+      const scheme = this.getAttribute("scheme");
+      this.scheme = isScheme(scheme) ? scheme : "light";
+      this.contentHeight = Number(this.getAttribute("height")) || FALLBACK_HEIGHT;
+      this.setWidth(isWidthId(width) ? width : "fit");
+
+      // Width only: the stage's height follows the frame, so reacting to it would loop.
+      let stageWidth = 0;
+      this.stageObserver = new ResizeObserver(([entry]) => {
+        if (entry.contentRect.width === stageWidth) return;
+        stageWidth = entry.contentRect.width;
+        this.render();
+      });
+      if (this.stage) this.stageObserver.observe(this.stage);
+      this.frame?.addEventListener("load", this.handleLoad);
+      this.addEventListener("click", this.handleClick);
+      this.querySelector<HTMLElement>("[data-handle]")?.addEventListener(
+        "pointerdown",
+        this.handleDrag,
+      );
+    }
+
+    disconnectedCallback() {
+      this.stageObserver?.disconnect();
+      this.contentObserver?.disconnect();
+      this.frame?.removeEventListener("load", this.handleLoad);
+      this.removeEventListener("click", this.handleClick);
+      this.querySelector<HTMLElement>("[data-handle]")?.removeEventListener(
+        "pointerdown",
+        this.handleDrag,
+      );
+    }
+
+    setWidth(id: WidthId) {
+      this.preset = id;
+      this.frameWidth = WIDTHS[id];
+      this.render();
+    }
+
+    setGrid(visible: boolean) {
+      this.grid = visible;
+      this.applyGrid();
+    }
+
+    // Through the frame's own Ctrl+G (dev/Grid), only when its state differs.
+    private applyGrid() {
+      const frameWindow = this.frame?.contentWindow as typeof window | null | undefined;
+      const grid = this.frame?.contentDocument?.getElementById("grid-visualizer");
+      if (!frameWindow || !grid || (grid.style.display !== "none") === this.grid) return;
+      frameWindow.dispatchEvent(
+        new frameWindow.KeyboardEvent("keydown", { ctrlKey: true, code: "KeyG" }),
+      );
+    }
+
+    setScheme(scheme: Scheme) {
+      this.scheme = scheme;
+      this.applyScheme();
+      const open = this.querySelector<HTMLAnchorElement>("[data-open]");
+      if (open) {
+        const url = new URL(open.href);
+        if (scheme === "light") url.searchParams.delete("scheme");
+        else url.searchParams.set("scheme", scheme);
+        open.href = url.toString();
+      }
+    }
+
+    // Set on the loaded page directly: instant, and keeps the frame's state (open menus, tabs).
+    private applyScheme() {
+      const root = this.frame?.contentDocument?.documentElement;
+      if (!root) return;
+      if (this.scheme === "light") root.removeAttribute("data-color-scheme");
+      else root.dataset.colorScheme = this.scheme;
+    }
+
+    private handleLoad = () => {
+      this.applyScheme();
+      this.applyGrid();
+      this.contentObserver?.disconnect();
+      const body = this.frame?.contentDocument?.body;
+      // Entries with a set height (overlays) keep it; others grow to fit their content.
+      if (!body || this.hasAttribute("height")) return;
+      const FrameResizeObserver = (this.frame?.contentWindow as typeof window).ResizeObserver;
+      // Next frame: resizing the iframe inside its own observer's callback would loop.
+      this.contentObserver = new FrameResizeObserver(() =>
+        requestAnimationFrame(() => {
+          this.contentHeight = body.scrollHeight || FALLBACK_HEIGHT;
+          this.render();
+        }),
+      );
+      this.contentObserver.observe(body);
+    };
+
+    private handleClick = (event: Event) => {
+      const button = (event.target as Element).closest<HTMLElement>("[data-width]");
+      const id = button?.dataset.width;
+      if (isWidthId(id)) this.setWidth(id);
+    };
+
+    // Drags narrower than the column only, so a dragged frame is always shown at full size.
+    private handleDrag = (event: PointerEvent) => {
+      const handle = event.currentTarget as HTMLElement;
+      const startX = event.clientX;
+      const startWidth = this.device?.offsetWidth ?? 0;
+      handle.setPointerCapture(event.pointerId);
+      if (this.frame) this.frame.style.pointerEvents = "none";
+
+      const move = (moveEvent: PointerEvent) => {
+        const available = this.stage?.clientWidth ?? startWidth;
+        const next = startWidth + moveEvent.clientX - startX;
+        this.preset = null;
+        this.frameWidth = Math.round(Math.min(available, Math.max(MIN_WIDTH, next)));
+        this.render();
+      };
+      const end = () => {
+        handle.removeEventListener("pointermove", move);
+        handle.removeEventListener("pointerup", end);
+        handle.removeEventListener("pointercancel", end);
+        if (this.frame) this.frame.style.pointerEvents = "";
+      };
+      handle.addEventListener("pointermove", move);
+      handle.addEventListener("pointerup", end);
+      handle.addEventListener("pointercancel", end);
+    };
+
+    private render = () => {
+      if (!this.frame || !this.stage || !this.device) return;
+      const available = this.stage.clientWidth;
+      const width = this.frameWidth ?? available;
+      const scale = Math.min(1, available / width);
+
+      this.frame.style.width = `${width}px`;
+      this.frame.style.height = `${this.contentHeight}px`;
+      this.frame.style.scale = String(scale);
+      this.device.style.width = `${width * scale}px`;
+      this.device.style.height = `${this.contentHeight * scale}px`;
+
+      const size = this.querySelector("[data-size]");
+      if (size) {
+        size.textContent = `${Math.round(width)}px${scale < 1 ? ` at ${Math.round(scale * 100)}%` : ""}`;
+      }
+      this.querySelectorAll<HTMLElement>("[data-width]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.width === this.preset));
+      });
+    };
+  }
+
+  customElements.define("style-guide-preview", StyleGuidePreviewElement);
+</script>
+
+<style>
+  .preview {
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.625rem 1.25rem;
+  }
+
+  .title {
+    margin: 0;
+    font-size: 0.5625rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #666;
+  }
+
+  .title a:hover,
+  .open:hover {
+    text-decoration: underline 1px;
+    text-underline-offset: 0.15em;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  /* Quieter than the bar's controls: these change one frame. */
+  .actions .segments {
+    height: 1.5rem;
+  }
+
+  .actions .segments button {
+    padding-block: 0;
+    font-size: 0.6875rem;
+  }
+
+  .size {
+    font-variant-numeric: tabular-nums;
+    color: #666;
+  }
+
+  .stage {
+    min-width: 0;
+  }
+
+  /* Holds the scaled frame's footprint: `scale` doesn't change layout size. */
+  .device {
+    position: relative;
+    max-width: 100%;
+    outline: 1px solid #ccc;
+    overflow: hidden;
+  }
+
+  iframe {
+    display: block;
+    border: 0;
+    transform-origin: 0 0;
+  }
+
+  .handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 0.75rem;
+    padding: 0;
+    background-color: rgb(0 0 0 / 10%);
+    opacity: 0;
+    transition: opacity 150ms;
+    cursor: ew-resize;
+    touch-action: none;
+  }
+
+  .device:hover .handle,
+  .handle:focus-visible {
+    opacity: 1;
+  }
+</style>

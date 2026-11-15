@@ -14,7 +14,7 @@ const { organisationSettingsData } = await getGlobals();
 
 <PageLayout metaData={resolveMeta(pageData)}>
   {!hasHeroHeading(pageData?.sections) && organisationSettingsData?.name && (
-    <h1 class="visually-hidden">{organisationSettingsData.name}</h1>
+    <h1 class="g-sr-only">{organisationSettingsData.name}</h1>
   )}
   <SectionsRenderer sections={pageData?.sections} />
 </PageLayout>

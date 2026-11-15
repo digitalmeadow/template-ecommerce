@@ -1,0 +1,18 @@
+---
+// Heading tags and their class twins, which take the look without the tag.
+const levels = [1, 2, 3, 4, 5, 6] as const;
+---
+
+<div class="g-flex-column g-gap-10">
+  <div class="g-flex-column g-gap-5">
+    {levels.map((level) => {
+      const Heading = `h${level}` as const;
+      return <Heading>Heading {level}</Heading>;
+    })}
+  </div>
+  <div class="g-flex-column g-gap-5 g-rule g-pt-10">
+    {levels.map((level) => (
+      <p class={`g-heading-${level}`}>p.g-heading-{level}</p>
+    ))}
+  </div>
+</div>

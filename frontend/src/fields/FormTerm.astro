@@ -14,7 +14,13 @@ const name = term.name ?? "";
 const errorId = `${prefix}-${name}-error`;
 ---
 
-<FieldWrapper name={name} type="consent" errorId={errorId}>
+<FieldWrapper
+  id={`${prefix}-${name}`}
+  name={name}
+  label={term.label ?? ""}
+  type="consent"
+  errorId={errorId}
+>
   <FieldConsent
     id={`${prefix}-${name}`}
     name={name}

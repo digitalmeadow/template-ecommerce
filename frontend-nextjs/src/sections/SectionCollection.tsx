@@ -20,7 +20,7 @@ export default async function SectionCollection({ sectionData }: Props) {
     >
       <h2>
         Collection: {sectionData.collection?.shopify?.title}
-        <sup>({collection.shopify?.products.edges.length ?? 0})</sup>
+        <sup>({collection.shopify?.products.nodes.length ?? 0})</sup>
       </h2>
 
       <ProductThumbnailsGrid productsData={collection.productThumbnails} />

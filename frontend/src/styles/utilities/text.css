@@ -1,0 +1,126 @@
+/* Text styles, for when the look differs from the tag's default. Line height is set by copy blocks. */
+.g-text-large {
+  font-size: var(--font-size-large);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-large);
+}
+
+.g-text-medium {
+  font-size: var(--font-size-medium);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+.g-text-regular {
+  font-size: var(--font-size-regular);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+.g-text-small {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+.g-text-tiny {
+  font-size: var(--font-size-tiny);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+.g-font-weight-regular {
+  font-weight: var(--font-weight-regular);
+}
+
+.g-font-weight-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.g-text-align-left {
+  text-align: left;
+}
+
+.g-text-align-center {
+  text-align: center;
+}
+
+.g-text-align-right {
+  text-align: right;
+}
+
+@media (max-width: 48rem) {
+  .g-text-align-sm-left {
+    text-align: left;
+  }
+
+  .g-text-align-sm-center {
+    text-align: center;
+  }
+
+  .g-text-align-sm-right {
+    text-align: right;
+  }
+}
+
+.g-text-uppercase {
+  text-transform: uppercase;
+}
+
+.g-text-italic {
+  font-style: italic;
+}
+
+.g-text-nowrap {
+  white-space: nowrap;
+}
+
+.g-text-balance {
+  text-wrap: balance;
+}
+
+/* The highlight link: a thin underline that thickens into a marker stroke on hover or when active
+   (`data-active`, `aria-current`). `-hover` shows nothing at rest: for nav and UI links whose
+   position already says "link". Colour with g-underline-*. */
+.g-text-link,
+.g-text-link-hover {
+  text-decoration-line: underline;
+  text-decoration-skip-ink: none;
+  text-decoration-color: var(--link-underline-color, var(--color-highlight-yellow));
+  text-decoration-thickness: var(--link-underline-thickness-rest);
+  text-underline-offset: calc(-1 * var(--link-underline-thickness-rest));
+}
+
+.g-text-link-hover {
+  text-decoration-color: transparent;
+}
+
+:is(.g-text-link, .g-text-link-hover):is(
+  :hover,
+  [data-active]:not([data-active="false"]),
+  [aria-current]:not([aria-current="false"])
+) {
+  text-decoration-color: var(--link-underline-color, var(--color-highlight-yellow));
+  text-decoration-thickness: var(--link-underline-thickness-active);
+  text-underline-offset: calc(-1 * var(--link-underline-thickness-active));
+}
+
+.g-underline-yellow {
+  --link-underline-color: var(--color-highlight-yellow);
+}
+
+.g-underline-orange {
+  --link-underline-color: var(--color-highlight-orange);
+}
+
+.g-underline-green {
+  --link-underline-color: var(--color-highlight-green);
+}
+
+.g-underline-blue {
+  --link-underline-color: var(--color-highlight-blue);
+}
+
+.g-underline-purple {
+  --link-underline-color: var(--color-highlight-purple);
+}

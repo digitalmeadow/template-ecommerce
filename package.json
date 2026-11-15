@@ -10,10 +10,15 @@
     "typecheck": "pnpm run --parallel -r typecheck",
     "gen": "pnpm --filter cms gen && pnpm --filter sanity gen && pnpm --filter sanity-nextjs gen && pnpm --filter shopify gen",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepare": "simple-git-hooks"
   },
   "devDependencies": {
     "prettier": "3.9.9",
+    "simple-git-hooks": "2.14.0",
     "typescript": "6.0.3"
+  },
+  "simple-git-hooks": {
+    "pre-push": "pnpm lint && pnpm typecheck"
   }
 }

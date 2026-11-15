@@ -1,63 +1,60 @@
 ---
 import type { FooterFragment } from "sanity/generated/graphql";
-import PortableText from "@fields/PortableText.astro";
 import SanityLink from "@fields/SanityLink.astro";
-import SanityMedia from "@fields/SanityMedia.astro";
+import LocaleSelector from "@blocks/LocaleSelector.astro";
+import { getShopPolicies } from "@lib/shopify/shop";
+import { getRenderLocale, localizeHref } from "@lib/shopify/locale";
 
 interface Props {
   footerData: FooterFragment | null | undefined;
 }
 
 const { footerData }: Props = Astro.props;
+
+const locale = getRenderLocale(Astro);
+const policies = await getShopPolicies(locale);
 ---
 
-<footer class="footer u-container">
-  <div class="footer-content">
-    <PortableText value={footerData?.textRaw} />
-
-    <div class="nav">
+<footer class="footer g-page-margin">
+  <nav aria-label="Footer">
+    <ul>
       {footerData?.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
-        return <SanityLink linkData={navigationItem.link}>{navigationItem.label}</SanityLink>;
+        return (
+          <li>
+            <SanityLink linkData={navigationItem.link} class="g-text-link-hover">
+              {navigationItem.label}
+            </SanityLink>
+          </li>
+        );
       })}
-    </div>
-  </div>
-</footer>
+      {policies.map((policy) => (
+        <li>
+          <a href={localizeHref(`/policies/${policy.handle}`, locale)} class="g-text-link-hover">
+            {policy.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
 
-<div class="media">
-  <div class="media-inner">
-    <SanityMedia mediaData={footerData?.mediaBackground} layout="width" />
-  </div>
-</div>
+  <LocaleSelector />
+</footer>
 
 <style>
   .footer {
-    position: relative;
-
-    padding: var(--s200) 0 0;
-  }
-
-  .media {
-    width: 100%;
-    height: auto;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-  }
-
-  .media-inner {
-    width: 120%;
-  }
-
-  .footer-content {
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .nav {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--s8);
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--size-3) var(--gutter);
+    margin-top: var(--section-space-lg);
+    padding-block: var(--size-5);
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-1) var(--size-5);
   }
 </style>

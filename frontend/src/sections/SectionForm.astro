@@ -42,17 +42,17 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
 {form && formId && (
   <section
     data-color-scheme={section.colorScheme ?? undefined}
-    class="section-form u-container"
+    class="section-form g-page-margin g-section-lg"
     id={section.id ?? undefined}
   >
-    {section.heading && <h2 class="heading">{section.heading}</h2>}
+    {section.heading && <h2 class="heading g-heading-4">{section.heading}</h2>}
 
     <sanity-form class="form" data-form-id={formId}>
       <form class="groups" data-form novalidate>
         {groups.map((group, index) => (
           <div class="group">
             {group.heading && (
-              <GroupHeadingTag class="group-heading">{group.heading}</GroupHeadingTag>
+              <GroupHeadingTag class="group-heading g-heading-6">{group.heading}</GroupHeadingTag>
             )}
 
             <div class="fields">
@@ -62,11 +62,7 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
 
               {index === lastGroupIndex && (
                 <div class="actions">
-                  <ButtonSubmit
-                    label={form.submitLabel ?? "Submit"}
-                    variant="filled"
-                    mutedUntilReady
-                  />
+                  <ButtonSubmit label={form.submitLabel ?? "Submit"} mutedUntilReady />
                 </div>
               )}
             </div>
@@ -81,7 +77,7 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
           </div>
         )}
 
-        <div class="honeypot" aria-hidden="true">
+        <div class="g-sr-only" aria-hidden="true">
           <label for={`${HONEYPOT_FIELD_NAME}-${formId}`}>Leave this field empty</label>
           <input
             id={`${HONEYPOT_FIELD_NAME}-${formId}`}
@@ -94,7 +90,7 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
       </form>
 
       <div class="messages" aria-live="polite">
-        <p class="message" data-form-message />
+        <p class="message" data-form-message></p>
         <div class="message" data-form-success hidden>
           <PortableText value={form.successMessageRaw} />
         </div>
@@ -104,110 +100,85 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
 )}
 
 <style>
-  .section-form {
-    margin-top: var(--s120);
-    margin-bottom: var(--s200);
-  }
-
   .heading {
-    margin-bottom: var(--s80);
-    font-family: var(--font-heading);
-    font-size: 2rem;
-    line-height: 1.1;
+    margin-bottom: var(--size-20);
   }
 
   .form {
     display: flex;
     flex-direction: column;
-    row-gap: var(--s20);
+    row-gap: var(--size-5);
     margin-left: calc(8 * var(--column) + 8 * var(--gutter));
-  }
-  @media (max-width: 64rem) {
-    .form {
-      margin-left: 0;
-    }
   }
 
   .groups {
     display: flex;
     flex-direction: column;
-    row-gap: var(--s40);
+    row-gap: var(--size-10);
     transition: opacity var(--transition-default);
   }
 
   .group-heading {
-    margin-bottom: var(--s16);
+    margin-bottom: var(--size-4);
   }
 
-  /* Rows sit flush - each field draws its own top border, forming the dividers. */
   .fields {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0 var(--gutter);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--size-6) var(--gutter);
   }
 
   .fields > :global([data-width="full"]) {
     grid-column: 1 / -1;
   }
 
-  @media (max-width: 32rem) {
-    .fields {
-      grid-template-columns: 1fr;
-    }
-    .fields > :global([data-width="half"]) {
-      grid-column: 1 / -1;
-    }
-  }
-
-  .honeypot {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-  }
-
-  .actions {
-    display: flex;
-    flex-direction: column;
-    row-gap: var(--s20);
-  }
-
   /* Follows the trailing field: beside a half one, on its own row after a full one. */
+  .actions {
+    align-self: end;
+  }
+
   :global([data-width="full"]) + .actions {
     grid-column: 1 / -1;
-  }
-  @media (max-width: 32rem) {
-    .actions {
-      grid-column: 1 / -1;
-    }
   }
 
   .terms {
     display: flex;
     flex-direction: column;
-    row-gap: var(--s12);
+    row-gap: var(--size-3);
   }
 
   /* Locked once submitted; a page load or client-router navigation restores it. */
   .form[data-state="success"] .groups {
-    opacity: 0.5;
+    opacity: var(--opacity-disabled);
     pointer-events: none;
   }
 
   .messages {
-    min-height: 1em;
+    min-height: 1lh;
   }
 
   sanity-form[data-state="error"] [data-form-message] {
     color: var(--color-error);
   }
+
+  @media (max-width: 48rem) {
+    .form {
+      margin-left: 0;
+    }
+
+    .fields {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .fields > :global([data-width="half"]),
+    .actions {
+      grid-column: 1 / -1;
+    }
+  }
 </style>
 
 <script>
-  import { FORM_ENDPOINT } from "@config";
-  import { FORM_ID_FIELD_NAME } from "@lib/forms/constants";
+  import { FORM_ENDPOINT, FORM_ID_FIELD_NAME } from "@lib/forms/constants";
   import type { FormSubmissionResponse } from "@lib/forms/types";
 
   class SanityFormElement extends HTMLElement {
@@ -376,12 +347,6 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
       const controlsValid = this.validateControls();
       if (!groupsValid || !controlsValid) {
         this.focusFirstError();
-        return;
-      }
-
-      if (!FORM_ENDPOINT) {
-        console.warn("Form not sent: no FORM_ENDPOINT configured in config.ts.");
-        this.setState("error", "This form can't be sent right now. Please try again later.");
         return;
       }
 
