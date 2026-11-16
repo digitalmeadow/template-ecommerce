@@ -1,33 +1,28 @@
 import type { AnnouncementBannerFragment } from "sanity-nextjs/generated/graphql";
-import PortableText from "@/fields/PortableText";
 import AnnouncementDismiss from "@/blocks/AnnouncementDismiss";
+import PortableText from "@/fields/PortableText";
 import { announcementDismissedScript } from "@/lib/announcement";
 
 interface Props {
-  announcementBannerData: AnnouncementBannerFragment | null | undefined;
+  announcementBanner: AnnouncementBannerFragment | null | undefined;
 }
 
-export default function AnnouncementBanner({ announcementBannerData }: Props) {
-  if (!announcementBannerData?.enabled || !announcementBannerData.textRaw) {
-    return null;
-  }
+export default function AnnouncementBanner({ announcementBanner }: Props) {
+  if (!announcementBanner?.enabled || !announcementBanner.textRaw) return null;
 
-  const version = String(announcementBannerData._updatedAt ?? "");
+  const version = String(announcementBanner._updatedAt ?? "");
 
   return (
     <>
       <div
-        className="announcement-banner flex items-center justify-center gap-4 bg-foreground px-[var(--margin)] py-2 text-center text-background"
+        className="announcement-banner relative z-11 flex items-center justify-center gap-4 bg-inverse-background px-[var(--margin)] py-2 text-center text-inverse-text [grid-area:1/1/2/2] [html[data-announcement-dismissed]_&]:hidden"
         data-announcement-banner
+        data-version={version}
       >
-        <PortableText value={announcementBannerData.textRaw} />
+        <PortableText value={announcementBanner.textRaw} />
         <AnnouncementDismiss version={version} />
       </div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: announcementDismissedScript(version),
-        }}
-      />
+      <script dangerouslySetInnerHTML={{ __html: announcementDismissedScript(version) }} />
     </>
   );
 }

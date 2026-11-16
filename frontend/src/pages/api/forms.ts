@@ -1,12 +1,12 @@
-export const prerender = false;
-
 import type { APIRoute } from "astro";
 import { loadBuildJson } from "@lib/buildAssets";
 import { FORM_ID_FIELD_NAME, HONEYPOT_FIELD_NAME } from "@lib/forms/constants";
-import { validateSubmission, type FormDefinition } from "@lib/forms/schema";
 import { deliverFormSubmission } from "@lib/forms/delivery";
+import { validateSubmission, type FormDefinition } from "@lib/forms/schema";
 import type { FormSubmissionResponse } from "@lib/forms/types";
 import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
+
+export const prerender = false;
 
 // CMS form submissions (multipart FormData + `formId`), validated against the form's fields.
 // Answers `{ ok, message, errors }`; `errors` is keyed by field name for inline error states.

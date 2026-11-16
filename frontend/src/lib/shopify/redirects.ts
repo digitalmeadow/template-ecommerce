@@ -1,5 +1,5 @@
-import { urlRedirectByPathQuery } from "shopify/queries/urlRedirects";
 import type { ShopifyClient } from "shopify/client";
+import { urlRedirectByPathQuery } from "shopify/queries/urlRedirects";
 
 const REDIRECT_CACHE_SECONDS = 60 * 60;
 

@@ -1,7 +1,7 @@
 ---
 // One group, the first open: opening another closes it.
-import Accordion from "@layouts/Accordion.astro";
 import PortableText from "@fields/PortableText.astro";
+import Accordion from "@layouts/Accordion.astro";
 import { lorem, paragraph } from "../fixtures/content";
 
 const items = [
@@ -13,7 +13,7 @@ const items = [
 
 <div class="g-container-sm">
   {items.map((item, index) => (
-    <Accordion summary={item.summary} group="style-guide" initOpen={index === 0}>
+    <Accordion summary={item.summary} group="style-guide" isInitiallyOpen={index === 0}>
       <div slot="content">
         <PortableText value={paragraph(item.text)} />
       </div>

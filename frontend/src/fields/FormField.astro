@@ -1,11 +1,11 @@
 ---
 import type { FormFieldFragment } from "sanity/generated/graphql";
-import FieldWrapper from "@fields/form/FieldWrapper.astro";
+import FieldChoices from "@fields/form/FieldChoices.astro";
+import FieldFile from "@fields/form/FieldFile.astro";
+import FieldSelect from "@fields/form/FieldSelect.astro";
 import FieldText from "@fields/form/FieldText.astro";
 import FieldTextarea from "@fields/form/FieldTextarea.astro";
-import FieldSelect from "@fields/form/FieldSelect.astro";
-import FieldFile from "@fields/form/FieldFile.astro";
-import FieldChoices from "@fields/form/FieldChoices.astro";
+import FieldWrapper from "@fields/form/FieldWrapper.astro";
 
 interface Props {
   field: FormFieldFragment;

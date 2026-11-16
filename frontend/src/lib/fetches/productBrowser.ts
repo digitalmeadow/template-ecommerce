@@ -2,7 +2,11 @@ import type { ShopifyClient } from "shopify/client";
 import type { ProductFilterGroupFragment } from "shopify/generated/graphql";
 import { collectionByHandleQuery } from "shopify/queries/collection";
 import { searchProductsQuery } from "shopify/queries/search";
-import type { Locale } from "@lib/shopify/locale";
+import {
+  pairProductThumbnails,
+  type ProductThumbnailShopifySanity,
+  type SanityProductThumbnails,
+} from "@lib/fetches/productShopifySanity";
 import {
   COLLECTION_SORT_OPTIONS,
   findSortOption,
@@ -10,11 +14,7 @@ import {
   PRODUCTS_PER_PAGE,
   SEARCH_SORT_OPTIONS,
 } from "@lib/shopify/filters";
-import {
-  pairProductThumbnails,
-  type ProductThumbnailShopifySanity,
-  type SanityProductThumbnails,
-} from "@lib/fetches/productShopifySanity";
+import type { Locale } from "@lib/shopify/locale";
 
 export type ProductBrowserSource =
   { type: "collection"; handle: string } | { type: "search"; query: string };

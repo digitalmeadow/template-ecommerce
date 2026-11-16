@@ -1,8 +1,8 @@
+import SplitHorizontalIcon from "@sanity/icons/SplitHorizontal";
+import { defineArrayMember, defineField, defineType } from "sanity";
+import { pluralize } from "../../utils/preview";
 import { colorSchemeField } from "../fields/colorScheme";
 import { sectionIdField } from "../fields/sectionId";
-import { pluralize } from "../../utils/preview";
-import { defineArrayMember, defineField, defineType } from "sanity";
-import SplitHorizontalIcon from "@sanity/icons/SplitHorizontal";
 
 export const sectionTabs = defineType({
   type: "object",

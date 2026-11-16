@@ -1,7 +1,7 @@
 import { SHOPIFY_PRIVATE_API_TOKEN } from "astro:env/server";
 import { SHOPIFY_STORE_DOMAIN } from "shopify/config";
-import { getBuyerIp } from "@lib/shopify/serverClient";
 import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
+import { getBuyerIp } from "@lib/shopify/serverClient";
 
 const TIMEOUT_MS = 30_000;
 

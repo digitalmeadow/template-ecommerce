@@ -1,10 +1,12 @@
 import type { OrganisationSettingsFragment } from "sanity-nextjs/generated/graphql";
 import type { ProductShopifySanity } from "@/lib/fetches/productShopifySanity";
+import { getHtmlLang, localizeHref, type Locale } from "@/lib/shopify/locale";
+import { isSingleDefaultVariant } from "@/lib/shopify/variants";
 import { resolveSanityHref } from "./resolve";
 
 export type JsonLdSchema = Record<string, unknown>;
 
-// Strips empty branches; validators read `"name": null` as asserting the value is genuinely empty.
+// Strips null/empty branches; validators read `"name": null` as an assertion the value is empty.
 function compact(value: unknown): unknown {
   if (Array.isArray(value)) {
     const items = value.map(compact).filter((item) => item !== undefined);
@@ -30,12 +32,10 @@ function compact(value: unknown): unknown {
 const absoluteUrl = (path: string | null | undefined, site: URL | undefined) =>
   path ? new URL(path, site).href : undefined;
 
-// Every page carries the organisation node, so page schemas point at it by @id rather than repeating it.
+/** Every page carries the organisation node, so page schemas point at it by @id rather than repeating it. */
 const organisationId = (site: URL | undefined) => absoluteUrl("/#organisation", site);
 
-const organisationRef = (site: URL | undefined) => ({
-  "@id": organisationId(site),
-});
+const organisationRef = (site: URL | undefined) => ({ "@id": organisationId(site) });
 
 export function buildOrganisationSchema(
   organisation: OrganisationSettingsFragment | null | undefined,
@@ -53,10 +53,7 @@ export function buildOrganisationSchema(
     logo: organisation.logo?.asset?.url,
     description: organisation.description,
     foundingDate: organisation.foundingDate,
-    founder: (organisation.founders ?? []).map((name) => ({
-      "@type": "Person",
-      name,
-    })),
+    founder: (organisation.founders ?? []).map((name) => ({ "@type": "Person", name })),
     numberOfEmployees: {
       "@type": "QuantitativeValue",
       value: organisation.numberOfEmployees,
@@ -80,7 +77,7 @@ export function buildOrganisationSchema(
 export function buildWebSiteSchema(
   organisation: OrganisationSettingsFragment | null | undefined,
   site: URL | undefined,
-  locale: string,
+  locale: Locale,
 ): JsonLdSchema | undefined {
   if (!site) return undefined;
 
@@ -90,25 +87,26 @@ export function buildWebSiteSchema(
     "@id": absoluteUrl("/#website", site),
     url: site.href,
     name: organisation?.name,
-    inLanguage: locale,
+    inLanguage: getHtmlLang(locale),
     publisher: organisationRef(site),
   }) as JsonLdSchema | undefined;
 }
 
-// Breadcrumb trail from the URL path; the last crumb takes the page's own title.
+/** Breadcrumb trail from the unprefixed URL path; the last crumb takes the page's own title. */
 export function buildBreadcrumbSchema(
   pathname: string,
   title: string | null | undefined,
   site: URL | undefined,
+  locale: Locale,
 ): JsonLdSchema | undefined {
   const segments = pathname.split("/").filter(Boolean);
   if (!segments.length) return undefined;
 
   const crumbs = [
-    { name: "Home", url: absoluteUrl("/", site) },
+    { name: "Home", url: absoluteUrl(localizeHref("/", locale), site) },
     ...segments.map((segment, index) => ({
       name: index === segments.length - 1 && title ? title : segment.replace(/-/g, " "),
-      url: absoluteUrl(`/${segments.slice(0, index + 1).join("/")}`, site),
+      url: absoluteUrl(localizeHref(`/${segments.slice(0, index + 1).join("/")}`, locale), site),
     })),
   ];
 
@@ -124,41 +122,96 @@ export function buildBreadcrumbSchema(
   }) as JsonLdSchema | undefined;
 }
 
+// Option names Google reads as `variesBy` / variant properties; other options are left out.
+const SCHEMA_VARIANT_PROPERTIES: Record<string, string> = {
+  color: "color",
+  colour: "color",
+  size: "size",
+  material: "material",
+  pattern: "pattern",
+};
+
+const AVAILABILITY = {
+  inStock: "https://schema.org/InStock",
+  outOfStock: "https://schema.org/OutOfStock",
+};
+
+/** `ProductGroup` with one `Product` + `Offer` per variant; a plain `Product` when there's one. */
 export function buildProductSchema(
   product: ProductShopifySanity,
   description: string | null | undefined,
   site: URL | undefined,
+  locale: Locale,
 ): JsonLdSchema | undefined {
   const { shopify, sanity } = product;
   if (!shopify.title) return undefined;
 
-  const url = absoluteUrl(resolveSanityHref("product", shopify.handle), site);
-  const { minVariantPrice, maxVariantPrice } = shopify.priceRange;
+  const url = absoluteUrl(localizeHref(resolveSanityHref("product", shopify.handle), locale), site);
+  const images = [
+    sanity.mediaThumbnail?.image,
+    ...(sanity.mediaGallery ?? []).map((media) => media?.image),
+  ]
+    .map((image) => image?.asset?.url)
+    .filter(Boolean);
+  const variants = shopify.variants.nodes;
 
-  return compact({
+  const variantSchema = (variant: (typeof variants)[number]) => {
+    const variantUrl = url ? new URL(url) : undefined;
+    for (const { name, value } of variant.selectedOptions)
+      variantUrl?.searchParams.set(name, value);
+    const properties = Object.fromEntries(
+      variant.selectedOptions.flatMap(({ name, value }) => {
+        const property = SCHEMA_VARIANT_PROPERTIES[name.toLowerCase()];
+        return property ? [[property, value]] : [];
+      }),
+    );
+    return {
+      "@type": "Product",
+      name: isSingleDefaultVariant(variants)
+        ? shopify.title
+        : `${shopify.title} – ${variant.title}`,
+      sku: variant.sku,
+      gtin: variant.barcode,
+      image: variant.image?.url ?? images[0],
+      ...properties,
+      offers: {
+        "@type": "Offer",
+        url: variantUrl?.href,
+        price: variant.price.amount,
+        priceCurrency: variant.price.currencyCode,
+        availability: variant.availableForSale ? AVAILABILITY.inStock : AVAILABILITY.outOfStock,
+        itemCondition: "https://schema.org/NewCondition",
+      },
+    };
+  };
+
+  const shared = {
     "@context": "https://schema.org",
-    "@type": "Product",
     "@id": url ? `${url}#product` : undefined,
     name: shopify.title,
     description,
     url,
-    image: [
-      sanity.mediaThumbnail?.image,
-      ...(sanity.mediaGallery ?? []).map((media) => media?.image),
-    ]
-      .map((image) => image?.asset?.url)
-      .filter(Boolean),
+    image: images,
     brand: organisationRef(site),
-    offers: {
-      "@type": "AggregateOffer",
-      url,
-      priceCurrency: minVariantPrice.currencyCode,
-      lowPrice: minVariantPrice.amount,
-      highPrice: maxVariantPrice.amount,
-      offerCount: shopify.variants.nodes.length,
-      availability: shopify.availableForSale
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-    },
+  };
+
+  if (isSingleDefaultVariant(variants) && variants[0]) {
+    return compact({ ...variantSchema(variants[0]), ...shared, "@type": "Product" }) as
+      JsonLdSchema | undefined;
+  }
+
+  return compact({
+    ...shared,
+    "@type": "ProductGroup",
+    productGroupID: shopify.handle,
+    variesBy: [
+      ...new Set(
+        shopify.options.flatMap((option) => {
+          const property = SCHEMA_VARIANT_PROPERTIES[option.name.toLowerCase()];
+          return property ? [`https://schema.org/${property}`] : [];
+        }),
+      ),
+    ],
+    hasVariant: variants.map(variantSchema),
   }) as JsonLdSchema | undefined;
 }

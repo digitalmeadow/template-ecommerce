@@ -7,7 +7,7 @@ export const cookieConsent = defineType({
   name: "cookieConsent",
   title: "Cookie Consent",
   icon: LockIcon,
-  description: "Analytics load only after a visitor accepts.",
+  description: "Shown only where consent is required; analytics wait for the answer.",
   fields: [
     defineField({
       ...richText(RICH_TEXT_STYLES.default, { required: true }),

@@ -1,6 +1,7 @@
 import { persistentJSON } from "@nanostores/persistent";
 import { atom, computed } from "nanostores";
 import type { CartFragment, CartLineFragment, MoneyFragment } from "shopify/generated/graphql";
+import { trackCartChange } from "@lib/analytics/track";
 import type {
   CartAction,
   CartAttribute,
@@ -10,7 +11,6 @@ import type {
 } from "@lib/shopify/cartActions";
 import { hasCartCookie } from "@lib/shopify/cartCookie";
 import { getPageLocale } from "@lib/shopify/locale";
-import { trackCartChange } from "@lib/analytics/track";
 
 const CART_ENDPOINT = "/api/cart";
 const GENERIC_MESSAGE = "Something went wrong updating your cart. Please try again.";
@@ -27,12 +27,14 @@ export const $cartPending = atom<ReadonlySet<string>>(new Set());
 
 export const $cartLines = computed($cart, (cart): CartLineFragment[] => cart?.lines.nodes ?? []);
 export const $cartCount = computed($cart, (cart): number => cart?.totalQuantity ?? 0);
-export const $cartSubtotal = computed($cart, (cart): MoneyFragment | null => {
-  return cart?.cost.subtotalAmount ?? null;
-});
-export const $cartTotal = computed($cart, (cart): MoneyFragment | null => {
-  return cart?.cost.totalAmount ?? null;
-});
+export const $cartSubtotal = computed(
+  $cart,
+  (cart): MoneyFragment | null => cart?.cost.subtotalAmount ?? null,
+);
+export const $cartTotal = computed(
+  $cart,
+  (cart): MoneyFragment | null => cart?.cost.totalAmount ?? null,
+);
 
 // One request at a time, so responses can't land out of order and undo a newer change.
 let queue: Promise<unknown> = Promise.resolve();

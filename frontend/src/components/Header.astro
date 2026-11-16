@@ -1,19 +1,20 @@
 ---
 import type { HeaderFragment } from "sanity/generated/graphql";
-import SanityLink from "@fields/SanityLink.astro";
-import LogoSvg from "@svgs/logo.svg";
 import LocaleSelector from "@blocks/LocaleSelector.astro";
 import SearchForm from "@blocks/SearchForm.astro";
-import CartButton from "./cart/CartButton.astro";
+import SanityLink from "@fields/SanityLink.astro";
 import { resolveSanityLink } from "@lib/sanity/links";
+import { getRenderLocale, localizeHref } from "@lib/shopify/locale";
 import { getCustomerAccountUrl } from "@lib/shopify/shop";
-import { localizeHref, getRenderLocale } from "@lib/shopify/locale";
+import LogoSvg from "@svgs/logo.svg";
+import CartButton from "./cart/CartButton.astro";
 
 interface Props {
-  headerData: HeaderFragment | null | undefined;
+  header: HeaderFragment | null | undefined;
 }
 
-const { headerData }: Props = Astro.props;
+const { header }: Props = Astro.props;
+const locale = getRenderLocale(Astro);
 
 const underlineStyles = [
   "g-underline-orange",
@@ -32,12 +33,12 @@ const underlineStyles = [
     <LocaleSelector />
   </div>
 
-  <a class="logo" href={localizeHref("/", getRenderLocale(Astro))} aria-label="Home">
+  <a class="logo" href={localizeHref("/", locale)} aria-label="Home">
     <LogoSvg />
   </a>
 
   <nav>
-    {headerData?.navigationItems?.map(async (navigationItem, index) => {
+    {header?.navigationItems?.map(async (navigationItem, index) => {
       if (!navigationItem?.link) return null;
       const href = (await resolveSanityLink(navigationItem.link))?.href;
       const isActive = Astro.url.pathname === href;
@@ -46,7 +47,7 @@ const underlineStyles = [
           <SanityLink
             class:list={["g-text-link", underlineStyles[index % underlineStyles.length]]}
             data-active={isActive}
-            linkData={navigationItem.link}
+            link={navigationItem.link}
           >
             {navigationItem.label}
           </SanityLink>
@@ -56,7 +57,9 @@ const underlineStyles = [
   </nav>
 
   <div class="shop-links">
-    <a class="search-link" href={localizeHref("/search", getRenderLocale(Astro))}>Search</a>
+    <a class="search-link" href={localizeHref("/search", locale)}>
+      Search
+    </a>
     <a class="account-link" href={await getCustomerAccountUrl()}>
       Account
     </a>
@@ -78,11 +81,11 @@ const underlineStyles = [
   .header {
     position: relative;
     z-index: 10;
+    padding-block: var(--margin) var(--section-space-lg);
     height: 100%;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: start;
-    padding-block: var(--margin) var(--section-space-lg);
     pointer-events: none;
   }
 
@@ -101,10 +104,10 @@ const underlineStyles = [
   nav {
     position: sticky;
     top: var(--margin);
-    display: flex;
-    align-items: center;
-    gap: var(--size-4);
     min-height: var(--size-10);
+    display: flex;
+    gap: var(--size-4);
+    align-items: center;
     pointer-events: auto;
   }
 
@@ -118,19 +121,19 @@ const underlineStyles = [
 
   .logo {
     position: relative;
-    grid-area: 1 / 2 / 2 / 3;
-    justify-self: center;
+    margin-bottom: var(--size-6);
     width: var(--size-12);
     aspect-ratio: 438 / 405;
-    margin-bottom: var(--size-6);
+    grid-area: 1 / 2 / 2 / 3;
+    justify-self: center;
     pointer-events: auto;
   }
 
   nav {
+    margin-top: var(--size-20);
+    flex-wrap: wrap;
     grid-area: 1 / 2 / 2 / 3;
     justify-self: center;
-    flex-wrap: wrap;
-    margin-top: var(--size-20);
   }
 
   @media (max-width: 48rem) {

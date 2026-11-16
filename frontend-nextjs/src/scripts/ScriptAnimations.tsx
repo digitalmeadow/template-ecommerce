@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { initReveal } from "@/scripts/reveal";
+import { useEffect } from "react";
 import { initParallax } from "@/scripts/parallax";
+import { initReveal } from "@/scripts/reveal";
 import { initWordsReveal } from "@/scripts/wordsReveal";
 
-// Runs before paint so hidden reveal states only apply once JS is confirmed present.
-const JS_FLAG_SCRIPT = "document.documentElement.dataset.js=''";
+// Sync flag (before paint) so reveal only hides content once JS is confirmed present.
+const JS_FLAG_SCRIPT = 'document.documentElement.dataset.js = "";';
 
 export default function ScriptAnimations() {
   const pathname = usePathname();

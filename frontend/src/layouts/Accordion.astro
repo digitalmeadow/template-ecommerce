@@ -4,21 +4,21 @@ interface Props {
   headingLevel?: 2 | 3 | 4;
   /* Opening one accordion closes the others in the same group. */
   group?: string;
-  initOpen?: boolean;
+  isInitiallyOpen?: boolean;
 }
 
-const { summary, headingLevel = 2, group, initOpen = false }: Props = Astro.props;
+const { summary, headingLevel = 2, group, isInitiallyOpen = false }: Props = Astro.props;
 
 const Heading = `h${headingLevel}` as const;
 const contentId = `accordion-${crypto.randomUUID()}`;
 ---
 
-<accordion-root group={group} init-open={initOpen ? "" : undefined}>
+<accordion-root group={group} init-open={isInitiallyOpen ? "" : undefined}>
   <Heading class="heading g-heading-6">
     <button
       type="button"
       class="summary"
-      aria-expanded={initOpen ? "true" : "false"}
+      aria-expanded={isInitiallyOpen ? "true" : "false"}
       aria-controls={contentId}
       data-accordion-toggle
     >
@@ -48,10 +48,6 @@ const contentId = `accordion-${crypto.randomUUID()}`;
     private group: string | null = null;
     private isOpen = false;
 
-    static get observedAttributes() {
-      return ["group", "init-open"];
-    }
-
     connectedCallback() {
       this.toggleElement = this.querySelector("[data-accordion-toggle]")!;
       this.contentElement = this.querySelector("[data-accordion-content]")!;
@@ -71,10 +67,6 @@ const contentId = `accordion-${crypto.randomUUID()}`;
       if (this.group) {
         window.removeEventListener(`accordion:opened:${this.group}`, this.handleAccordionOpen);
       }
-    }
-
-    attributeChangedCallback() {
-      this.render();
     }
 
     open = () => {
@@ -125,8 +117,8 @@ const contentId = `accordion-${crypto.randomUUID()}`;
 
 <style>
   accordion-root {
-    display: block;
     margin-top: calc(-1 * var(--border-width-1));
+    display: block;
     border-top: var(--border-width-1) solid var(--color-rule);
   }
 
@@ -135,12 +127,12 @@ const contentId = `accordion-${crypto.randomUUID()}`;
   }
 
   .summary {
+    padding-block: var(--size-2);
     width: 100%;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
     gap: var(--size-2);
-    padding-block: var(--size-2);
+    align-items: start;
     text-align: left;
   }
 
@@ -159,10 +151,10 @@ const contentId = `accordion-${crypto.randomUUID()}`;
   }
 
   .icon {
-    display: grid;
-    place-items: center;
     width: var(--size-4);
     height: var(--size-4);
+    display: grid;
+    place-items: center;
   }
 
   .icon-open,

@@ -1,20 +1,21 @@
-"use client";
-
-import { useEffect } from "react";
+// Pre-paint: `--vw` and the header's height (anchors clear the sticky header) before first render.
+const MEASUREMENTS_SCRIPT = `(() => {
+  const setDimensions = () => {
+    const root = document.documentElement;
+    root.style.setProperty("--vw", root.clientWidth / 100 + "px");
+    const header = document.querySelector("[data-header]");
+    if (header) root.style.setProperty("--scroll-padding-top", header.offsetHeight + "px");
+  };
+  setDimensions();
+  window.addEventListener("resize", setDimensions);
+  window.addEventListener("DOMContentLoaded", () => {
+    setDimensions();
+    // The header persists across navigations, so one observer covers wrapping nav and font swaps.
+    const header = document.querySelector("[data-header]");
+    if (header) new ResizeObserver(setDimensions).observe(header);
+  });
+})();`;
 
 export default function ScriptMeasurements() {
-  useEffect(() => {
-    const setDimensions = () => {
-      const vw = document.documentElement.clientWidth / 100;
-      const scrollbar = window.innerWidth - document.documentElement.clientWidth;
-      document.documentElement.style.setProperty("--vw", `${vw}px`);
-      document.documentElement.style.setProperty("--scrollbar", `${scrollbar}px`);
-    };
-
-    setDimensions();
-    window.addEventListener("resize", setDimensions);
-    return () => window.removeEventListener("resize", setDimensions);
-  }, []);
-
-  return null;
+  return <script dangerouslySetInnerHTML={{ __html: MEASUREMENTS_SCRIPT }} />;
 }

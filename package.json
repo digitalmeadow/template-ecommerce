@@ -6,16 +6,21 @@
     "dev": "pnpm run --parallel -r dev",
     "build": "pnpm run --parallel -r build",
     "preview": "pnpm --filter frontend preview",
-    "lint": "pnpm run --parallel -r lint",
+    "lint": "stylelint \"**/*.{css,astro}\" && pnpm run --parallel -r lint",
     "typecheck": "pnpm run --parallel -r typecheck",
     "gen": "pnpm --filter cms gen && pnpm --filter sanity gen && pnpm --filter sanity-nextjs gen && pnpm --filter shopify gen",
-    "format": "prettier --write .",
+    "format": "stylelint --fix \"**/*.{css,astro}\" && prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "4.7.1",
+    "postcss-html": "2.0.0",
     "prettier": "3.9.9",
     "simple-git-hooks": "2.14.0",
+    "stylelint": "17.16.0",
+    "stylelint-config-recess-order": "7.9.0",
+    "stylelint-order": "8.1.2",
     "typescript": "6.0.3"
   },
   "simple-git-hooks": {

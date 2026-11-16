@@ -1,8 +1,8 @@
 import type { OrganisationSettingsFragment } from "sanity/generated/graphql";
 import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
-import { resolveSanityHref } from "./resolve";
 import { getHtmlLang, localizeHref, type Locale } from "@lib/shopify/locale";
 import { isSingleDefaultVariant } from "@lib/shopify/variants";
+import { resolveSanityHref } from "./resolve";
 
 export type JsonLdSchema = Record<string, unknown>;
 

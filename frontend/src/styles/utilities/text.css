@@ -85,9 +85,9 @@
 .g-text-link,
 .g-text-link-hover {
   text-decoration-line: underline;
-  text-decoration-skip-ink: none;
-  text-decoration-color: var(--link-underline-color, var(--color-highlight-yellow));
   text-decoration-thickness: var(--link-underline-thickness-rest);
+  text-decoration-color: var(--link-underline-color, var(--color-highlight-yellow));
+  text-decoration-skip-ink: none;
   text-underline-offset: calc(-1 * var(--link-underline-thickness-rest));
 }
 
@@ -100,8 +100,8 @@
   [data-active]:not([data-active="false"]),
   [aria-current]:not([aria-current="false"])
 ) {
-  text-decoration-color: var(--link-underline-color, var(--color-highlight-yellow));
   text-decoration-thickness: var(--link-underline-thickness-active);
+  text-decoration-color: var(--link-underline-color, var(--color-highlight-yellow));
   text-underline-offset: calc(-1 * var(--link-underline-thickness-active));
 }
 

@@ -33,15 +33,15 @@ const { id, name, placeholder, required, multiple, errorId }: Props = Astro.prop
 <style>
   /* Drawn like the other controls (globals/forms.css); the native input is hidden behind it. */
   .file-label {
+    padding: 0 var(--size-2-5);
+    min-height: 2.5rem;
     display: flex;
+    gap: var(--size-2-5);
     align-items: center;
     justify-content: space-between;
-    gap: var(--size-2-5);
-    min-height: 2.5rem;
-    padding: 0 var(--size-2-5);
+    cursor: pointer;
     background-color: var(--color-surface);
     border-bottom: var(--border-width-1) solid var(--color-text);
-    cursor: pointer;
     transition: background-color var(--transition-default);
   }
 

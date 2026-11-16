@@ -20,9 +20,9 @@ const { isAvailable }: Props = Astro.props;
 </div>
 
 <script>
+  import type { EventProductVariantChange } from "@lib/events";
   import { addToCart } from "@stores/cart";
   import { setCartOpen } from "@stores/ui";
-  import type { EventProductVariantChange } from "@lib/events";
 
   function initialiseProductAddToCart(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
@@ -37,13 +37,13 @@ const { isAvailable }: Props = Astro.props;
 
     async function handleSubmit(event: SubmitEvent) {
       event.preventDefault();
-      const data = new FormData(form);
-      const variantId = String(data.get("merchandiseId") ?? "");
-      const quantity = Number(data.get("quantity") ?? 1);
+      const formData = new FormData(form);
+      const variantId = String(formData.get("merchandiseId") ?? "");
+      const quantity = Number(formData.get("quantity") ?? 1);
       if (!variantId || !Number.isFinite(quantity) || quantity < 1) return;
 
       button.disabled = true;
-      button.dataset.loading = "true";
+      button.dataset.loading = "";
       try {
         await addToCart(variantId, quantity);
         setCartOpen(true);
@@ -101,7 +101,7 @@ const { isAvailable }: Props = Astro.props;
     content: "Sold Out";
   }
 
-  [data-product-add-to-cart] [data-add-to-cart-button][data-loading="true"]::before {
+  [data-product-add-to-cart] [data-add-to-cart-button][data-loading]::before {
     content: "Adding to cart";
   }
 </style>

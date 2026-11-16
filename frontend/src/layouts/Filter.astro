@@ -20,7 +20,7 @@
 
 <script>
   import { animate } from "motion";
-  import { easeOut } from "@lib/animations";
+  import { easeOut, prefersReducedMotion } from "@lib/animations";
 
   class FilterElement extends HTMLElement {
     private optionInputs: HTMLInputElement[] = [];
@@ -30,7 +30,6 @@
     private fadeElement: HTMLElement | null = null;
     private facetValues = new Map<string, string>();
     private searchQuery = "";
-    private reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     private initialised = false;
     // Latest-wins guard so rapid changes don't leave the grid stuck faded out.
     private fadeToken = 0;
@@ -117,10 +116,10 @@
         });
     }
 
-    // Crossfade the grid on discrete filter changes: fade out then mutate the DOM
+    // Fade out before mutating so cards never pop mid-transition.
     private filter(animated: boolean) {
       const fade = this.fadeElement;
-      if (!animated || !this.initialised || this.reduceMotion || !fade) {
+      if (!animated || !this.initialised || prefersReducedMotion() || !fade) {
         this.applyMatches();
         return;
       }

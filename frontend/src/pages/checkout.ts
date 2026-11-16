@@ -1,10 +1,10 @@
-export const prerender = false;
-
 import type { APIRoute } from "astro";
 import { cartCheckoutUrlQuery } from "shopify/queries/cart";
-import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
-import { readCartId } from "@lib/shopify/cartCookie";
 import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
+import { readCartId } from "@lib/shopify/cartCookie";
+import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
+
+export const prerender = false;
 
 // Fetched fresh on every visit: Shopify's checkout URL can change with the cart and with consent.
 export const GET: APIRoute = async ({ request, url, redirect }) => {

@@ -19,8 +19,6 @@ export type CartAction =
   | { intent: "note"; note: string }
   | { intent: "attributes"; attributes: CartAttribute[] };
 
-export type CartIntent = CartAction["intent"];
-
 /** A Shopify rejection or caveat, attached to the line or code it concerns when known. */
 export interface CartMessage {
   message: string;

@@ -1,6 +1,5 @@
 import type { ShopifyClient } from "shopify/client";
 import type { CartFragment } from "shopify/generated/graphql";
-import { cartByIdQuery } from "shopify/queries/cart";
 import {
   cartAttributesUpdateMutation,
   cartBuyerIdentityUpdateMutation,
@@ -13,8 +12,9 @@ import {
   cartLinesUpdateMutation,
   cartNoteUpdateMutation,
 } from "shopify/mutations/cart";
-import type { Locale } from "@lib/shopify/locale";
+import { cartByIdQuery } from "shopify/queries/cart";
 import type { CartAction, CartMessage, CartResult } from "@lib/shopify/cartActions";
+import type { Locale } from "@lib/shopify/locale";
 
 interface CartPayload {
   cart?: CartFragment | null;
@@ -24,6 +24,7 @@ interface CartPayload {
 
 const UNAVAILABLE_MESSAGE = "This item isn't available in your region.";
 const GIFT_CARD_REJECTED_MESSAGE = "That gift card couldn't be applied.";
+const EMPTY_RESULT: CartResult = { cart: null, messages: [] };
 
 /**
  * Runs one cart action for the cart in the `cart` cookie (`cartId`, null when there's none).
@@ -39,25 +40,26 @@ export async function performCartAction(
   const context = { country: locale.country, language: locale.language };
 
   if (!action) {
-    if (!cartId) return { cart: null, messages: [] };
+    if (!cartId) return EMPTY_RESULT;
     const { cart } = await shopify.request(cartByIdQuery, { cartId, ...context });
     return syncMarket(shopify, locale, { cart: cart ?? null, messages: [] });
   }
 
-  if (!cartId) {
-    return action.intent === "add"
-      ? createCart(shopify, locale, action)
-      : { cart: null, messages: [] };
-  }
+  if (!cartId) return createOrEmpty(shopify, locale, action);
 
   const payload = await mutateCart(shopify, locale, cartId, action);
-  if (isDeadCart(payload)) {
-    return action.intent === "add"
-      ? createCart(shopify, locale, action)
-      : { cart: null, messages: [] };
-  }
+  if (isDeadCart(payload)) return createOrEmpty(shopify, locale, action);
 
   return syncMarket(shopify, locale, toResult(payload, action));
+}
+
+// With no live cart, only an add has anything to act on.
+function createOrEmpty(
+  shopify: ShopifyClient,
+  locale: Locale,
+  action: CartAction,
+): Promise<CartResult> | CartResult {
+  return action.intent === "add" ? createCart(shopify, locale, action) : EMPTY_RESULT;
 }
 
 async function createCart(

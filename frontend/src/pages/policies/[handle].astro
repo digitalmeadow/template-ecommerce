@@ -1,8 +1,8 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
+import { truncate } from "@lib/sanity/meta";
 import { DEFAULT_LOCALE, getRenderLocale } from "@lib/shopify/locale";
 import { getShopPolicies } from "@lib/shopify/shop";
-import { truncate } from "@lib/sanity/meta";
 
 // Legal pages authored in Shopify admin (Settings → Policies), at Shopify's own paths.
 export async function getStaticPaths() {
@@ -22,7 +22,7 @@ const description = truncate(
 );
 ---
 
-<PageLayout metaData={{ title: policy.title, description, image: null }}>
+<PageLayout meta={{ title: policy.title, description, image: null }}>
   <article class="policy g-page-margin">
     <div class="policy-body g-container-sm">
       <h1 class="g-heading-3">{policy.title}</h1>

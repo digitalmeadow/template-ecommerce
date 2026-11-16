@@ -1,15 +1,15 @@
 ---
 import type { AnalyticsSettingsFragment } from "sanity/generated/graphql";
 import { SHOPIFY_STORE_DOMAIN } from "shopify/config";
-import { getShop } from "@lib/shopify/shop";
-import { getLocalization } from "@lib/shopify/localization";
 import { getRenderLocale } from "@lib/shopify/locale";
+import { getLocalization } from "@lib/shopify/localization";
+import { getShop } from "@lib/shopify/shop";
 
 interface Props {
-  analyticsSettingsData: AnalyticsSettingsFragment | null | undefined;
+  analyticsSettings: AnalyticsSettingsFragment | null | undefined;
 }
 
-const { analyticsSettingsData }: Props = Astro.props;
+const { analyticsSettings }: Props = Astro.props;
 
 const locale = getRenderLocale(Astro);
 const [shop, localization] = await Promise.all([getShop(), getLocalization()]);
@@ -25,10 +25,13 @@ const currency = localization.availableCountries.find(
   data-country={locale.country}
   data-language={locale.language}
   data-currency={currency}
-  data-gtm-id={analyticsSettingsData?.gtmId ?? undefined}
+  data-gtm-id={analyticsSettings?.gtmId ?? undefined}
 />
 
 <script>
+  import { disableDataLayer, enableDataLayer } from "@lib/analytics/dataLayer";
+  import { initShopifyAnalytics } from "@lib/analytics/shopifyAnalytics";
+  import { trackPageView } from "@lib/analytics/track";
   import {
     getConsent,
     resolveTrackingAllowed,
@@ -36,9 +39,6 @@ const currency = localization.availableCountries.find(
     type EventCookieConsentChange,
   } from "@lib/consent/consent";
   import { loadCustomerPrivacy, syncShopifyConsent } from "@lib/consent/customerPrivacy";
-  import { initShopifyAnalytics } from "@lib/analytics/shopifyAnalytics";
-  import { disableDataLayer, enableDataLayer } from "@lib/analytics/dataLayer";
-  import { trackPageView } from "@lib/analytics/track";
 
   let isInitialised = false;
   let isGtmLoaded = false;

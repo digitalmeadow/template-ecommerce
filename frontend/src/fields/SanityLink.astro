@@ -2,22 +2,22 @@
 import type { LinkFragment } from "sanity/generated/graphql";
 import { resolveSanityLink } from "@lib/sanity/links";
 import { anchorAttributes } from "@lib/sanity/resolve";
-import { localizeHref, getRenderLocale } from "@lib/shopify/locale";
+import { getRenderLocale, localizeHref } from "@lib/shopify/locale";
 
 interface Props {
-  linkData: LinkFragment | null | undefined;
+  link: LinkFragment | null | undefined;
   class?: string;
   [attribute: string]: unknown;
 }
 
-const { linkData, class: className, ...rest }: Props = Astro.props;
+const { link, class: className, ...rest }: Props = Astro.props;
 
-const link = await resolveSanityLink(linkData);
-const href = link && localizeHref(link.href, getRenderLocale(Astro));
+const resolvedLink = await resolveSanityLink(link);
+const href = resolvedLink && localizeHref(resolvedLink.href, getRenderLocale(Astro));
 ---
 
-{link ? (
-  <a class={className} href={href} {...anchorAttributes(link)} {...rest}>
+{resolvedLink ? (
+  <a class={className} href={href} {...anchorAttributes(resolvedLink)} {...rest}>
     <slot />
   </a>
 ) : (

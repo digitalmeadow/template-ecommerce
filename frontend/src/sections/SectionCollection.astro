@@ -1,8 +1,8 @@
 ---
 import type { SectionCollectionFragment } from "sanity/generated/graphql";
 import { fetchShopifyCollectionWithThumbnails } from "@lib/fetches/collectionShopifySanity";
-import ProductThumbnailsGrid from "./product/ProductThumbnailsGrid.astro";
 import { getRenderLocale } from "@lib/shopify/locale";
+import ProductThumbnailsGrid from "./product/ProductThumbnailsGrid.astro";
 
 interface Props {
   section: SectionCollectionFragment;
@@ -27,7 +27,7 @@ const collection = handle
       <sup>({collection.shopify?.products.nodes.length ?? 0})</sup>
     </h2>
 
-    <ProductThumbnailsGrid productsData={collection.productThumbnails} />
+    <ProductThumbnailsGrid products={collection.productThumbnails} />
   </section>
 )}
 

@@ -33,7 +33,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 
       <div class="prices">
         <div data-compare-at-wrapper hidden>
-          <PriceDisplay variant="compare-at" data-compare-at-price />
+          <PriceDisplay kind="compare-at" data-compare-at-price />
         </div>
         <PriceDisplay data-price />
       </div>
@@ -42,13 +42,13 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 </cart-line-item>
 
 <script>
-  import { resolveSanityHref } from "@lib/sanity/resolve";
-  import { getPageLocale, localizeHref } from "@lib/shopify/locale";
-  import { updateLineQuantity, removeLine } from "@stores/cart";
-  import { DEFAULT_VARIANT_TITLE } from "@lib/shopify/variants";
-  import type { EventQuantityChanged } from "@lib/events";
   import type { CartLineFragment } from "shopify/generated/graphql";
+  import type { EventQuantityChanged } from "@lib/events";
+  import { resolveSanityHref } from "@lib/sanity/resolve";
   import type { CartMessage } from "@lib/shopify/cartActions";
+  import { getPageLocale, localizeHref } from "@lib/shopify/locale";
+  import { DEFAULT_VARIANT_TITLE } from "@lib/shopify/variants";
+  import { removeLine, updateLineQuantity } from "@stores/cart";
 
   class CartLineItemElement extends HTMLElement {
     linkElements: NodeListOf<HTMLAnchorElement> | undefined;
@@ -115,12 +115,12 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
       this.titleElement.textContent = product.title;
       this.variantTitleElement.textContent = variantTitle;
 
-      this.dataset.singleDefaultVariant = String(variantTitle === DEFAULT_VARIANT_TITLE);
+      this.toggleAttribute("data-single-default-variant", variantTitle === DEFAULT_VARIANT_TITLE);
 
       const imageUrl = variantImage?.thumbnailUrl ?? product.featuredImage?.thumbnailUrl;
       if (imageUrl) {
         this.imageElement.src = imageUrl;
-        this.imageElement.dataset.loaded = "true";
+        this.imageElement.dataset.loaded = "";
       }
 
       this.quantitySelector.setAttribute("initial", String(quantity));
@@ -158,8 +158,8 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
 
 <style>
   cart-line-item {
-    display: block;
     width: 100%;
+    display: block;
   }
 
   .cart-line-item {
@@ -182,7 +182,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     transition: opacity var(--transition-media);
   }
 
-  [data-image][data-loaded]:not([data-loaded="false"]) {
+  [data-image][data-loaded] {
     opacity: 1;
   }
 
@@ -198,8 +198,7 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
     column-gap: 1ch;
   }
 
-  cart-line-item[data-single-default-variant]:not([data-single-default-variant="false"])
-    .variant-title {
+  cart-line-item[data-single-default-variant] .variant-title {
     display: none;
   }
 
@@ -210,8 +209,8 @@ import QuantitySelector from "@blocks/QuantitySelector.astro";
   .inventory {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: var(--size-4);
+    align-items: center;
   }
 
   .remove-button {

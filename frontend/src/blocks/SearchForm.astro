@@ -96,25 +96,25 @@ const locale = getRenderLocale(Astro);
 
   .results {
     position: absolute;
-    z-index: 20;
     top: calc(100% + var(--size-2));
     left: 0;
-    width: max(100%, var(--max-w-80));
+    z-index: 20;
     padding: var(--size-4);
+    width: max(100%, var(--max-w-80));
     background-color: var(--color-background);
     border: var(--border-width-1) solid var(--color-rule);
   }
 
   .results :global(ul) {
+    margin-bottom: var(--size-4);
     display: flex;
     flex-direction: column;
     gap: var(--size-2);
-    margin-bottom: var(--size-4);
   }
 
   .results :global(li a) {
     display: flex;
-    justify-content: space-between;
     gap: var(--size-3);
+    justify-content: space-between;
   }
 </style>

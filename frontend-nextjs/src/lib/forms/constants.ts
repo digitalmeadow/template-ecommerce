@@ -1,5 +1,10 @@
 export const HONEYPOT_FIELD_NAME = "company-website";
 
+// Validates against the CMS form and saves a `formSubmission` document (pages/api/forms.ts).
+export const FORM_ENDPOINT = "/api/forms";
+
+export const FORM_ID_FIELD_NAME = "formId";
+
 export const CONSENT_VALUE = "yes";
 
 export const ACCEPTED_FILE_TYPES = [
@@ -12,12 +17,3 @@ export const ACCEPTED_FILE_TYPES = [
 export const ACCEPTED_FILE_EXTENSIONS = [".pdf", ".doc", ".docx"];
 
 export const ACCEPTED_FILE_ATTR = [...ACCEPTED_FILE_TYPES, ...ACCEPTED_FILE_EXTENSIONS].join(",");
-
-// Serverless request bodies often cap around 6MB, so the whole multipart POST must fit under that.
-export const MAX_FILE_MB = 4;
-export const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
-
-export const MAX_FILES = 5;
-
-export const MAX_TOTAL_UPLOAD_MB = 4;
-export const MAX_TOTAL_UPLOAD_BYTES = MAX_TOTAL_UPLOAD_MB * 1024 * 1024;

@@ -1,33 +1,53 @@
+"use client";
+
+import { useRef } from "react";
+import Carousel, { type CarouselApi } from "@/layouts/Carousel";
 import type { ProductThumbnailShopifySanity } from "@/lib/fetches/productShopifySanity";
-import ProductRelatedCarousel from "@/sections/product/ProductRelatedCarousel";
 import ProductThumbnail from "@/sections/product/ProductThumbnail";
-import { cn } from "@/lib/utils";
 
 interface Props {
-  productsData: ProductThumbnailShopifySanity[] | null | undefined;
-  className?: string;
+  products: ProductThumbnailShopifySanity[] | null | undefined;
 }
 
-// Server component: thumbnails render server-side (SanityMedia is async) and slot into the client carousel.
-export default function ProductRelated({ productsData, className }: Props) {
-  if (!productsData?.length) return null;
+export default function ProductRelated({ products }: Props) {
+  const carouselRef = useRef<CarouselApi>(null);
+  if (!products?.length) return null;
 
   return (
-    <section className={cn("product-related mt-[var(--s80)] u-container", className)}>
-      <ProductRelatedCarousel>
-        {productsData.map((productData) => (
-          <div
-            key={productData.shopify.id}
-            className={cn(
-              "carousel-item",
-              "mr-[var(--gutter)] w-[calc(4*var(--column)+3*var(--gutter))]",
-              "max-lg:w-[calc(8*var(--column)+7*var(--gutter))]",
-            )}
+    <section className="product-related g-page-margin g-section-md">
+      <div className="mb-4 flex items-center justify-between gap-1">
+        <h2 className="g-heading-5">Related Products</h2>
+
+        <div className="flex gap-1">
+          <button
+            className="g-button-icon"
+            type="button"
+            aria-label="Previous related products"
+            onClick={() => carouselRef.current?.scrollPrev()}
           >
-            <ProductThumbnail productData={productData} />
+            ←
+          </button>
+          <button
+            className="g-button-icon"
+            type="button"
+            aria-label="Next related products"
+            onClick={() => carouselRef.current?.scrollNext()}
+          >
+            →
+          </button>
+        </div>
+      </div>
+
+      <Carousel ref={carouselRef} id="product-related-carousel">
+        {products.map((product) => (
+          <div
+            key={product.shopify.id}
+            className="mr-[var(--gutter)] w-[calc(4*var(--column)+3*var(--gutter))] mobile:w-[calc(3*var(--column)+2*var(--gutter))]"
+          >
+            <ProductThumbnail product={product} />
           </div>
         ))}
-      </ProductRelatedCarousel>
+      </Carousel>
     </section>
   );
 }

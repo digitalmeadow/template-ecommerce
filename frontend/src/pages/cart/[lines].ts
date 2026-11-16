@@ -1,8 +1,8 @@
-export const prerender = false;
-
 import type { APIRoute } from "astro";
 import { SHOPIFY_STORE_DOMAIN } from "shopify/config";
 import { respondNotFound } from "@lib/responses";
+
+export const prerender = false;
 
 // Cart permalinks (`/cart/{variantId}:{quantity},…`) from emails, ads and QR codes; Shopify builds the cart.
 export const GET: APIRoute = (context) => {

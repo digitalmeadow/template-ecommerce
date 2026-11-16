@@ -60,7 +60,7 @@ A module `<script>` runs once on first load and **never again** after navigation
 
 ### 3. Inline pre-paint `<script is:inline>` — state needed before first paint
 
-`ScriptMeasurements` (`--vw`, `--scrollbar`) and `ScriptAnimations` (`html[data-js]`). The router replaces `<html>` attributes on swap, so re-apply on `astro:after-swap`.
+`ScriptMeasurements` (`--vw`, `--scroll-padding-top`) and `ScriptAnimations` (`html[data-js]`). The router replaces `<html>` attributes on swap, so re-apply on `astro:after-swap`.
 
 ### Persisted chrome
 
@@ -75,12 +75,13 @@ decorations/  Non-content visual layers (PageTransition)
 dev/          Dev-only overlays (Grid)
 fields/       Sanity value renderers (SanityImage, SanityMedia, MuxVideo, VimeoVideo, SanityLink, PortableText, FormField, FormTerm, form/*)
 layouts/      Primitives (PageLayout, Accordion, Carousel, Dropdown, Filter, FontSizeFillWidth, Overlay, Tabs)
-lib/          cache, responses, animations, scrollLock, buildAssets, sanity/ (globals, links, resolve, images, meta, structuredData, paths, staticPaths, sections), shopify/ (clients, proxy, locale, money, variants, filters, cart*, redirects, shop), fetches/, analytics/, forms/, consent/, announcement, focus, video, events, elements
+lib/          cache, responses, animations, scrollLock, buildAssets, sanity/ (globals, links, resolve, images, meta, structuredData, paths, staticPaths, sections), shopify/ (serverClient, proxy, locale, money, variants, filters, cart*, redirects, shop), fetches/, analytics/, forms/, consent/, announcement, focus, video, events, elements
 meta/         Meta, JsonLd
 pages/        Routes (+ robots.txt.ts, api/)
 scripts/      ScriptMeasurements, ScriptAnimations + motion controllers (reveal, parallax, wordsReveal)
 sections/     SectionsRenderer + one file per section type; product/ (ProductMain, ProductRelated + their parts)
 stores/       nanostores
+styleGuide/   Style guide (StyleGuide, Preview, demos/, fixtures/)
 styles/       Global CSS (index.css): tokens/, base/, globals/, utilities/
 svgs/         Inline SVGs
 utils/        Small helpers
@@ -92,20 +93,20 @@ Aliases (`tsconfig.json`): `@config` → `./config.ts`; `@blocks @components @de
 
 ```astro
 ---
-import type { SomeFragment } from "sanity/generated/graphql";
+import type { MediaFragment } from "sanity/generated/graphql";
 
 interface Props {
-  someData: SomeFragment | null | undefined;
+  media: MediaFragment | null | undefined;
 }
 
-const { someData }: Props = Astro.props;
+const { media }: Props = Astro.props;
 ---
 
-{someData && <div class="component-name">...</div>}
+{media && <div class="component-name">...</div>}
 ```
 
 - `Props` interface; destructure `const { ... }: Props = Astro.props`.
-- Data props typed to generated fragments, `| null | undefined`, guarded.
+- Data props are named for what they hold (`product`, `media`), typed to generated fragments, `| null | undefined`, guarded.
 - Root element carries the kebab-case class matching the component name.
 - Scoped `<style>` styles only elements the component renders. To place a child component, wrap it in an element you own.
 - `:global()` only for JS-created nodes, `<html>` state and slotted or child-component parts, under the component's class. No `is:global` styles.
@@ -126,7 +127,7 @@ const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadPageProp
 if (!resolved) return Astro.rewrite("/404");
 ```
 
-Pass `metaData={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `PageLayout` (`<slot />` renders in `<main>`, not `<head>`). Every page needs an `<h1>` — render a `.g-sr-only` one when no hero provides it (`hasHeroHeading()` in `lib/sanity/sections.ts`).
+Pass `meta={resolveMeta(doc)}` and page JSON-LD via the `jsonLd` prop of `PageLayout` (`<slot />` renders in `<main>`, not `<head>`). Every page needs an `<h1>` — render a `.g-sr-only` one when no hero provides it (`hasHeroHeading()` in `lib/sanity/sections.ts`).
 
 ### Fields
 

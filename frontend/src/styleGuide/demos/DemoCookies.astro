@@ -5,7 +5,7 @@ import CookiesBanner from "@components/CookiesBanner.astro";
 import { cookieConsent } from "../fixtures/settings";
 ---
 
-<CookiesBanner cookieConsentData={cookieConsent} />
+<CookiesBanner cookieConsent={cookieConsent} />
 
 <script>
   type CookieBannerElement = HTMLElement & { show(): void };

@@ -3,15 +3,14 @@ import type { VimeoVideoFragment } from "sanity/generated/graphql";
 import { fetchVimeoOEmbed } from "@lib/video";
 
 interface Props {
-  videoData: VimeoVideoFragment | null | undefined;
+  video: VimeoVideoFragment | null | undefined;
   layout?: "width" | "height" | "cover" | "contain";
   loading?: "lazy" | "eager";
-  mediaId?: string | null;
 }
 
-const { videoData, layout = "width", loading = "lazy", mediaId }: Props = Astro.props;
+const { video, layout = "width", loading = "lazy" }: Props = Astro.props;
 
-const videoId = videoData?.url?.split("/").pop();
+const videoId = video?.url?.split("/").pop();
 
 const embedParams = new URLSearchParams({
   title: "0",
@@ -26,7 +25,7 @@ const embedParams = new URLSearchParams({
 
 const embedUrl = `https://player.vimeo.com/video/${videoId}?${embedParams.toString()}`;
 
-const oEmbed = videoData?.url ? await fetchVimeoOEmbed(videoData.url) : null;
+const oEmbed = video?.url ? await fetchVimeoOEmbed(video.url) : null;
 const thumbnailUrl = oEmbed?.thumbnail_url;
 const videoWidth = oEmbed?.width;
 const videoHeight = oEmbed?.height;
@@ -45,7 +44,6 @@ const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefi
   )}
   <iframe
     class="video"
-    data-media-id={mediaId}
     src={embedUrl}
     title={oEmbed?.title || "Video"}
     loading={loading}
@@ -100,19 +98,19 @@ const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefi
   }
 
   .vimeo-video > * {
-    grid-area: 1 / 1;
     min-width: 0;
     min-height: 0;
+    grid-area: 1 / 1;
   }
 
   .placeholder {
     width: 100%;
     height: 100%;
+    pointer-events: none;
     object-fit: cover;
     opacity: 1;
-    transition: opacity var(--transition-media);
-    pointer-events: none;
     filter: blur(100px);
+    transition: opacity var(--transition-media);
   }
 
   .vimeo-video:has(.video[data-loaded]) .placeholder {
@@ -122,8 +120,8 @@ const videoRatio = videoWidth && videoHeight ? videoWidth / videoHeight : undefi
   .video {
     width: 100%;
     height: 100%;
-    border: 0;
     pointer-events: none; /* decorative player — clicks and hover belong to the parent */
+    border: 0;
     opacity: 0;
     transition: opacity var(--transition-media);
   }

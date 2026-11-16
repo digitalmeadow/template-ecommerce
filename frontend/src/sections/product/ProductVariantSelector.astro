@@ -1,6 +1,6 @@
 ---
-import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import { shopifyIdFromGid } from "shopify/utils/ids";
+import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import {
   getInitialVariant,
   isSingleDefaultVariant,
@@ -9,13 +9,13 @@ import {
 } from "@lib/shopify/variants";
 
 interface Props {
-  productData: ProductShopifySanity;
+  product: ProductShopifySanity;
 }
 
-const { productData }: Props = Astro.props;
+const { product }: Props = Astro.props;
 
-const options = productData.shopify.options;
-const variants: Variant[] = productData.shopify.variants.nodes.map((variant) => ({
+const options = product.shopify.options;
+const variants: Variant[] = product.shopify.variants.nodes.map((variant) => ({
   id: variant.id,
   title: variant.title,
   selectedOptions: variant.selectedOptions,
@@ -28,7 +28,7 @@ const variants: Variant[] = productData.shopify.variants.nodes.map((variant) => 
 // Static HTML opens on the first available variant; the script then applies any URL selection.
 const initialVariant = getInitialVariant(variants);
 const initialSelection = initialVariant ? toSelection(initialVariant) : {};
-const shopifyId = shopifyIdFromGid(productData.shopify.id);
+const shopifyId = shopifyIdFromGid(product.shopify.id);
 ---
 
 <div class="variant-selector" data-variant-selector data-variants={JSON.stringify(variants)}>
@@ -75,6 +75,7 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
 </div>
 
 <script>
+  import type { EventProductLiveData, EventProductVariantChangeDetail } from "@lib/events";
   import {
     findVariant,
     getInitialVariant,
@@ -82,7 +83,6 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
     toSelection,
     type Variant,
   } from "@lib/shopify/variants";
-  import type { EventProductLiveData, EventProductVariantChangeDetail } from "@lib/events";
 
   function initialiseVariantSelector(rootElement: HTMLElement): () => void {
     const productRoot = rootElement.closest("[data-product-root]") as HTMLElement;
@@ -217,8 +217,8 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
 
   label {
     display: inline-flex;
-    align-items: center;
     gap: var(--size-1);
+    align-items: center;
     cursor: pointer;
   }
 
@@ -234,8 +234,8 @@ const shopifyId = shopifyIdFromGid(productData.shopify.id);
   .swatch {
     width: 1em;
     height: 1em;
-    border-radius: var(--radius-full);
-    background-color: var(--swatch-color);
     object-fit: cover;
+    background-color: var(--swatch-color);
+    border-radius: var(--radius-full);
   }
 </style>

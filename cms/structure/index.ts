@@ -1,10 +1,10 @@
 import { StructureResolver } from "sanity/structure";
-import { home } from "./home";
-import { settings } from "./settings";
-import { pages } from "./pages";
 import { collections } from "./collections";
-import { products } from "./products";
+import { home } from "./home";
 import { library } from "./library";
+import { pages } from "./pages";
+import { products } from "./products";
+import { settings } from "./settings";
 
 export const structure: StructureResolver = (S) => {
   return S.list()

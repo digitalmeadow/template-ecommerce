@@ -2,11 +2,12 @@
 
 import { useEffect, useEffectEvent, useRef, type ReactNode } from "react";
 import { trapFocus } from "@/lib/focus";
+import { lockScroll, unlockScroll } from "@/lib/scrollLock";
 import { cn } from "@/lib/utils";
 
 interface Props {
   id: string;
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
   layout?: "fullscreen" | "right";
   ariaLabel?: string;
@@ -14,38 +15,9 @@ interface Props {
   children: ReactNode;
 }
 
-// position:fixed rather than overflow:hidden alone, which iOS Safari ignores on the body.
-function lockScroll(): number {
-  const scrollY = window.scrollY;
-  const scrollingElement = document.scrollingElement as HTMLElement | null;
-  if (scrollingElement) {
-    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
-    scrollingElement.style.overflow = "hidden";
-    scrollingElement.style.top = `-${scrollY}px`;
-    scrollingElement.style.position = "fixed";
-    scrollingElement.style.width = "100%";
-    scrollingElement.style.paddingRight = `${scrollbar}px`;
-  }
-  return scrollY;
-}
-
-function unlockScroll(scrollY: number) {
-  const scrollingElement = document.scrollingElement as HTMLElement | null;
-  if (!scrollingElement) return;
-  scrollingElement.style.overflow = "";
-  scrollingElement.style.top = "";
-  scrollingElement.style.position = "";
-  scrollingElement.style.width = "";
-  scrollingElement.style.paddingRight = "";
-  const previousBehavior = document.documentElement.style.scrollBehavior;
-  document.documentElement.style.scrollBehavior = "auto";
-  window.scrollTo(0, scrollY);
-  document.documentElement.style.scrollBehavior = previousBehavior;
-}
-
 export default function Overlay({
   id,
-  open,
+  isOpen,
   onClose,
   layout = "fullscreen",
   ariaLabel,
@@ -57,10 +29,10 @@ export default function Overlay({
 
   useEffect(() => {
     const panel = panelRef.current;
-    if (!open || !panel) return;
+    if (!isOpen || !panel) return;
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
-    const scrollY = lockScroll();
+    lockScroll();
     requestAnimationFrame(() => panel.focus());
 
     function handleKeydown(event: KeyboardEvent) {
@@ -75,25 +47,27 @@ export default function Overlay({
     document.addEventListener("keydown", handleKeydown);
     return () => {
       document.removeEventListener("keydown", handleKeydown);
-      unlockScroll(scrollY);
+      unlockScroll();
       previouslyFocused?.focus();
     };
-  }, [open]);
+  }, [isOpen]);
 
   return (
     <div
       id={id}
-      inert={!open}
+      // Closed overlays stay in the DOM; keep their content out of the tab order and accessibility tree.
+      inert={!isOpen}
+      data-state={isOpen ? "open" : undefined}
       className={cn(
-        "pointer-events-none fixed z-20",
-        open && "pointer-events-auto z-[21]",
+        "overlay-root pointer-events-none fixed z-20",
+        isOpen && "pointer-events-auto z-21",
         className,
       )}
     >
       <div
         className={cn(
-          "fixed inset-0 bg-black/50 opacity-0 transition-opacity duration-[var(--transition-default-duration)] ease-out-cubic",
-          open && "opacity-100",
+          "fixed inset-0 bg-alpha-50 opacity-0 transition-opacity duration-(--duration-default) ease-out",
+          isOpen && "opacity-100",
         )}
         onClick={onClose}
         aria-hidden="true"
@@ -103,21 +77,19 @@ export default function Overlay({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={ariaLabel ?? undefined}
+        aria-label={ariaLabel}
         tabIndex={-1}
         className={cn(
-          "panel fixed grid grid-rows-[auto_1fr] overflow-y-auto bg-background outline-none",
+          "panel fixed top-0 right-0 grid h-full grid-rows-[auto_1fr] overflow-y-auto bg-background p-(--margin) outline-none",
           layout === "fullscreen" && [
-            "top-0 right-0 h-full w-full p-6",
-            "pointer-events-none opacity-0 transition-opacity duration-[var(--transition-default-duration)] ease-out-cubic",
-            "max-sm:p-[var(--margin)]",
-            open && "pointer-events-auto opacity-100",
+            "w-full opacity-0 transition-opacity duration-(--duration-default) ease-out",
+            isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none",
           ],
+          // On phones the side panel becomes a sheet rising from the bottom.
           layout === "right" && [
-            "top-0 right-0 h-full w-[480px] p-[var(--margin)]",
-            "translate-x-full transition-transform duration-[var(--transition-default-duration)] ease-out-cubic",
-            "max-sm:top-auto max-sm:bottom-0 max-sm:h-[calc(100svh-var(--s120))] max-sm:w-full max-sm:translate-y-full max-sm:rounded-t-2xl max-sm:px-[var(--margin)] max-sm:pt-5 max-sm:pb-10",
-            open && "translate-x-0 max-sm:translate-y-0",
+            "w-(--max-w-120) translate-x-full transition-transform duration-(--duration-default) ease-out",
+            "mobile:top-auto mobile:bottom-0 mobile:h-[calc(100svh-var(--size-30))] mobile:w-full mobile:translate-x-0 mobile:translate-y-full mobile:rounded-t-lg mobile:pt-5 mobile:pb-10",
+            isOpen && "translate-x-0 mobile:translate-y-0",
           ],
         )}
       >

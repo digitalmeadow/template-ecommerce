@@ -2,7 +2,7 @@
 export const PREVIEW_WEBSITE_URL = process.env.SANITY_STUDIO_PREVIEW_URL!;
 
 // Created by integrations (Sanity Connect, the form endpoint), never from a "Create" menu.
-export const GENERATED_DOCUMENT_TYPES = [
+export const GENERATED_DOCUMENT_TYPES: string[] = [
   "product",
   "collection",
   "productVariant",

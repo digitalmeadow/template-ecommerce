@@ -9,6 +9,6 @@ const variants = [standard, onSale, priceRange].filter((product) => product !== 
 
 <div class="g-grid-cols-3">
   {variants.map((product) => (
-    <ProductThumbnail productData={product} />
+    <ProductThumbnail product={product} />
   ))}
 </div>

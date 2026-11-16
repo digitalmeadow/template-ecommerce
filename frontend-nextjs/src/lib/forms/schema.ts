@@ -1,98 +1,120 @@
+import { z } from "zod";
 import {
   ACCEPTED_FILE_EXTENSIONS,
   ACCEPTED_FILE_TYPES,
   CONSENT_VALUE,
-  MAX_FILE_BYTES,
-  MAX_FILE_MB,
-  MAX_FILES,
-  MAX_TOTAL_UPLOAD_BYTES,
-  MAX_TOTAL_UPLOAD_MB,
-} from "./constants";
-import { FILE_TYPES, type FormFieldDefinition } from "./types";
+} from "@/lib/forms/constants";
 
-const PHONE_PATTERN = /^\+?[0-9\s\-()]+$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Server-side validation for CMS-built forms: the same rules the browser applies, enforced
+// where they can't be skipped. Errors are keyed by field name for the form's inline states.
 
-type Values = FormDataEntryValue[];
-
-// Untouched inputs all arrive as present-but-empty.
-function filled(values: Values) {
-  return values.filter((value) =>
-    typeof value === "string" ? value.trim() !== "" : value.size > 0,
-  );
+export interface FormFieldDefinition {
+  name: string;
+  label: string;
+  type: string;
+  required: boolean;
+  options: string[];
 }
 
-// Some browsers report an empty MIME type for .docx, so fall back to the extension.
-function isAcceptedFile(file: File) {
-  const name = file.name.toLowerCase();
-  return (
-    ACCEPTED_FILE_TYPES.includes(file.type) ||
-    ACCEPTED_FILE_EXTENSIONS.some((extension) => name.endsWith(extension))
-  );
+export interface FormDefinition {
+  title: string;
+  fields: FormFieldDefinition[];
+  terms: { name: string; label: string; required: boolean }[];
 }
 
-function formatError(field: FormFieldDefinition, values: Values) {
-  const { label, type } = field;
-  const options = field.options ?? [];
-  const strings = values
-    .filter((value): value is string => typeof value === "string")
-    .map((value) => value.trim());
-  const files = values.filter((value): value is File => value instanceof File);
+export type FormValue = string | string[] | File | File[];
 
-  switch (type) {
-    case "file":
-    case "files":
-      if (strings.length) return `${label} must be a file.`;
-      if (type === "files" && files.length > MAX_FILES)
-        return `${label} accepts at most ${MAX_FILES} files.`;
-      if (!files.every(isAcceptedFile)) return `${label} must be a PDF or Word document.`;
-      if (files.some((file) => file.size > MAX_FILE_BYTES))
-        return `${label} must be smaller than ${MAX_FILE_MB}MB.`;
-      return null;
-    case "checkboxGroup":
-      return strings.every((value) => options.includes(value))
-        ? null
-        : `Select a valid option for ${label}.`;
-    case "consent":
-      return strings[0] === CONSENT_VALUE ? null : `${label} must be accepted.`;
-    case "email":
-      return EMAIL_PATTERN.test(strings[0]) ? null : `${label} must be a valid email address.`;
-    case "tel":
-      return PHONE_PATTERN.test(strings[0]) ? null : `${label} must be a valid phone number.`;
-    case "select":
-    case "radioGroup":
-      return options.includes(strings[0]) ? null : `Select an option for ${label}.`;
-    default:
-      return null;
-  }
-}
+const MAX_TEXT_LENGTH = 5_000;
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
-// Blank is checked first, so a required field reports "required", not a format error.
-export function validateSubmission(fields: FormFieldDefinition[], data: FormData) {
-  const errors: Record<string, string> = {};
+const REQUIRED_MESSAGE = "This field is required.";
+const CHOICE_TYPES = ["select", "radioGroup", "checkboxGroup"];
 
-  for (const field of fields) {
-    const values = filled(data.getAll(field.name));
+const isAcceptedFile = (file: File) =>
+  ACCEPTED_FILE_TYPES.includes(file.type) ||
+  ACCEPTED_FILE_EXTENSIONS.some((extension) => file.name.toLowerCase().endsWith(extension));
 
-    if (values.length === 0) {
-      if (field.required) errors[field.name] = `${field.label} is required.`;
-      continue;
+const fileSchema = z
+  .instanceof(File)
+  .refine(isAcceptedFile, "Upload a PDF or Word document.")
+  .refine((file) => file.size <= MAX_FILE_BYTES, "Files must be 10 MB or smaller.");
+
+function fieldSchema({
+  type,
+  required,
+  options,
+}: FormFieldDefinition): z.ZodType<FormValue | undefined> {
+  const text = z.string().trim().max(MAX_TEXT_LENGTH, "This answer is too long.");
+
+  // The Studio requires options for choice fields; without them there's nothing to choose from.
+  const isChoiceWithoutOptions = CHOICE_TYPES.includes(type) && options.length === 0;
+
+  switch (isChoiceWithoutOptions ? "text" : type) {
+    case "email": {
+      const email = z.email("Enter a valid email address.");
+      return required ? email : z.union([email, z.literal("")]).optional();
     }
-
-    const error = formatError(field, values);
-    if (error) errors[field.name] = error;
+    case "select":
+    case "radioGroup": {
+      const choice = z.enum(options as [string, ...string[]], "Choose one of the options.");
+      return required ? choice : z.union([choice, z.literal("")]).optional();
+    }
+    case "checkboxGroup": {
+      const choices = z.array(z.enum(options as [string, ...string[]], "Choose from the options."));
+      return required ? choices.min(1, REQUIRED_MESSAGE) : choices;
+    }
+    case "file":
+      return required ? fileSchema : fileSchema.optional();
+    case "files": {
+      const files = z.array(fileSchema);
+      return required ? files.min(1, REQUIRED_MESSAGE) : files;
+    }
+    default:
+      return required ? text.min(1, REQUIRED_MESSAGE) : text.optional();
   }
-
-  return errors;
 }
 
-// Per-file limits can still add up past what the endpoint accepts.
-export function validateTotalUploadSize(fields: FormFieldDefinition[], data: FormData) {
-  const total = fields
-    .filter((field) => FILE_TYPES.has(field.type))
-    .flatMap((field) => data.getAll(field.name))
-    .reduce((sum, value) => sum + (value instanceof File ? value.size : 0), 0);
+/** One value per field, in the shape its schema expects (arrays for multi-value fields). */
+function readValue(form: FormData, { name, type }: FormFieldDefinition): FormValue | undefined {
+  if (type === "checkboxGroup") return form.getAll(name).map(String);
+  if (type === "files") {
+    return form
+      .getAll(name)
+      .filter((entry): entry is File => entry instanceof File && entry.size > 0);
+  }
+  const entry = form.get(name);
+  if (entry instanceof File) return entry.size > 0 ? entry : undefined;
+  return entry ?? undefined;
+}
 
-  if (total <= MAX_TOTAL_UPLOAD_BYTES) return null;
-  return `Attachments must total less than ${MAX_TOTAL_UPLOAD_MB}MB.`;
+export type SubmissionResult =
+  | { success: true; values: Record<string, FormValue | undefined> }
+  | { success: false; errors: Record<string, string> };
+
+/** Validates a submission against its form; the first problem per field is reported. */
+export function validateSubmission(form: FormData, definition: FormDefinition): SubmissionResult {
+  const shape: Record<string, z.ZodType> = {};
+  const input: Record<string, unknown> = {};
+
+  for (const field of definition.fields) {
+    shape[field.name] = fieldSchema(field);
+    input[field.name] = readValue(form, field);
+  }
+  for (const term of definition.terms) {
+    const consent = z.literal(CONSENT_VALUE, "Please confirm to continue.");
+    shape[term.name] = term.required ? consent : consent.optional();
+    input[term.name] = form.get(term.name) ?? undefined;
+  }
+
+  const result = z.object(shape).safeParse(input);
+  if (result.success) {
+    return { success: true, values: result.data as Record<string, FormValue | undefined> };
+  }
+
+  const errors: Record<string, string> = {};
+  for (const issue of result.error.issues) {
+    const name = String(issue.path[0] ?? "");
+    errors[name] ??= issue.message;
+  }
+  return { success: false, errors };
 }

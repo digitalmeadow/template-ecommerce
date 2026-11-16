@@ -1,8 +1,8 @@
+import { sanityClientGroq } from "sanity/client";
 import type { LinkFragment } from "sanity/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
-import { sanityClientGroq } from "sanity/client";
-import { resolveLink, type ResolvedLink } from "./resolve";
 import { buildScoped } from "@lib/cache";
+import { resolveLink, type ResolvedLink } from "./resolve";
 
 interface ReferenceTarget {
   _id: string;
@@ -25,19 +25,19 @@ const getReferenceMap = buildScoped(async () => {
 });
 
 // GraphQL doesn't resolve references inside Portable Text, so those arrive as bare `_ref`s.
-async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragment | null> {
-  if (linkData?.type === "page" && linkData.page?._type === "reference") {
-    if (!("_ref" in linkData.page) || !linkData.page._ref) {
+async function resolveLinkReference(link: LinkFragment): Promise<LinkFragment | null> {
+  if (link?.type === "page" && link.page?._type === "reference") {
+    if (!("_ref" in link.page) || !link.page._ref) {
       console.warn("Link reference is missing _ref; rendering without a link.");
       return null;
     }
 
     const referenceMap = await getReferenceMap();
-    const resolved = referenceMap.get(linkData.page._ref as string);
+    const resolved = referenceMap.get(link.page._ref as string);
 
     if (resolved) {
       return {
-        ...linkData,
+        ...link,
         page: {
           __typename: "Page",
           _type: resolved._type,
@@ -47,15 +47,15 @@ async function resolveLinkReference(linkData: LinkFragment): Promise<LinkFragmen
       };
     }
 
-    return { ...linkData, page: null };
+    return { ...link, page: null };
   }
 
-  return linkData;
+  return link;
 }
 
 export async function resolveSanityLink(
-  linkData: LinkFragment | null | undefined,
+  link: LinkFragment | null | undefined,
 ): Promise<ResolvedLink | null> {
-  if (!linkData) return null;
-  return resolveLink(await resolveLinkReference(linkData));
+  if (!link) return null;
+  return resolveLink(await resolveLinkReference(link));
 }

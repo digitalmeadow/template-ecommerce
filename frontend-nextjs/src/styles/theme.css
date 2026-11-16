@@ -1,22 +1,77 @@
-/* Tailwind tokens; the values they point at are in colors.css. */
-@theme {
-  /* Only colours are reset; wiping everything (--*) also removes spacing, breakpoints and easings. */
+/* Tailwind names for the tokens in tokens/. `inline reference`: utilities read the token itself
+   (`text-text-muted` → `var(--color-text-muted)`), so they follow data-color-scheme and emit no
+   duplicate variables. */
+@theme inline reference {
   --color-*: initial;
-  --color-black: #3e3832;
-  --color-white: #f6f2e5;
+  --color-background: var(--color-background);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-subtle: var(--color-text-subtle);
+  --color-rule: var(--color-rule);
+  --color-surface: var(--color-surface);
+  --color-surface-strong: var(--color-surface-strong);
+  --color-accent: var(--color-accent);
+  --color-on-accent: var(--color-on-accent);
+  --color-inverse-background: var(--color-inverse-background);
+  --color-inverse-text: var(--color-inverse-text);
+  --color-focus: var(--color-focus);
+  --color-error: var(--color-error);
+  --color-highlight-yellow: var(--color-highlight-yellow);
+  --color-highlight-orange: var(--color-highlight-orange);
+  --color-highlight-green: var(--color-highlight-green);
+  --color-highlight-blue: var(--color-highlight-blue);
+  --color-highlight-purple: var(--color-highlight-purple);
+  --color-alpha-5: var(--alpha-5);
+  --color-alpha-10: var(--alpha-10);
+  --color-alpha-15: var(--alpha-15);
+  --color-alpha-20: var(--alpha-20);
+  --color-alpha-30: var(--alpha-30);
+  --color-alpha-40: var(--alpha-40);
+  --color-alpha-50: var(--alpha-50);
+  --color-alpha-60: var(--alpha-60);
+  --color-alpha-80: var(--alpha-80);
+  --color-alpha-90: var(--alpha-90);
+  --color-alpha-92: var(--alpha-92);
+  --color-alpha-95: var(--alpha-95);
+  --color-transparent: transparent;
+  --color-current: currentColor;
 
-  --breakpoint-sm: 32rem;
-  --breakpoint-lg: 64rem;
+  --font-*: initial;
+  --font-body: var(--font-body);
+  --font-heading: var(--font-heading);
 
-  --color-background: var(--theme-bg);
-  --color-foreground: var(--theme-fg);
-  --color-accent: var(--theme-accent);
-  --color-muted: var(--theme-muted);
-  --color-surface: var(--theme-surface);
-  --color-border: var(--theme-border);
-  --color-focus: var(--theme-focus);
+  --font-weight-*: initial;
+  --font-weight-regular: var(--font-weight-regular);
+  --font-weight-bold: var(--font-weight-bold);
 
-  /* Registered here so they're utilities too: `ease-out-cubic`, `ease-sweep`. */
-  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
-  --ease-sweep: cubic-bezier(0.83, 0, 0.17, 1);
+  --leading-*: initial;
+  --leading-display: var(--line-height-display);
+  --leading-tight: var(--line-height-tight);
+  --leading-body: var(--line-height-body);
+
+  --tracking-*: initial;
+  --tracking-display: var(--letter-spacing-display);
+  --tracking-large: var(--letter-spacing-large);
+
+  --ease-*: initial;
+  --ease-out: var(--ease-out);
+  --ease-in-out: var(--ease-in-out);
+
+  --radius-*: initial;
+  --radius-none: var(--radius-none);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --container-*: initial;
+  --container-sm: var(--container-sm);
+  --container-md: var(--container-md);
 }
+
+/* One breakpoint, desktop first, matching tokens' `@media (max-width: 48rem)`: `mobile:hidden`. */
+@theme {
+  --breakpoint-*: initial;
+}
+
+@custom-variant mobile (@media (max-width: 48rem));

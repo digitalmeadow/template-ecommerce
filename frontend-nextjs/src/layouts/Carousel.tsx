@@ -1,7 +1,7 @@
 "use client";
 
-import { useImperativeHandle, type ReactNode, type Ref } from "react";
 import useEmblaCarousel from "embla-carousel-react";
+import { useImperativeHandle, type ReactNode, type Ref } from "react";
 import { cn } from "@/lib/utils";
 
 type EmblaOptionsType = NonNullable<Parameters<typeof useEmblaCarousel>[0]>;
@@ -46,7 +46,7 @@ export default function Carousel({
     dragFree,
     loop,
     skipSnaps,
-    slidesToScroll: slidesToScroll === "auto" ? "auto" : (slidesToScroll ?? 1),
+    slidesToScroll: slidesToScroll ?? 1,
     breakpoints,
     watchResize,
   };
@@ -62,7 +62,7 @@ export default function Carousel({
 
   return (
     <div id={id} className={cn("overflow-hidden", className)} ref={emblaRef}>
-      <div className="flex cursor-grab active:cursor-grabbing [&>*]:flex-shrink-0">{children}</div>
+      <div className="flex cursor-grab active:cursor-grabbing [&>*]:shrink-0">{children}</div>
     </div>
   );
 }

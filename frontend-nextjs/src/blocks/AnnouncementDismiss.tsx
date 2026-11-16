@@ -12,6 +12,7 @@ export default function AnnouncementDismiss({ version }: Props) {
       type="button"
       className="announcement-dismiss shrink-0"
       aria-label="Dismiss announcement"
+      data-announcement-dismiss
       onClick={() => dismissAnnouncement(version)}
     >
       <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">

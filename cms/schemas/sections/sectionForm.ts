@@ -1,7 +1,7 @@
 import ComposeIcon from "@sanity/icons/Compose";
+import { defineField, defineType } from "sanity";
 import { colorSchemeField } from "../fields/colorScheme";
 import { sectionIdField } from "../fields/sectionId";
-import { defineField, defineType } from "sanity";
 
 export const sectionForm = defineType({
   type: "object",

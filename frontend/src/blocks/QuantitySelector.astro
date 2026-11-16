@@ -28,7 +28,6 @@ const { name }: Props = Astro.props;
 </quantity-selector>
 
 <script>
-  import { z } from "astro/zod";
   import type { EventQuantityChangedDetail } from "@lib/events";
 
   class QuantitySelectorElement extends HTMLElement {
@@ -95,31 +94,26 @@ const { name }: Props = Astro.props;
       );
     }
 
-    setValue(newValue: number) {
-      if (newValue === this.value) return;
-      this.value = Math.max(this.min, Math.min(this.max, newValue));
+    setValue(value: number) {
+      if (value === this.value) return;
+      this.value = Math.max(this.min, Math.min(this.max, value));
       this.render();
       this.emitChangedEvent();
     }
 
     decrease = (event: MouseEvent) => {
       event.preventDefault();
-      const newValue = this.value - 1;
-      this.setValue(newValue);
+      this.setValue(this.value - 1);
     };
 
     increase = (event: MouseEvent) => {
       event.preventDefault();
-      const newValue = this.value + 1;
-      this.setValue(newValue);
+      this.setValue(this.value + 1);
     };
 
     handleInputChange = () => {
-      const quantitySchema = z.coerce.number().int().positive().min(this.min).max(this.max);
-      const result = quantitySchema.safeParse(this.input.value);
-
-      if (result.success) {
-        const value = result.data;
+      const value = Number(this.input.value);
+      if (Number.isInteger(value) && value >= this.min && value <= this.max) {
         this.setValue(value);
       } else {
         this.render();
@@ -139,9 +133,5 @@ const { name }: Props = Astro.props;
   input {
     width: 2ch;
     text-align: center;
-  }
-
-  quantity-selector[data-state="updating"] :is(input, button) {
-    opacity: var(--opacity-disabled);
   }
 </style>

@@ -69,13 +69,13 @@ export default function FontSizeFillWidth({ children, className }: Props) {
     });
     observer.observe(wrapper);
 
-    let active = true;
+    let isActive = true;
     document.fonts.ready.then(() => {
-      if (active) fit(wrapper);
+      if (isActive) fit(wrapper);
     });
 
     return () => {
-      active = false;
+      isActive = false;
       observer.disconnect();
     };
   }, []);
@@ -83,7 +83,6 @@ export default function FontSizeFillWidth({ children, className }: Props) {
   return (
     <div
       ref={wrapperRef}
-      data-font-size-fill-width
       className={cn(
         "font-size-fill-width w-full [contain:inline-size] [&>*]:inline-block [&>*]:max-w-none [&>*]:text-[1px] [&>*]:leading-[0.8] [&>*]:whitespace-nowrap",
         className,

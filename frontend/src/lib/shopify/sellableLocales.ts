@@ -1,8 +1,5 @@
-import {
-  SHOPIFY_API_VERSION,
-  SHOPIFY_PUBLIC_API_TOKEN,
-  SHOPIFY_STORE_DOMAIN,
-} from "shopify/config";
+import { SHOPIFY_STOREFRONT_URL } from "shopify/client";
+import { SHOPIFY_PUBLIC_API_TOKEN } from "shopify/config";
 
 interface ConfiguredLocale {
   path: string;
@@ -19,17 +16,14 @@ export async function getSellableLocales<T extends ConfiguredLocale>(
 ): Promise<T[]> {
   let countries: Set<string>;
   try {
-    const response = await fetch(
-      `https://${SHOPIFY_STORE_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`,
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "X-Shopify-Storefront-Access-Token": SHOPIFY_PUBLIC_API_TOKEN,
-        },
-        body: JSON.stringify({ query: "{ localization { availableCountries { isoCode } } }" }),
+    const response = await fetch(SHOPIFY_STOREFRONT_URL, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "X-Shopify-Storefront-Access-Token": SHOPIFY_PUBLIC_API_TOKEN,
       },
-    );
+      body: JSON.stringify({ query: "{ localization { availableCountries { isoCode } } }" }),
+    });
     const { data } = (await response.json()) as {
       data?: { localization: { availableCountries: { isoCode: string }[] } };
     };

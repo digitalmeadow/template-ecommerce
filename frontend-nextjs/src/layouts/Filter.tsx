@@ -1,12 +1,8 @@
 "use client";
 
-import { useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { animate } from "motion";
-import {
-  easeOutCubicFn,
-  prefersReducedMotion,
-  transitionDefaultDuration,
-} from "@/styles/animations";
+import { useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { easeOut, prefersReducedMotion } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
 export interface FilterFacet {
@@ -103,11 +99,11 @@ export default function Filter({
     }
 
     setPending(next);
-    animate(fade, { opacity: 0 }, { duration: 0.15, ease: easeOutCubicFn }).finished.then(() => {
+    animate(fade, { opacity: 0 }, { duration: 0.15, ease: easeOut }).finished.then(() => {
       if (token !== fadeToken.current) return;
       setPending(null);
       writeUrl(next, new URLSearchParams(window.location.search).get(SEARCH_PARAM) ?? "");
-      animate(fade, { opacity: 1 }, { duration: transitionDefaultDuration, ease: easeOutCubicFn });
+      animate(fade, { opacity: 1 }, { duration: 0.25, ease: easeOut });
     });
   }
 
@@ -131,7 +127,7 @@ export default function Filter({
               return (
                 <span key={option.value} className="filter-option">
                   <input
-                    className="peer visually-hidden"
+                    className="peer g-sr-only"
                     type="radio"
                     id={optionId}
                     name={`${baseId}-${facet.name}`}
@@ -140,7 +136,7 @@ export default function Filter({
                     onChange={() => setFacet(facet.name, option.value)}
                   />
                   <label
-                    className="cursor-pointer opacity-50 transition-opacity duration-[var(--transition-default-duration)] peer-checked:opacity-100 peer-focus-visible:outline hover:opacity-100"
+                    className="cursor-pointer opacity-50 transition-opacity duration-(--duration-default) ease-out peer-checked:opacity-100 peer-focus-visible:outline hover:opacity-100"
                     htmlFor={optionId}
                   >
                     {option.label}
@@ -153,7 +149,7 @@ export default function Filter({
 
         {search && (
           <>
-            <label className="visually-hidden" htmlFor={`${baseId}-search`}>
+            <label className="g-sr-only" htmlFor={`${baseId}-search`}>
               {searchLabel}
             </label>
             {/* Instant while typing; only discrete facet changes crossfade. */}

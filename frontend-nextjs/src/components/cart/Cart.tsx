@@ -1,16 +1,17 @@
-import type { CartFragment } from "sanity-nextjs/generated/graphql";
+import type { CartFragment as CartSettingsFragment } from "sanity-nextjs/generated/graphql";
 import PortableText from "@/fields/PortableText";
 import CartClient from "./CartClient";
 
 interface Props {
-  cartData: CartFragment | null | undefined;
+  cart: CartSettingsFragment | null | undefined;
 }
 
-export default function Cart({ cartData }: Props) {
+// Portable Text resolves links server-side, so the CMS copy arrives pre-rendered.
+export default function Cart({ cart }: Props) {
   return (
     <CartClient
-      emptyMessage={<PortableText value={cartData?.emptyMessageRaw} />}
-      note={cartData?.noteRaw ? <PortableText value={cartData.noteRaw} /> : null}
+      emptyMessage={<PortableText value={cart?.emptyMessageRaw} />}
+      note={<PortableText value={cart?.noteRaw} />}
     />
   );
 }

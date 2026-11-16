@@ -26,8 +26,8 @@ shopify/         Shopify Storefront API fragments/queries + client
 ## Commands (repo root)
 
 ```
-pnpm dev | build | lint | typecheck   # fan out to every package
-pnpm format | format:check            # prettier, root config; frontends extend it with their plugin
+pnpm dev | build | lint | typecheck   # fan out to every package; lint also checks CSS property order
+pnpm format | format:check            # stylelint --fix (CSS order) + prettier (imports sorted); frontends extend the root config
 pnpm gen                              # cms graphql deploy → sanity, sanity-nextjs, shopify codegen
 pnpm --filter cms validate-documents [id]   # run Studio validation over the dataset, with full paths
 ```
@@ -40,6 +40,7 @@ Run `pnpm gen` after changing `cms/schemas/**`, `sanity*/fragments/**` or `sanit
 - **Files are short and do one thing.** Split by responsibility.
 - **Flat, literal naming** — `SectionText`, not `TextSectionRenderer`.
 - **Copy the conventions, not just the logic.** Match the nearest existing file.
+- **Consistent, semantic order.** CSS properties run outside in: position, margin, padding, size, layout, type, visuals, motion (`stylelint.config.mjs`). Imports: node, packages, aliases, relative. Elsewhere, order by role and keep siblings in the same order.
 - **Never assume data presence.** Fragment props are `| null | undefined` and guarded.
 
 ## Env
@@ -49,8 +50,8 @@ One real file, the root `.env` (gitignored; copy `.env.example`). Every package 
 - The Sanity dataset is **private**: `SANITY_VIEWER_API_TOKEN` and other tokens are server-only. So is `SHOPIFY_PRIVATE_API_TOKEN`; the browser reaches Shopify through the same-origin proxy. Never expose them as Astro `context: "client"` or `NEXT_PUBLIC_*`.
 - `SANITY_PROJECT_ID` / `SANITY_DATASET` are duplicated as `SANITY_STUDIO_PROJECT_ID` / `SANITY_STUDIO_DATASET` because the Studio bundle only sees the `SANITY_STUDIO_` prefix.
 - `WEBSITE_URL` drives canonicals, sitemap, robots and JSON-LD `@id`s.
-- `INDEXABLE` is derived in `astro.config.mjs` (false on the drafts site and branch Previews) and drives `noindex` + robots.
-- Adding a secret: `frontend/astro.config.mjs` env schema, `.env.example`, `frontend/wrangler.jsonc` `secrets.required` per environment; then on each Worker a secret build variable (prerendering validates every secret) and a runtime secret (`npx wrangler secret put <NAME> --env <env>`, plus `npx wrangler preview base-config secret put <NAME> --env production` for Previews).
+- `INDEXABLE` is derived in `astro.config.mjs` (false on the drafts site and branch Previews).
+- Adding a secret: `frontend/astro.config.mjs` env schema, `.env.example`, `frontend/wrangler.jsonc` `secrets.required` per environment; then set it on each Worker (see Deployment).
 
 ## Data fetching (READ BEFORE ADDING A QUERY)
 
@@ -67,15 +68,15 @@ A static build renders every page in one process, so **a query in the wrong plac
 - Meta resolves CMS meta → document's own fields (`resolveMeta`) → `metaSettings` → organisation description. No copy is authored in code.
 - Canonicals/OG URLs come from the site URL (`Astro.site` / `metadataBase`), never a per-page env read.
 - JSON-LD: Organisation + WebSite on every page (Organisation has a stable `@id` other schemas reference), Breadcrumb on detail pages, Product on product pages. `compact()` strips empty branches; `<` is escaped when serialised.
-- Preview builds are `noindex` (meta + `X-Robots-Tag`) and robots disallows all.
+- Non-indexable builds (`INDEXABLE` false) are `noindex`: meta on every page, plus `X-Robots-Tag` on every server-rendered response (`src/middleware.ts`; a header set in a component is dropped once the page streams). Their robots.txt still allows crawling, or the noindex is never read.
 
 ## Analytics + consent
 
-Two destinations, one consent decision. GTM: `analyticsSettings.gtmId` in the CMS; configure GA4 etc. inside GTM, and use its History Change trigger for page views (client-side navigations are `pushState`). Banner copy is the `cookieConsent` singleton (no document, no banner, so GTM never loads).
+Two destinations, one consent decision. GTM: `analyticsSettings.gtmId` in the CMS; configure GA4 etc. inside GTM, and use its History Change trigger for page views (client-side navigations are `pushState`). Banner copy is the `cookieConsent` singleton (no document, no banner: visitors in consent regions never load GTM).
 
-Astro (Next: GTM after consent only, pending parity):
+Both frontends:
 
-- Shopify's Customer Privacy API (`lib/consent/customerPrivacy.ts`, loaded once per visit by `Analytics.astro`) says whether the visitor's region needs a choice (`shouldShowBanner()`). The banner only shows there; elsewhere tracking is allowed unless the visitor declines. Consent is never recorded on the visitor's behalf.
+- Shopify's Customer Privacy API (`lib/consent/customerPrivacy.ts`, loaded once per visit by `Analytics`) says whether the visitor's region needs a choice (`shouldShowBanner()`). The banner only shows there; elsewhere tracking is allowed unless the visitor declines. Consent is never recorded on the visitor's behalf.
 - The banner's choice (`lib/consent/consent.ts`, `cookie-consent:change`) is passed to Shopify with `setTrackingConsent`, which applies it to Shopify analytics and checkout.
 - Shopify admin analytics: `lib/analytics/shopifyAnalytics.ts` is the bus Shopify's `shopify.js` listens on (Headless channel attribution); events wait for consent, then replay. Needs the same-origin Storefront API proxy.
 - GA4 ecommerce events go to the `dataLayer` (`lib/analytics/dataLayer.ts`), held until consent is decided.
@@ -98,7 +99,9 @@ Astro (Next: GTM after consent only, pending parity):
 
 ## Deployment (Cloudflare Workers Builds)
 
-Cloudflare builds and deploys from git; no GitHub Actions. Each `env` in `frontend/wrangler.jsonc` is its own Worker in the client's Cloudflare account, connected to the repo:
+Astro (`frontend/`). Next (`frontend-nextjs/`) deploys to Vercel: see `AGENTS_NEXTJS.md`.
+
+Cloudflare builds and deploys straight from git. Each `env` in `frontend/wrangler.jsonc` is its own Worker in the client's Cloudflare account, connected to the repo:
 
 ```
 production          main             static, published; Sanity deploy hook
@@ -109,7 +112,7 @@ branch Previews     any other branch production build via `wrangler preview`, no
 Worker build settings (dashboard → Settings → Build):
 
 - Root directory `frontend`; build watch paths `frontend/*`, `sanity/*`, `shopify/*`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.tool-versions`; build cache on.
-- Build command `pnpm install --frozen-lockfile --filter frontend... && pnpm build`; deploy and Preview commands stay the defaults (`npx wrangler deploy` / `npx wrangler preview`). Preview builds on production only.
+- Build command `pnpm_config_minimum_release_age=0 pnpm install --frozen-lockfile --filter frontend... && pnpm build`; deploy and Preview commands stay the defaults (`npx wrangler deploy` / `npx wrangler preview`). Preview builds on production only. The release-age override skips re-checking the frozen lockfile against `minimumReleaseAge` (~20s of registry lookups per build, as Workers Builds doesn't cache pnpm's metadata; the check already ran locally when the lockfile changed). It must be an env var: a `--config.` flag doesn't override `pnpm-workspace.yaml`.
 - Build variables: `CLOUDFLARE_ENV=<env>`, `SKIP_DEPENDENCY_INSTALL=1` (skips the whole-workspace install), and every `secrets.required` name as a secret.
 - Runtime secrets are set once per Worker (deploys keep them): `npx wrangler secret bulk --env <env>` and, for Previews, `npx wrangler preview base-config secret bulk --env production`, each fed a JSON or `.env` file.
 
@@ -137,6 +140,7 @@ Replace the template's values:
 - `LOCALES` in `frontend/config.ts`: one per Shopify market, default first (unprefixed). Curated on purpose (each is a URL prefix and a full copy of the site; Shopify's country-selector guide recommends a static list); locales Shopify doesn't sell to are left out at build.
 - `THEME_COLOR` in both frontends' config (browser UI + manifest, which is generated with the organisation name) and the `web-app-manifest-*.png` / favicon icons in each `public/`.
 - Cloudflare: connect each `env`'s Worker to the repo with the build settings in Deployment, and set its runtime secrets (plus the Previews Base on production).
+- At launch, once the custom domain is attached: production `"workers_dev": false` + `"preview_urls": true` in `wrangler.jsonc` (no workers.dev duplicate in search; Previews keep their URLs).
 - Sanity webhook → the production deploy hook; Sanity Connect sync URL → production.
 - Sanity project + dataset: `.env` (`SANITY_*` and `SANITY_STUDIO_*`), then `pnpm gen`.
 

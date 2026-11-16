@@ -7,14 +7,14 @@ export const getGlobals = buildScoped(async () => {
   const result = await sanityClient.request(globalsQuery);
 
   return {
-    headerData: result?.allHeader?.[0],
-    footerData: result?.allFooter?.[0],
-    cartData: result?.allCart?.[0],
-    metaSettingsData: result?.allMetaSettings?.[0],
-    organisationSettingsData: result?.allOrganisationSettings?.[0],
-    analyticsSettingsData: result?.allAnalyticsSettings?.[0],
-    announcementBannerData: result?.allAnnouncementBanner?.[0],
-    cookieConsentData: result?.allCookieConsent?.[0],
-    locationNoticeData: result?.allLocationNotice?.[0],
+    header: result?.allHeader?.[0],
+    footer: result?.allFooter?.[0],
+    cart: result?.allCart?.[0],
+    metaSettings: result?.allMetaSettings?.[0],
+    organisationSettings: result?.allOrganisationSettings?.[0],
+    analyticsSettings: result?.allAnalyticsSettings?.[0],
+    announcementBanner: result?.allAnnouncementBanner?.[0],
+    cookieConsent: result?.allCookieConsent?.[0],
+    locationNotice: result?.allLocationNotice?.[0],
   };
 });

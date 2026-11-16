@@ -1,7 +1,7 @@
 import { sanityClient } from "sanity/client";
+import { collectionByHandleQuery, collectionsQuery } from "sanity/queries/collection";
 import { pageQuery, pagesQuery } from "sanity/queries/page";
 import { productByHandleQuery, productsQuery } from "sanity/queries/product";
-import { collectionByHandleQuery, collectionsQuery } from "sanity/queries/collection";
 
 // Outside the pages: getStaticPaths only reaches imports. load* serve request time (preview, dev).
 
@@ -12,7 +12,7 @@ export async function buildPagePaths() {
     .filter((page) => page.slug?.current)
     .map((page) => ({
       params: { slug: page.slug!.current! },
-      props: { pageData: page },
+      props: { page },
     }));
 }
 
@@ -23,7 +23,7 @@ export async function buildProductPaths() {
     .filter((product) => product.shopify?.status === "active" && product.shopify.handle?.current)
     .map((product) => ({
       params: { slug: product.shopify!.handle!.current! },
-      props: { sanityProductData: product },
+      props: { sanityProduct: product },
     }));
 }
 
@@ -34,24 +34,24 @@ export async function buildCollectionPaths() {
     .filter((collection) => collection.shopify?.handle?.current)
     .map((collection) => ({
       params: { slug: collection.shopify!.handle!.current! },
-      props: { sanityCollectionData: collection },
+      props: { sanityCollection: collection },
     }));
 }
 
 export async function loadPageProps(slug: string) {
   const { allPage } = await sanityClient.request(pageQuery, { slug });
   const page = allPage[0];
-  return page ? { pageData: page } : null;
+  return page ? { page } : null;
 }
 
 export async function loadProductProps(handle: string) {
   const { allProduct } = await sanityClient.request(productByHandleQuery, { handle });
   const product = allProduct[0];
-  return product?.shopify?.status === "active" ? { sanityProductData: product } : null;
+  return product?.shopify?.status === "active" ? { sanityProduct: product } : null;
 }
 
 export async function loadCollectionProps(handle: string) {
   const { allCollection } = await sanityClient.request(collectionByHandleQuery, { handle });
   const collection = allCollection[0];
-  return collection ? { sanityCollectionData: collection } : null;
+  return collection ? { sanityCollection: collection } : null;
 }

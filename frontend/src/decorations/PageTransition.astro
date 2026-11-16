@@ -3,19 +3,17 @@
 <style>
   .page-transition {
     position: fixed;
-    z-index: 15; /* above the header (10), below overlays (20/21) */
     inset: 0;
-    background-color: var(--color-background);
+    z-index: 15; /* above the header (10), below overlays (20/21) */
     pointer-events: none;
+    background-color: var(--color-background);
     clip-path: inset(100% 0 0 0);
   }
 </style>
 
 <script>
   import { animate, motionValue } from "motion";
-  import { easeInOut, pageTransitionDuration } from "@lib/animations";
-
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  import { easeInOut, pageTransitionDuration, prefersReducedMotion } from "@lib/animations";
 
   const getSweep = () => document.querySelector<HTMLElement>(".page-transition");
 
@@ -55,31 +53,31 @@
     });
   };
 
-  let animatedOut = false;
+  let isCovering = false;
 
   document.addEventListener("astro:before-preparation", (event) => {
-    if (reduceMotion) return;
+    if (prefersReducedMotion()) return;
 
     const originalLoader = event.loader;
     event.loader = async () => {
       const sweepElement = getSweep();
       if (sweepElement && (await sweep(sweepElement, cover))) {
         sweepElement.style.clipPath = "inset(0 0 0 0)"; // commit so it stays covering across the swap
-        animatedOut = true;
+        isCovering = true;
       }
       try {
         await originalLoader();
       } catch (error) {
         if (sweepElement) sweepElement.style.clipPath = "";
-        animatedOut = false;
+        isCovering = false;
         throw error;
       }
     };
   });
 
   document.addEventListener("astro:page-load", async () => {
-    if (reduceMotion || !animatedOut) return;
-    animatedOut = false;
+    if (!isCovering) return;
+    isCovering = false;
 
     const sweepElement = getSweep();
     if (!sweepElement) return;

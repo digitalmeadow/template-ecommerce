@@ -2,25 +2,25 @@
 import type { LocationNoticeFragment } from "sanity/generated/graphql";
 
 interface Props {
-  locationNoticeData: LocationNoticeFragment | null | undefined;
+  locationNotice: LocationNoticeFragment | null | undefined;
   // True while a cookie banner may be showing: the notice waits for it so the two never stack.
   waitForConsent: boolean;
 }
 
-const { locationNoticeData, waitForConsent }: Props = Astro.props;
+const { locationNotice, waitForConsent }: Props = Astro.props;
 ---
 
-{locationNoticeData && (
+{locationNotice && (
   <location-notice
-    data-message={locationNoticeData.message}
-    data-switch-label={locationNoticeData.switchLabel}
+    data-message={locationNotice.message}
+    data-switch-label={locationNotice.switchLabel}
     data-wait-for-consent={waitForConsent ? "" : undefined}
   >
     <div class="location-notice" role="status">
       <p data-message />
       <div class="actions">
         <button class="g-text-link g-underline-orange" type="button" data-dismiss>
-          {locationNoticeData.dismissLabel}
+          {locationNotice.dismissLabel}
         </button>
         <button class="g-text-link g-underline-green" type="button" data-switch />
       </div>
@@ -31,8 +31,8 @@ const { locationNoticeData, waitForConsent }: Props = Astro.props;
 <script>
   import { getConsent, subscribeToConsent } from "@lib/consent/consent";
   import { isConsentRequired } from "@lib/consent/customerPrivacy";
-  import { getPageLocale, switchLocale, type Locale } from "@lib/shopify/locale";
   import { dismissLocationNotice, fillMarket, suggestedLocale } from "@lib/shopify/geo";
+  import { getPageLocale, switchLocale, type Locale } from "@lib/shopify/locale";
 
   // Suggests the visitor's own store; never redirects.
   class LocationNoticeElement extends HTMLElement {
@@ -99,14 +99,14 @@ const { locationNoticeData, waitForConsent }: Props = Astro.props;
 
   .location-notice {
     position: fixed;
-    z-index: 5;
     bottom: 0;
     left: 0;
+    z-index: 5;
+    padding: var(--margin);
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: var(--margin);
     text-align: center;
     background-color: var(--color-background);
     border-top: var(--border-width-1) solid var(--color-rule);

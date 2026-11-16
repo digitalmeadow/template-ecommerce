@@ -3,23 +3,23 @@ import type { CookieConsentFragment } from "sanity/generated/graphql";
 import PortableText from "@fields/PortableText.astro";
 
 interface Props {
-  cookieConsentData: CookieConsentFragment | null | undefined;
+  cookieConsent: CookieConsentFragment | null | undefined;
 }
 
 // No consent copy means no banner, so analytics never load: the safe failure.
-const { cookieConsentData }: Props = Astro.props;
+const { cookieConsent }: Props = Astro.props;
 ---
 
-{cookieConsentData?.messageRaw && (
+{cookieConsent?.messageRaw && (
   <cookie-banner>
     <div class="cookie-banner" data-banner>
-      <PortableText value={cookieConsentData.messageRaw} />
-      <div class="actions" data-actions>
+      <PortableText value={cookieConsent.messageRaw} />
+      <div class="actions">
         <button class="g-text-link g-underline-orange" type="button" data-decline-button>
-          {cookieConsentData.declineLabel}
+          {cookieConsent.declineLabel}
         </button>
         <button class="g-text-link g-underline-green" type="button" data-accept-button>
-          {cookieConsentData.acceptLabel}
+          {cookieConsent.acceptLabel}
         </button>
       </div>
     </div>
@@ -92,14 +92,14 @@ const { cookieConsentData }: Props = Astro.props;
 
   .cookie-banner {
     position: fixed;
-    z-index: 5;
     bottom: 0;
     left: 0;
+    z-index: 5;
+    padding: var(--margin);
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: var(--margin);
     text-align: center;
     background-color: var(--color-background);
     border-top: var(--border-width-1) solid var(--color-rule);

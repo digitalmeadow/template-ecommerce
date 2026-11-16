@@ -1,33 +1,33 @@
 /* Primary: an inverted block. Secondary: text led by the marker square. */
 .g-button,
 .g-button-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--size-2-5);
   min-height: 2.5rem;
+  display: inline-flex;
+  gap: var(--size-2-5);
+  align-items: center;
   font-weight: var(--font-weight-bold);
   white-space: nowrap;
 }
 
 .g-button {
   padding: 0 var(--size-5);
-  background-color: var(--color-inverse-background);
   color: var(--color-inverse-text);
+  background-color: var(--color-inverse-background);
   transition:
     background-color var(--transition-default),
     color var(--transition-default);
 }
 
 .g-button:hover {
-  background-color: var(--color-accent);
   color: var(--color-on-accent);
+  background-color: var(--color-accent);
 }
 
 .g-button-secondary::before {
   width: var(--marker-size);
   height: var(--marker-size);
-  background-color: currentColor;
   content: "";
+  background-color: currentColor;
   transition: background-color var(--transition-default);
 }
 
@@ -37,18 +37,18 @@
 
 /* Square icon-only control, e.g. close, carousel arrows. */
 .g-button-icon {
-  display: inline-grid;
-  place-items: center;
   width: 2.5rem;
   height: 2.5rem;
+  display: inline-grid;
+  place-items: center;
   transition:
     background-color var(--transition-default),
     color var(--transition-default);
 }
 
 .g-button-icon:hover {
-  background-color: var(--color-inverse-background);
   color: var(--color-inverse-text);
+  background-color: var(--color-inverse-background);
 }
 
 .g-button-icon svg {

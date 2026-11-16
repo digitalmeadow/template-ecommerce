@@ -1,7 +1,8 @@
+import { prefersReducedMotion } from "@lib/animations";
+
 // [data-animate-reveal] fades in once 10% is in view.
 export function initReveal(): () => void {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduceMotion) return () => {};
+  if (prefersReducedMotion()) return () => {};
 
   const observer = new IntersectionObserver(
     (entries) => {

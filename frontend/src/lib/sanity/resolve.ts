@@ -1,4 +1,4 @@
-import { SANITY_PROJECT_ID, SANITY_DATASET } from "astro:env/client";
+import { SANITY_DATASET, SANITY_PROJECT_ID } from "astro:env/client";
 import type { LinkFragment } from "sanity/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@config";
 
@@ -18,17 +18,7 @@ export function resolveSanityHref(documentType: string, slug?: string | null): s
     throw new Error("Invalid document type");
   }
 
-  const pattern = SANITY_DOCUMENT_ROUTE_PATTERNS[documentType]!;
-
-  if (!pattern.includes("[slug]")) {
-    return pattern;
-  }
-
-  if (slug) {
-    return pattern.replace("[slug]", slug);
-  }
-
-  return pattern.replace("[slug]", "");
+  return SANITY_DOCUMENT_ROUTE_PATTERNS[documentType]!.replace("[slug]", slug ?? "");
 }
 
 export function sanityFileUrlFromRef(source: string | undefined): string {

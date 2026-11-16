@@ -1,20 +1,20 @@
 ---
-import PageLayout from "@layouts/PageLayout.astro";
 import { sanityClient } from "sanity/client";
 import { homeQuery } from "sanity/queries/home";
-import SectionsRenderer from "@sections/SectionsRenderer.astro";
-import { resolveMeta } from "@lib/sanity/meta";
+import PageLayout from "@layouts/PageLayout.astro";
 import { getGlobals } from "@lib/sanity/globals";
+import { resolveMeta } from "@lib/sanity/meta";
 import { hasHeroHeading } from "@lib/sanity/sections";
+import SectionsRenderer from "@sections/SectionsRenderer.astro";
 
 const homeQueryResult = await sanityClient.request(homeQuery);
-const pageData = homeQueryResult.allHome[0];
-const { organisationSettingsData } = await getGlobals();
+const page = homeQueryResult.allHome[0];
+const { organisationSettings } = await getGlobals();
 ---
 
-<PageLayout metaData={resolveMeta(pageData)}>
-  {!hasHeroHeading(pageData?.sections) && organisationSettingsData?.name && (
-    <h1 class="g-sr-only">{organisationSettingsData.name}</h1>
+<PageLayout meta={resolveMeta(page)}>
+  {!hasHeroHeading(page?.sections) && organisationSettings?.name && (
+    <h1 class="g-sr-only">{organisationSettings.name}</h1>
   )}
-  <SectionsRenderer sections={pageData?.sections} />
+  <SectionsRenderer sections={page?.sections} />
 </PageLayout>

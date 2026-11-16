@@ -1,0 +1,321 @@
+/* Astro's utilities Tailwind can't express: page structure, the page grid, text styles and the
+   highlight link. Spacing, flex, display, colour, max-width and ratio are plain Tailwind. */
+
+/* Page structure: section > g-page-margin > g-container-* */
+@utility g-page-margin {
+  padding-inline: var(--margin);
+}
+
+@utility g-container-sm {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--container-sm);
+}
+
+@utility g-container-md {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--container-md);
+}
+
+@utility g-container-full {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--container-full);
+}
+
+@utility g-section-sm {
+  padding-block: var(--section-space-sm);
+}
+
+@utility g-section-md {
+  padding-block: var(--section-space-md);
+}
+
+@utility g-section-lg {
+  padding-block: var(--section-space-lg);
+}
+
+/* Text styles, for when the look differs from the tag's default. Line height is set by copy blocks. */
+@utility g-text-large {
+  font-size: var(--font-size-large);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-large);
+}
+
+@utility g-text-medium {
+  font-size: var(--font-size-medium);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+@utility g-text-regular {
+  font-size: var(--font-size-regular);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+@utility g-text-small {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+@utility g-text-tiny {
+  font-size: var(--font-size-tiny);
+  line-height: var(--line-height-tight);
+  letter-spacing: normal;
+}
+
+/* The highlight link: a thin underline that thickens into a marker stroke on hover or when active
+   (`data-active`, `aria-current`). `-hover` shows nothing at rest: for nav and UI links whose
+   position already says "link". Colour with g-underline-*. */
+@utility g-text-link {
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--link-underline-thickness-rest);
+  text-decoration-color: var(--link-underline-color, var(--color-highlight-yellow));
+  text-decoration-skip-ink: none;
+  text-underline-offset: calc(-1 * var(--link-underline-thickness-rest));
+
+  &:is(
+    :hover,
+    [data-active]:not([data-active="false"]),
+    [aria-current]:not([aria-current="false"])
+  ) {
+    text-decoration-thickness: var(--link-underline-thickness-active);
+    text-underline-offset: calc(-1 * var(--link-underline-thickness-active));
+  }
+}
+
+@utility g-text-link-hover {
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--link-underline-thickness-rest);
+  text-decoration-color: transparent;
+  text-decoration-skip-ink: none;
+  text-underline-offset: calc(-1 * var(--link-underline-thickness-rest));
+
+  &:is(
+    :hover,
+    [data-active]:not([data-active="false"]),
+    [aria-current]:not([aria-current="false"])
+  ) {
+    text-decoration-thickness: var(--link-underline-thickness-active);
+    text-decoration-color: var(--link-underline-color, var(--color-highlight-yellow));
+    text-underline-offset: calc(-1 * var(--link-underline-thickness-active));
+  }
+}
+
+@utility g-underline-yellow {
+  --link-underline-color: var(--color-highlight-yellow);
+}
+
+@utility g-underline-orange {
+  --link-underline-color: var(--color-highlight-orange);
+}
+
+@utility g-underline-green {
+  --link-underline-color: var(--color-highlight-green);
+}
+
+@utility g-underline-blue {
+  --link-underline-color: var(--color-highlight-blue);
+}
+
+@utility g-underline-purple {
+  --link-underline-color: var(--color-highlight-purple);
+}
+
+/* Plain layer CSS, not @utility: the -sm classes must follow the mobile reset in source order. */
+@layer utilities {
+  /* Page grid: 16 columns, 4 on mobile. g-col-N spans N, g-offset-N skips N. On mobile every column
+     spans the full width unless it has an -sm class. */
+  .g-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--column-count), minmax(0, 1fr));
+    column-gap: var(--gutter);
+  }
+  /* Nested grid on the page grid's own columns: give it a span, then place children with g-col/g-offset. */
+  .g-subgrid {
+    display: grid;
+    grid-template-columns: subgrid;
+  }
+  .g-col-1 {
+    grid-column-end: span 1;
+  }
+  .g-col-2 {
+    grid-column-end: span 2;
+  }
+  .g-col-3 {
+    grid-column-end: span 3;
+  }
+  .g-col-4 {
+    grid-column-end: span 4;
+  }
+  .g-col-5 {
+    grid-column-end: span 5;
+  }
+  .g-col-6 {
+    grid-column-end: span 6;
+  }
+  .g-col-7 {
+    grid-column-end: span 7;
+  }
+  .g-col-8 {
+    grid-column-end: span 8;
+  }
+  .g-col-9 {
+    grid-column-end: span 9;
+  }
+  .g-col-10 {
+    grid-column-end: span 10;
+  }
+  .g-col-11 {
+    grid-column-end: span 11;
+  }
+  .g-col-12 {
+    grid-column-end: span 12;
+  }
+  .g-col-13 {
+    grid-column-end: span 13;
+  }
+  .g-col-14 {
+    grid-column-end: span 14;
+  }
+  .g-col-15 {
+    grid-column-end: span 15;
+  }
+  .g-col-16 {
+    grid-column-end: span 16;
+  }
+  .g-offset-1 {
+    grid-column-start: 2;
+  }
+  .g-offset-2 {
+    grid-column-start: 3;
+  }
+  .g-offset-3 {
+    grid-column-start: 4;
+  }
+  .g-offset-4 {
+    grid-column-start: 5;
+  }
+  .g-offset-5 {
+    grid-column-start: 6;
+  }
+  .g-offset-6 {
+    grid-column-start: 7;
+  }
+  .g-offset-7 {
+    grid-column-start: 8;
+  }
+  .g-offset-8 {
+    grid-column-start: 9;
+  }
+  .g-offset-9 {
+    grid-column-start: 10;
+  }
+  .g-offset-10 {
+    grid-column-start: 11;
+  }
+  .g-offset-11 {
+    grid-column-start: 12;
+  }
+  .g-offset-12 {
+    grid-column-start: 13;
+  }
+  .g-offset-13 {
+    grid-column-start: 14;
+  }
+  .g-offset-14 {
+    grid-column-start: 15;
+  }
+  .g-offset-15 {
+    grid-column-start: 16;
+  }
+  /* Equal columns, independent of the page grid. */
+  .g-grid-cols-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gutter);
+  }
+  .g-grid-cols-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gutter);
+  }
+  .g-grid-cols-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--gutter);
+  }
+  @media (max-width: 48rem) {
+    .g-col-1,
+    .g-col-2,
+    .g-col-3,
+    .g-col-4,
+    .g-col-5,
+    .g-col-6,
+    .g-col-7,
+    .g-col-8,
+    .g-col-9,
+    .g-col-10,
+    .g-col-11,
+    .g-col-12,
+    .g-col-13,
+    .g-col-14,
+    .g-col-15,
+    .g-col-16,
+    .g-offset-1,
+    .g-offset-2,
+    .g-offset-3,
+    .g-offset-4,
+    .g-offset-5,
+    .g-offset-6,
+    .g-offset-7,
+    .g-offset-8,
+    .g-offset-9,
+    .g-offset-10,
+    .g-offset-11,
+    .g-offset-12,
+    .g-offset-13,
+    .g-offset-14,
+    .g-offset-15 {
+      grid-column: auto / span var(--column-count);
+    }
+    .g-col-sm-1 {
+      grid-column-end: span 1;
+    }
+    .g-col-sm-2 {
+      grid-column-end: span 2;
+    }
+    .g-col-sm-3 {
+      grid-column-end: span 3;
+    }
+    .g-col-sm-4 {
+      grid-column-end: span 4;
+    }
+    .g-offset-sm-0 {
+      grid-column-start: auto;
+    }
+    .g-offset-sm-1 {
+      grid-column-start: 2;
+    }
+    .g-offset-sm-2 {
+      grid-column-start: 3;
+    }
+    .g-offset-sm-3 {
+      grid-column-start: 4;
+    }
+    .g-order-sm-first {
+      order: -1;
+    }
+    .g-order-sm-last {
+      order: 1;
+    }
+    .g-grid-cols-2,
+    .g-grid-cols-3,
+    .g-grid-cols-4 {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

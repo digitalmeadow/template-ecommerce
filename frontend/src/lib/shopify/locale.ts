@@ -19,6 +19,16 @@ export function getLocale(path: string | undefined): Locale {
   return LOCALE_LIST.find((locale) => locale.path === path?.toLowerCase()) ?? DEFAULT_LOCALE;
 }
 
+/** Cache key for per-locale lookups of a handle: `{locale}:{handle}`. */
+export function localeHandleKey(locale: Locale, handle: string): string {
+  return `${locale.path}:${handle}`;
+}
+
+export function parseLocaleHandleKey(key: string): { locale: Locale; handle: string } {
+  const [localePath, handle] = key.split(":") as [string, string];
+  return { locale: getLocale(localePath), handle };
+}
+
 /** The current page's locale in the browser (PageLayout writes it to `<html data-locale>`). */
 export function getPageLocale(): Locale {
   return getLocale(document.documentElement.dataset.locale);

@@ -1,0 +1,32 @@
+/* The square that marks the current item, hung in the gutter before it. */
+.g-marker {
+  position: relative;
+}
+
+.g-marker:is([data-active], [aria-current]:not([aria-current="false"]))::before {
+  position: absolute;
+  top: calc(50% - var(--marker-size) / 2);
+  left: calc(-1 * var(--gutter) / 2 - var(--marker-size) / 2);
+  width: var(--marker-size);
+  height: var(--marker-size);
+  content: "";
+  background-color: var(--color-accent);
+}
+
+/* Media loading and missing state. */
+.g-checker {
+  background-color: var(--color-surface);
+  background-image: repeating-conic-gradient(
+    var(--color-surface-strong) 0 25%,
+    var(--color-surface) 0 50%
+  );
+  background-size: 20px 20px;
+}
+
+.g-rule {
+  border-top: var(--border-width-1) solid var(--color-rule);
+}
+
+.g-rule-bottom {
+  border-bottom: var(--border-width-1) solid var(--color-rule);
+}

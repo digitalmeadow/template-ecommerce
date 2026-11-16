@@ -5,17 +5,17 @@ import { $cartCount } from "@/stores/cart";
 import { setCartOpen } from "@/stores/ui";
 
 export default function CartButton() {
-  // The stored cart is read before hydration; render the server's empty count until hydrated.
+  // The snapshot is read from localStorage before hydration; render the server's empty count until then.
   const count = useStore($cartCount, { ssr: () => 0 });
 
   return (
     <button
-      type="button"
       className="cart-button inline-flex items-center gap-[1ch] justify-self-end"
+      type="button"
       aria-label="Toggle cart"
       onClick={() => setCartOpen(true)}
     >
-      Cart<span className="cart-count">({count})</span>
+      Cart<span>({count})</span>
     </button>
   );
 }

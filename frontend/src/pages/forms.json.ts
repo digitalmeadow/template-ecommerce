@@ -1,9 +1,9 @@
-export const prerender = true;
-
 import type { APIRoute } from "astro";
 import { sanityClient } from "sanity/client";
 import { formsQuery } from "sanity/queries/form";
 import type { FormDefinition } from "@lib/forms/schema";
+
+export const prerender = true;
 
 // Every form's fields, built once per deploy for /api/forms to validate against without a
 // metered Sanity request per submission.

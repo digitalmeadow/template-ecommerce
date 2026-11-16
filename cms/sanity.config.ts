@@ -1,13 +1,13 @@
-import { defineConfig } from "sanity";
-import { structureTool } from "sanity/structure";
-import { presentationTool } from "sanity/presentation";
-import { structure } from "./structure";
 import { visionTool } from "@sanity/vision";
-import { schemaTypes } from "./schemas";
-import { muxInput } from "sanity-plugin-mux-input";
+import { defineConfig } from "sanity";
 import { media } from "sanity-plugin-media";
-import { resolveDocumentActions } from "./document/resolveDocumentActions";
+import { muxInput } from "sanity-plugin-mux-input";
+import { presentationTool } from "sanity/presentation";
+import { structureTool } from "sanity/structure";
 import { GENERATED_DOCUMENT_TYPES, PREVIEW_WEBSITE_URL, SINGLETON_DOCUMENT_TYPES } from "./config";
+import { resolveDocumentActions } from "./document/resolveDocumentActions";
+import { schemaTypes } from "./schemas";
+import { structure } from "./structure";
 
 export default defineConfig({
   name: "default",

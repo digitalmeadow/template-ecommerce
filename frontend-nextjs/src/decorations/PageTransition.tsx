@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useRef, ViewTransition } from "react";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, ViewTransition, type ReactNode } from "react";
 
-// A keyed boundary remounting mid-navigation makes React start a view transition; styled in animations.css.
-export default function PageTransition() {
+interface Props {
+  children: ReactNode;
+}
+
+// Remounting per pathname makes React run a view transition on navigation; styled in
+// styles/transitions.css. Delete this wrapper (and that file) to remove transitions.
+export default function PageTransition({ children }: Props) {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
 
-  // Focus moves to the new content after navigation, not on first load.
+  // Router navigations swap <main> without moving focus; never on first load.
   useEffect(() => {
     if (previousPathname.current === pathname) return;
     previousPathname.current = pathname;
@@ -16,8 +21,8 @@ export default function PageTransition() {
   }, [pathname]);
 
   return (
-    <ViewTransition key={pathname} enter="page-transition" exit="page-transition">
-      <div className="page-transition pointer-events-none fixed inset-[0]" aria-hidden="true" />
+    <ViewTransition key={pathname} enter="page-reveal" exit="page-cover" default="none">
+      <div className="page-transition">{children}</div>
     </ViewTransition>
   );
 }

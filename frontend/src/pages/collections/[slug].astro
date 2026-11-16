@@ -1,13 +1,13 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
 import { fetchCollectionShopifySanity } from "@lib/fetches/collectionShopifySanity";
-import SectionHero from "@sections/SectionHero.astro";
-import ProductBrowser from "@sections/product/ProductBrowser.astro";
-import { propsForSlug } from "@lib/sanity/staticPaths";
-import { buildCollectionPaths, loadCollectionProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
+import { buildCollectionPaths, loadCollectionProps } from "@lib/sanity/paths";
+import { propsForSlug } from "@lib/sanity/staticPaths";
 import { buildBreadcrumbSchema } from "@lib/sanity/structuredData";
 import { getRenderLocale } from "@lib/shopify/locale";
+import ProductBrowser from "@sections/product/ProductBrowser.astro";
+import SectionHero from "@sections/SectionHero.astro";
 
 export async function getStaticPaths() {
   return buildCollectionPaths();
@@ -17,18 +17,16 @@ const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadCollecti
 if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
 const locale = getRenderLocale(Astro);
-const collectionData = await fetchCollectionShopifySanity(
+const collection = await fetchCollectionShopifySanity(
   Astro.params.slug,
   locale,
-  resolved.sanityCollectionData,
+  resolved.sanityCollection,
 );
 ---
 
 <PageLayout
-  metaData={resolveMeta(collectionData.sanity, { title: collectionData.shopify.title })}
-  jsonLd={[
-    buildBreadcrumbSchema(Astro.url.pathname, collectionData.shopify.title, Astro.site, locale),
-  ]}
+  meta={resolveMeta(collection.sanity, { title: collection.shopify.title })}
+  jsonLd={[buildBreadcrumbSchema(Astro.url.pathname, collection.shopify.title, Astro.site, locale)]}
 >
   <SectionHero
     section={{
@@ -36,7 +34,7 @@ const collectionData = await fetchCollectionShopifySanity(
       _key: null,
       colorScheme: null,
       id: null,
-      heading: collectionData.shopify.title,
+      heading: collection.shopify.title,
       textRaw: null,
       mediaBackground: null,
     }}
@@ -44,13 +42,13 @@ const collectionData = await fetchCollectionShopifySanity(
 
   <div class="g-page-margin g-section-sm">
     <ProductBrowser
-      source={{ type: "collection", handle: collectionData.shopify.handle }}
-      collectionId={collectionData.shopify.id}
+      source={{ type: "collection", handle: collection.shopify.handle }}
+      collectionId={collection.shopify.id}
       results={{
-        products: collectionData.productThumbnails,
-        filters: collectionData.shopify.products.filters,
-        hasNextPage: collectionData.shopify.products.pageInfo.hasNextPage,
-        endCursor: collectionData.shopify.products.pageInfo.endCursor ?? null,
+        products: collection.productThumbnails,
+        filters: collection.shopify.products.filters,
+        hasNextPage: collection.shopify.products.pageInfo.hasNextPage,
+        endCursor: collection.shopify.products.pageInfo.endCursor ?? null,
       }}
       params={new URLSearchParams()}
     />

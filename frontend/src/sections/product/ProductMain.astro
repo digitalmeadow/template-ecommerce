@@ -2,37 +2,37 @@
 import PortableText from "@fields/PortableText.astro";
 import Accordion from "@layouts/Accordion.astro";
 import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
-import ProductGallery from "@sections/product/ProductGallery.astro";
-import ProductPurchase from "@sections/product/ProductPurchase.astro";
-import ProductLive from "@sections/product/ProductLive.astro";
 import ProductAnalytics from "@sections/product/ProductAnalytics.astro";
+import ProductGallery from "@sections/product/ProductGallery.astro";
+import ProductLive from "@sections/product/ProductLive.astro";
+import ProductPurchase from "@sections/product/ProductPurchase.astro";
 
 interface Props {
-  productData: ProductShopifySanity;
+  product: ProductShopifySanity;
 }
 
-const { productData }: Props = Astro.props;
+const { product }: Props = Astro.props;
 ---
 
 <section
   class="product-main g-page-margin"
   data-product-root
-  data-product-handle={productData.shopify.handle}
+  data-product-handle={product.shopify.handle}
   data-product-analytics={JSON.stringify({
-    id: productData.shopify.id,
-    title: productData.shopify.title,
-    vendor: productData.shopify.vendor,
-    productType: productData.shopify.productType,
+    id: product.shopify.id,
+    title: product.shopify.title,
+    vendor: product.shopify.vendor,
+    productType: product.shopify.productType,
   })}
 >
   <ProductLive />
   <ProductAnalytics />
-  <ProductGallery productData={productData} />
+  <ProductGallery product={product} />
   <div class="product-purchase">
-    <ProductPurchase productData={productData} />
+    <ProductPurchase product={product} />
 
     <div class="accordions">
-      {productData.sanity.accordions?.map((accordion) => {
+      {product.sanity.accordions?.map((accordion) => {
         if (!accordion) return null;
         return (
           <Accordion group="product" summary={accordion.summary}>
@@ -48,21 +48,21 @@ const { productData }: Props = Astro.props;
 
 <style>
   .product-main {
+    padding-top: var(--size-40);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
     gap: var(--gutter);
-    padding-top: var(--size-40);
+    align-items: start;
   }
 
   .product-purchase {
     position: sticky;
     top: var(--size-40);
+    padding-left: calc(var(--column) + var(--gutter));
     height: calc(100svh - var(--size-40));
     display: flex;
     flex-direction: column;
     row-gap: var(--size-10);
-    padding-left: calc(var(--column) + var(--gutter));
   }
 
   .accordions {
@@ -78,8 +78,8 @@ const { productData }: Props = Astro.props;
 
     .product-purchase {
       position: static;
-      height: auto;
       padding-left: 0;
+      height: auto;
     }
   }
 </style>

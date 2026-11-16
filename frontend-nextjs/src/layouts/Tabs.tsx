@@ -114,7 +114,7 @@ export default function Tabs({
             <div
               key={item.key}
               className={cn(
-                "tabs-panel pointer-events-none opacity-0 transition-opacity duration-[var(--transition-default-duration)] [grid-area:1/1]",
+                "tabs-panel pointer-events-none opacity-0 transition-opacity duration-(--duration-default) ease-out [grid-area:1/1]",
                 isActive && "pointer-events-auto opacity-100",
                 panelClassName,
               )}

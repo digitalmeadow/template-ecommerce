@@ -1,14 +1,13 @@
-import { shopifyClient } from "shopify/client";
 import { sanityClient } from "sanity-nextjs/client.server";
-import { type CollectionFragment as ShopifyCollectionFragment } from "shopify/generated/graphql";
 import type { CollectionFragment as SanityCollectionFragment } from "sanity-nextjs/generated/graphql";
-import { collectionByHandleQuery as shopifyCollectionByHandleQuery } from "shopify/queries/collection";
 import { collectionByHandleQuery as sanityCollectionByHandleQuery } from "sanity-nextjs/queries/collection";
+import type { CollectionFragment as ShopifyCollectionFragment } from "shopify/generated/graphql";
+import { collectionByHandleQuery as shopifyCollectionByHandleQuery } from "shopify/queries/collection";
 import { buildScopedByKey } from "@/lib/cache";
-import {
-  fetchProductThumbnailsShopifySanity,
-  type ProductThumbnailShopifySanity,
-} from "./productShopifySanity";
+import { PRODUCTS_PER_PAGE } from "@/lib/shopify/filters";
+import { localeHandleKey, parseLocaleHandleKey, type Locale } from "@/lib/shopify/locale";
+import { shopifyServer } from "@/lib/shopify/serverClient";
+import { fetchProductThumbnails, type ProductThumbnailShopifySanity } from "./productShopifySanity";
 
 export type CollectionShopifySanity = {
   shopify: ShopifyCollectionFragment;
@@ -21,32 +20,40 @@ export type ShopifyCollectionWithThumbnails = {
   productThumbnails: ProductThumbnailShopifySanity[];
 };
 
-// Collection sections repeat across pages; cached per handle for the build.
-export const fetchShopifyCollectionWithThumbnails = buildScopedByKey(
-  async (handle): Promise<ShopifyCollectionWithThumbnails> => {
-    const shopifyCollectionResult = await shopifyClient.request(shopifyCollectionByHandleQuery, {
+// Collection sections repeat across pages; cached per `{locale}:{handle}` for the build.
+const fetchShopifyCollectionWithThumbnailsByKey = buildScopedByKey(
+  async (key): Promise<ShopifyCollectionWithThumbnails> => {
+    const { locale, handle } = parseLocaleHandleKey(key);
+    const { collection } = await shopifyServer.request(shopifyCollectionByHandleQuery, {
       handle,
-      first: 24,
+      first: PRODUCTS_PER_PAGE,
       sortKey: "COLLECTION_DEFAULT",
+      country: locale.country,
+      language: locale.language,
     });
-    const shopifyCollection = shopifyCollectionResult.collection;
-    const productHandles = shopifyCollection?.products?.nodes.map((node) => node.handle) ?? [];
-
     return {
-      shopify: shopifyCollection,
-      productThumbnails: await fetchProductThumbnailsShopifySanity(productHandles),
+      shopify: collection,
+      productThumbnails: await fetchProductThumbnails(collection?.products.nodes ?? []),
     };
   },
 );
 
-// Pass `sanityCollectionData` when the caller already holds it (cached bulk query) to skip a Sanity request.
+export function fetchShopifyCollectionWithThumbnails(
+  handle: string,
+  locale: Locale,
+): Promise<ShopifyCollectionWithThumbnails> {
+  return fetchShopifyCollectionWithThumbnailsByKey(localeHandleKey(locale, handle));
+}
+
+/** Pass `prefetchedSanityCollection` when the caller already holds it (getStaticPaths) to skip a Sanity request. */
 export async function fetchCollectionShopifySanity(
   handle: string,
-  sanityCollectionData?: SanityCollectionFragment,
+  locale: Locale,
+  prefetchedSanityCollection?: SanityCollectionFragment,
 ): Promise<CollectionShopifySanity> {
   const [{ shopify: shopifyCollection, productThumbnails }, sanityCollection] = await Promise.all([
-    fetchShopifyCollectionWithThumbnails(handle),
-    sanityCollectionData ??
+    fetchShopifyCollectionWithThumbnails(handle, locale),
+    prefetchedSanityCollection ??
       sanityClient
         .request(sanityCollectionByHandleQuery, { handle })
         .then((result) => result.allCollection[0]),

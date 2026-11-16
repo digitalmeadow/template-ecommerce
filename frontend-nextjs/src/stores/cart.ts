@@ -1,168 +1,179 @@
 import { persistentJSON } from "@nanostores/persistent";
 import { atom, computed } from "nanostores";
-import type { CartFragment, CartLineFragment } from "shopify/generated/graphql";
-import { shopifyClient } from "shopify/client";
-import { cartByIdQuery } from "shopify/queries/cart";
-import {
-  cartCreateMutation,
-  cartLinesAddMutation,
-  cartLinesUpdateMutation,
-  cartLinesRemoveMutation,
-} from "shopify/mutations/cart";
-import { getStoredLocale } from "@/lib/shopify/locale.client";
-import { getCountryCode } from "@/lib/shopify/locale";
-import { getCartStorageKey } from "@/lib/shopify/cart.client";
+import type { CartFragment, CartLineFragment, MoneyFragment } from "shopify/generated/graphql";
+import { trackCartChange } from "@/lib/analytics/track";
+import type {
+  CartAction,
+  CartAttribute,
+  CartMessage,
+  CartRequestBody,
+  CartResult,
+} from "@/lib/shopify/cartActions";
+import { hasCartCookie } from "@/lib/shopify/cartCookie";
+import { getPageLocale } from "@/lib/shopify/locale";
 
-// The whole cart (id included) is the one persisted value; `undefined` removes the key.
-// Keyed at load: changing locale reloads the page, which re-keys it. On the server it stays empty.
-export const $cart = persistentJSON<CartFragment | undefined>(getCartStorageKey(), undefined);
+const CART_ENDPOINT = "/api/cart";
+const GENERIC_MESSAGE = "Something went wrong updating your cart. Please try again.";
 
-// Last mutation's failure, for the cart UI to announce; cleared by the next success.
-export const $cartError = atom<string | null>(null);
+// The server owns the cart (id in the `cart` cookie). This snapshot only paints it instantly
+// on load, before the refresh lands.
+export const $cart = persistentJSON<CartFragment | null>("cart-snapshot", null);
 
-export const $cartCount = computed($cart, (cart): number => cart?.totalQuantity ?? 0);
+// The last action's rejections and caveats, for the cart UI to announce; replaced by the next.
+export const $cartMessages = atom<CartMessage[]>([]);
 
-export const $cartTotal = computed(
-  $cart,
-  (cart): { amount: string; currencyCode: string } | null => {
-    if (!cart?.cost?.totalAmount) return null;
-    return {
-      amount: cart.cost.totalAmount.amount,
-      currencyCode: cart.cost.totalAmount.currencyCode,
-    };
-  },
-);
-
-export const $checkoutUrl = computed($cart, (cart): string | null => {
-  if (!cart?.checkoutUrl || $cartCount.get() === 0) return null;
-  return cart.checkoutUrl;
-});
+// What's waiting on the server: line ids, or "add" / "discount" / "gift-card" / "note" / "attributes".
+export const $cartPending = atom<ReadonlySet<string>>(new Set());
 
 export const $cartLines = computed($cart, (cart): CartLineFragment[] => cart?.lines.nodes ?? []);
+export const $cartCount = computed($cart, (cart): number => cart?.totalQuantity ?? 0);
+export const $cartSubtotal = computed(
+  $cart,
+  (cart): MoneyFragment | null => cart?.cost.subtotalAmount ?? null,
+);
+export const $cartTotal = computed(
+  $cart,
+  (cart): MoneyFragment | null => cart?.cost.totalAmount ?? null,
+);
 
-function getStoredCountryCode() {
-  return getCountryCode(getStoredLocale());
+// One request at a time, so responses can't land out of order and undo a newer change.
+let queue: Promise<unknown> = Promise.resolve();
+
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
+  const run = queue.then(task, task);
+  queue = run.catch(() => undefined);
+  return run;
 }
 
-function getCartId(): string | undefined {
-  return $cart.get()?.id;
+function setPending(key: string, isPending: boolean) {
+  const pending = new Set($cartPending.get());
+  if (isPending) pending.add(key);
+  else pending.delete(key);
+  $cartPending.set(pending);
 }
 
-// Renders the stored cart immediately, then refreshes it (prices, availability) from Shopify.
+async function requestCart(init?: RequestInit, search = ""): Promise<CartResult> {
+  const response = await fetch(`${CART_ENDPOINT}${search}`, init);
+  if (!response.ok) throw new Error(`Cart endpoint responded ${response.status}`);
+  return (await response.json()) as CartResult;
+}
+
+// The last cart the server returned; optimistic edits never touch it, so diffs see real changes.
+let confirmedCart: CartFragment | null = $cart.get();
+
+function applyResult({ cart, messages }: CartResult) {
+  confirmedCart = cart;
+  $cart.set(cart);
+  $cartMessages.set(messages);
+}
+
+async function submit(action: CartAction, pendingKey: string): Promise<CartResult | null> {
+  return enqueue(async () => {
+    setPending(pendingKey, true);
+    try {
+      const body: CartRequestBody = { locale: getPageLocale().path, action };
+      const result = await requestCart({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const previous = confirmedCart;
+      applyResult(result);
+      trackCartChange(previous, result.cart);
+      return result;
+    } catch (error) {
+      console.error(`Cart ${action.intent} failed:`, error);
+      $cartMessages.set([{ message: GENERIC_MESSAGE }]);
+      return null;
+    } finally {
+      setPending(pendingKey, false);
+    }
+  });
+}
+
+/**
+ * Paints the snapshot, then refreshes from the server. After a locale switch the snapshot is the
+ * old market's for a moment; only its prices differ, and the drawer is closed on load.
+ */
 export async function loadCart(): Promise<void> {
-  const cartId = getCartId();
-  if (!cartId) return;
-
-  try {
-    const { cart } = await shopifyClient.request(cartByIdQuery, {
-      cartId,
-      country: getStoredCountryCode(),
-    });
-    // Expired or completed carts come back null.
-    $cart.set(cart ?? undefined);
-  } catch (error) {
-    console.error("Failed to load cart:", error);
-  }
-}
-
-async function createCart(variantId: string, quantity: number = 1): Promise<void> {
-  try {
-    const { cartCreate } = await shopifyClient.request(cartCreateMutation, {
-      input: {
-        lines: [{ merchandiseId: variantId, quantity }],
-        // Fixes checkout currency to the market; @inContext alone only prices the response.
-        buyerIdentity: { countryCode: getStoredCountryCode() },
-      },
-      country: getStoredCountryCode(),
-    });
-
-    applyCartPayload(cartCreate, variantId);
-  } catch (error) {
-    handleCartFailure("create cart", error);
-  }
-}
-
-export async function addToCart(variantId: string, quantity: number = 1): Promise<void> {
-  const cartId = getCartId();
-
-  if (!cartId) {
-    await createCart(variantId, quantity);
+  if (!hasCartCookie()) {
+    if ($cart.get()) $cart.set(null);
     return;
   }
 
-  try {
-    const { cartLinesAdd } = await shopifyClient.request(cartLinesAddMutation, {
-      cartId,
-      lines: [{ merchandiseId: variantId, quantity }],
-      country: getStoredCountryCode(),
-    });
-    applyCartPayload(cartLinesAdd, variantId);
-  } catch (error) {
-    handleCartFailure("add to cart", error);
-  }
+  await enqueue(async () => {
+    try {
+      const search = `?locale=${encodeURIComponent(getPageLocale().path)}`;
+      applyResult(await requestCart(undefined, search));
+    } catch (error) {
+      console.error("Failed to load cart:", error);
+    }
+  });
+}
+
+export function addToCart(
+  merchandiseId: string,
+  quantity = 1,
+  attributes?: CartAttribute[],
+): Promise<CartResult | null> {
+  return submit({ intent: "add", lines: [{ merchandiseId, quantity, attributes }] }, "add");
 }
 
 export async function updateLineQuantity(lineId: string, quantity: number): Promise<void> {
-  const cartId = getCartId();
-  if (!cartId) return;
-
-  try {
-    const { cartLinesUpdate } = await shopifyClient.request(cartLinesUpdateMutation, {
-      cartId,
-      lines: [{ id: lineId, quantity }],
-      country: getStoredCountryCode(),
-    });
-    applyCartPayload(cartLinesUpdate);
-  } catch (error) {
-    handleCartFailure("update cart line", error);
-  }
+  const previous = $cart.get();
+  $cart.set(withLineQuantity(previous, lineId, quantity));
+  const result = await submit({ intent: "update", lines: [{ id: lineId, quantity }] }, lineId);
+  if (!result) $cart.set(previous);
 }
 
 export async function removeLine(lineId: string): Promise<void> {
-  const cartId = getCartId();
-  if (!cartId) return;
-
-  try {
-    const { cartLinesRemove } = await shopifyClient.request(cartLinesRemoveMutation, {
-      cartId,
-      lineIds: [lineId],
-      country: getStoredCountryCode(),
-    });
-    applyCartPayload(cartLinesRemove);
-  } catch (error) {
-    handleCartFailure("remove cart line", error);
-  }
+  const previous = $cart.get();
+  $cart.set(withLineQuantity(previous, lineId, 0));
+  const result = await submit({ intent: "remove", lineIds: [lineId] }, lineId);
+  if (!result) $cart.set(previous);
 }
 
-// Mutations answer 200 even when Shopify rejects the change, reporting it in userErrors/warnings.
-interface CartPayload {
-  cart?: CartFragment | null;
-  userErrors: { message: string }[];
-  warnings: { message: string }[];
+export function applyDiscountCode(code: string) {
+  return submit({ intent: "discount-apply", code }, "discount");
 }
 
-const GENERIC_ERROR = "Something went wrong updating your cart. Please try again.";
-// Lines for merchandise not sold in the buyer's market are dropped without an error.
-const UNAVAILABLE_ERROR = "This item isn't available in your region.";
-
-function hasMerchandise(cart: CartFragment, variantId: string): boolean {
-  return cart.lines.nodes.some((line) => line.merchandise.id === variantId);
+export function removeDiscountCode(code: string) {
+  return submit({ intent: "discount-remove", code }, "discount");
 }
 
-function applyCartPayload(payload: CartPayload | null | undefined, addedVariantId?: string) {
-  const message = payload?.userErrors[0]?.message ?? payload?.warnings[0]?.message;
-  const cart = payload?.cart;
-
-  if (cart) $cart.set(cart);
-
-  if (message) $cartError.set(message);
-  else if (!cart) $cartError.set(GENERIC_ERROR);
-  else if (addedVariantId && !hasMerchandise(cart, addedVariantId))
-    $cartError.set(UNAVAILABLE_ERROR);
-  else $cartError.set(null);
+export function applyGiftCard(code: string) {
+  return submit({ intent: "gift-card-apply", code }, "gift-card");
 }
 
-function handleCartFailure(context: string, error: unknown) {
-  console.error(`Failed to ${context}:`, error);
-  $cartError.set(GENERIC_ERROR);
+export function removeGiftCard(id: string) {
+  return submit({ intent: "gift-card-remove", id }, "gift-card");
+}
+
+export function updateNote(note: string) {
+  return submit({ intent: "note", note }, "note");
+}
+
+export function updateAttributes(attributes: CartAttribute[]) {
+  return submit({ intent: "attributes", attributes }, "attributes");
+}
+
+// Optimistic: quantities move immediately; costs wait for the server.
+function withLineQuantity(
+  cart: CartFragment | null,
+  lineId: string,
+  quantity: number,
+): CartFragment | null {
+  if (!cart) return cart;
+  const line = cart.lines.nodes.find((node) => node.id === lineId);
+  if (!line) return cart;
+
+  const nodes =
+    quantity > 0
+      ? cart.lines.nodes.map((node) => (node.id === lineId ? { ...node, quantity } : node))
+      : cart.lines.nodes.filter((node) => node.id !== lineId);
+  return {
+    ...cart,
+    totalQuantity: cart.totalQuantity - line.quantity + quantity,
+    lines: { ...cart.lines, nodes },
+  };
 }

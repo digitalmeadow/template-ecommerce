@@ -10,7 +10,6 @@ export function validateSlugId(Rule: StringRule) {
 
 type MetaField = "title" | "description";
 
-// Per-document meta requirements; only `metaSettings` needs it, as a title has no fallback.
 export function requireMetaFields(rule: Rule, fields: MetaField[]) {
   return rule.custom((meta) => {
     const value = meta as Partial<Record<MetaField, string>> | undefined;

@@ -1,16 +1,5 @@
-import { createClient } from "sanity";
-import { SANITY_DATASET, SANITY_PROJECT_ID } from "astro:env/client";
-import { SANITY_EDITOR_API_TOKEN } from "astro:env/server";
-import { SANITY_API_VERSION } from "sanity/config";
 import type { FormDefinition, FormValue } from "@lib/forms/schema";
-
-const sanityWriteClient = createClient({
-  projectId: SANITY_PROJECT_ID,
-  dataset: SANITY_DATASET,
-  apiVersion: SANITY_API_VERSION,
-  useCdn: false,
-  token: SANITY_EDITOR_API_TOKEN,
-});
+import { sanityWriteClient } from "@lib/sanity/writeClient";
 
 const isFile = (value: unknown): value is File => value instanceof File;
 

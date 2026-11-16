@@ -19,6 +19,6 @@ export const elementEntries: Entry[] = [
 
   componentEntry("Rich Text", "Every block type", PortableText, { value: richTextBody }),
 
-  componentEntry("Media", "Image", SanityMedia, { mediaData: media.image("wordmark") }),
-  componentEntry("Media", "Vimeo", SanityMedia, { mediaData: media.vimeo() }),
+  componentEntry("Media", "Image", SanityMedia, { media: media.image("wordmark") }),
+  componentEntry("Media", "Vimeo", SanityMedia, { media: media.vimeo() }),
 ];

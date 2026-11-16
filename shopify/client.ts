@@ -2,17 +2,14 @@ import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { print, type DocumentNode, type OperationDefinitionNode } from "graphql";
 import { SHOPIFY_API_VERSION, SHOPIFY_PUBLIC_API_TOKEN, SHOPIFY_STORE_DOMAIN } from "./config";
 
-export const SHOPIFY_STOREFRONT_PATH = `/api/${SHOPIFY_API_VERSION}/graphql.json`;
-export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_DOMAIN}${SHOPIFY_STOREFRONT_PATH}`;
+export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 
 const TIMEOUT_MS = 30_000;
 const QUERY_ATTEMPTS = 3;
 const RETRY_BASE_DELAY_MS = 500;
 
 export interface ShopifyClientOptions {
-  /** Defaults to the store. The browser passes the same-origin proxy path. */
-  endpoint?: string;
-  /** Omit to send no token (the proxy adds the private one). */
+  /** Ignored when `privateToken` is set. */
   publicToken?: string;
   /** Server only. */
   privateToken?: string;
@@ -81,7 +78,6 @@ export function createShopifyClient(options: ShopifyClientOptions = {}): Shopify
     throw new Error("The private Storefront token must never reach the browser.");
   }
 
-  const endpoint = options.endpoint ?? SHOPIFY_STOREFRONT_URL;
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (options.privateToken) headers["Shopify-Storefront-Private-Token"] = options.privateToken;
   else if (options.publicToken) headers["X-Shopify-Storefront-Access-Token"] = options.publicToken;
@@ -91,7 +87,7 @@ export function createShopifyClient(options: ShopifyClientOptions = {}): Shopify
     document: DocumentNode,
     variables: unknown,
   ): Promise<GraphQLResponse<TResult> & { data: TResult }> {
-    const response = await fetch(endpoint, {
+    const response = await fetch(SHOPIFY_STOREFRONT_URL, {
       method: "POST",
       headers,
       body: JSON.stringify({ query: print(document), variables }),

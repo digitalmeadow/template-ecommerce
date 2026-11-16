@@ -1,13 +1,13 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
 import { fetchProductShopifySanity, isProductInShopify } from "@lib/fetches/productShopifySanity";
-import ProductMain from "@sections/product/ProductMain.astro";
-import ProductRelated from "@sections/product/ProductRelated.astro";
-import { propsForSlug } from "@lib/sanity/staticPaths";
-import { buildProductPaths, loadProductProps } from "@lib/sanity/paths";
 import { resolveMeta } from "@lib/sanity/meta";
+import { buildProductPaths, loadProductProps } from "@lib/sanity/paths";
+import { propsForSlug } from "@lib/sanity/staticPaths";
 import { buildBreadcrumbSchema, buildProductSchema } from "@lib/sanity/structuredData";
 import { getRenderLocale } from "@lib/shopify/locale";
+import ProductMain from "@sections/product/ProductMain.astro";
+import ProductRelated from "@sections/product/ProductRelated.astro";
 
 export async function getStaticPaths() {
   const paths = await buildProductPaths();
@@ -19,24 +19,20 @@ const resolved = await propsForSlug(Astro.props, Astro.params.slug, loadProductP
 if (!resolved || !Astro.params.slug) return Astro.rewrite("/404");
 
 const locale = getRenderLocale(Astro);
-const productData = await fetchProductShopifySanity(
-  Astro.params.slug,
-  locale,
-  resolved.sanityProductData,
-);
-if (!productData) return Astro.rewrite("/404");
+const product = await fetchProductShopifySanity(Astro.params.slug, locale, resolved.sanityProduct);
+if (!product) return Astro.rewrite("/404");
 
-const metaData = resolveMeta(productData.sanity, { title: productData.shopify.title });
+const meta = resolveMeta(product.sanity, { title: product.shopify.title });
 ---
 
 <PageLayout
-  metaData={metaData}
+  meta={meta}
   ogType="product"
   jsonLd={[
-    buildProductSchema(productData, metaData.description, Astro.site, locale),
-    buildBreadcrumbSchema(Astro.url.pathname, productData.shopify.title, Astro.site, locale),
+    buildProductSchema(product, meta.description, Astro.site, locale),
+    buildBreadcrumbSchema(Astro.url.pathname, product.shopify.title, Astro.site, locale),
   ]}
 >
-  <ProductMain productData={productData} />
-  <ProductRelated productsData={productData.relatedProducts} />
+  <ProductMain product={product} />
+  <ProductRelated products={product.relatedProducts} />
 </PageLayout>

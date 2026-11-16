@@ -1,0 +1,20 @@
+/* Page grid maths, derived from --margin and --gutter. Span N columns:
+   calc(N * var(--column) + (N - 1) * var(--gutter)) */
+:root {
+  --column-count: 16;
+
+  /* Set by ScriptMeasurements: the viewport without its scrollbar. */
+  --vw: 1vw;
+
+  --container-width: calc((100 * var(--vw)) - (2 * var(--margin)));
+  --column: calc(
+    (1 / var(--column-count)) *
+      (var(--container-width) - ((var(--column-count) - 1) * (var(--gutter))))
+  );
+}
+
+@media (max-width: 48rem) {
+  :root {
+    --column-count: 4;
+  }
+}

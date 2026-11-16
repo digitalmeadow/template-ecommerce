@@ -7,7 +7,8 @@ export const easeOutFn = cubicBezier(...easeOut);
 export const easeInOut = [0.83, 0, 0.17, 1] as const;
 export const pageTransitionDuration = 0.7;
 
-export const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+export const prefersReducedMotion = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Frame-rate independent approach to a target. `tau` = seconds to close ~63% of the gap.
 export const damp = (current: number, target: number, tau: number, deltaSeconds: number) =>

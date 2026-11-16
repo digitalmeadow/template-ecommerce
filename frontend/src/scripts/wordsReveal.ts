@@ -1,5 +1,6 @@
 import { interpolate, scroll } from "motion";
-import { clamp01, damp, easeOutFn } from "@lib/animations";
+import { damp, easeOutFn, prefersReducedMotion } from "@lib/animations";
+import { clamp01 } from "@lib/math";
 import { splitIntoWords } from "@utils/splitIntoWords";
 
 // Share of total progress a single word spends fading — the wider it is, the more words
@@ -66,8 +67,7 @@ const buildWordPainter = (layout: HTMLElement) => {
 
 // [data-animate-words] fills word by word as its top edge scrolls through the band.
 export function initWordsReveal(): () => void {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduceMotion) return () => {};
+  if (prefersReducedMotion()) return () => {};
 
   const cleanups: (() => void)[] = [];
 

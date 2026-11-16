@@ -1,16 +1,16 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { formatMoney } from "@lib/shopify/money";
 import { getHtmlLang, getRenderLocale } from "@lib/shopify/locale";
+import { formatMoney } from "@lib/shopify/money";
 
 interface Props extends HTMLAttributes<"span"> {
-  variant?: "standard" | "compare-at";
+  kind?: "standard" | "compare-at";
   amount?: string;
   currency?: string;
   prefix?: string;
 }
 
-const { variant = "standard", amount, currency, prefix, ...attributes }: Props = Astro.props;
+const { kind = "standard", amount, currency, prefix, ...attributes }: Props = Astro.props;
 
 // Rendered into the static HTML, so prices never wait on JS.
 const formatted =
@@ -18,12 +18,11 @@ const formatted =
 ---
 
 <price-display
-  variant={variant}
+  kind={kind}
   amount={amount}
   currency={currency}
   prefix={prefix}
-  data-variant={variant}
-  data-prefixed={prefix ? "true" : "false"}
+  data-kind={kind}
   {...attributes}
 >
   <span data-price-prefix>{prefix}</span>
@@ -37,7 +36,7 @@ const formatted =
     private prefixElement!: HTMLSpanElement;
     private priceElement!: HTMLSpanElement;
 
-    static observedAttributes = ["amount", "currency", "variant", "prefix"];
+    static observedAttributes = ["amount", "currency", "kind", "prefix"];
 
     connectedCallback() {
       this.prefixElement = this.querySelector("[data-price-prefix]")!;
@@ -54,8 +53,7 @@ const formatted =
       const currency = this.getAttribute("currency");
       const prefix = this.getAttribute("prefix");
 
-      this.dataset.variant = this.getAttribute("variant") || "standard";
-      this.dataset.prefixed = prefix ? "true" : "false";
+      this.dataset.kind = this.getAttribute("kind") || "standard";
       this.prefixElement.textContent = prefix;
       this.priceElement.textContent =
         amount && currency ? formatMoney(amount, currency, document.documentElement.lang) : "";
@@ -75,16 +73,12 @@ const formatted =
     display: none;
   }
 
-  price-display[data-variant="compare-at"] span {
+  price-display[data-kind="compare-at"] span {
     color: var(--color-text-muted);
     text-decoration-line: line-through;
   }
 
-  [data-price-prefix] {
+  [data-price-prefix]:empty {
     display: none;
-  }
-
-  price-display[data-prefixed="true"] [data-price-prefix] {
-    display: inline;
   }
 </style>

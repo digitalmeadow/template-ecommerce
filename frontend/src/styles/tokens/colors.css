@@ -40,7 +40,7 @@
 [data-color-scheme] {
   --contrast-64: color-mix(in oklab, var(--scheme-foreground) 64%, var(--scheme-background));
   --contrast-40: color-mix(in oklab, var(--scheme-foreground) 40%, var(--scheme-background));
-  /* Lab, not oklab: oklab crushes near-black, so these vanished on dark schemes. */
+  /* Lab, not oklab: oklab crushes near-black, so these would vanish on dark schemes. */
   --contrast-16: color-mix(in lab, var(--scheme-foreground) 16%, var(--scheme-background));
   --contrast-8: color-mix(in lab, var(--scheme-foreground) 8%, var(--scheme-background));
   --contrast-4: color-mix(in lab, var(--scheme-foreground) 4%, var(--scheme-background));

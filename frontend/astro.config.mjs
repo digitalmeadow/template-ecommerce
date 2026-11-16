@@ -1,19 +1,18 @@
 // @ts-check
-import process from "node:process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import process from "node:process";
 import { URL } from "node:url";
 import { parseEnv } from "node:util";
-import { defineConfig, envField } from "astro/config";
 import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
+import { defineConfig, envField } from "astro/config";
 import { DEPLOY_ENVIRONMENTS, LOCALES, PRODUCTION_BRANCH } from "./config.ts";
 import { getSellableLocales } from "./src/lib/shopify/sellableLocales.ts";
 
-// `site` and `output` are read before Astro loads .env, so seed process.env here. Precedence:
-// real process vars, then the Worker's DEPLOY_ENVIRONMENTS entry, then the root .env (symlinked
-// in as ./.env). The .env is skipped in CI, where a missing var must fail astro:env validation
-// loudly rather than fall back to a stray local file.
+// `site` and `output` are read before Astro loads env files, so seed process.env here: real vars
+// win, then the Worker's DEPLOY_ENVIRONMENTS entry, then the root .env. CI skips the .env so a
+// missing var fails astro:env validation instead of falling back to a stray local file.
 function readLocalEnv() {
   if (process.env.CI) return {};
   try {
@@ -27,13 +26,10 @@ function readLocalEnv() {
 const deployEnvironment = DEPLOY_ENVIRONMENTS[process.env.CLOUDFLARE_ENV ?? ""] ?? {};
 Object.assign(process.env, { ...readLocalEnv(), ...deployEnvironment, ...process.env });
 
-// Workers Builds sets WORKERS_CI_BRANCH; branch Previews and the drafts site stay out of search.
-const isBranchPreview =
-  process.env.WORKERS_CI_BRANCH !== undefined &&
-  process.env.WORKERS_CI_BRANCH !== PRODUCTION_BRANCH;
-process.env.INDEXABLE = String(process.env.PREVIEW !== "true" && !isBranchPreview);
-
 const isPreview = process.env.PREVIEW === "true";
+// Workers Builds sets WORKERS_CI_BRANCH; any branch but production's builds a Preview.
+const isBranchPreview = (process.env.WORKERS_CI_BRANCH ?? PRODUCTION_BRANCH) !== PRODUCTION_BRANCH;
+process.env.INDEXABLE = String(!isPreview && !isBranchPreview);
 
 const SELLABLE_LOCALES = await getSellableLocales(LOCALES);
 const DEFAULT_LOCALE_PATH = SELLABLE_LOCALES[0].path;

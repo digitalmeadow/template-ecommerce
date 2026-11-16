@@ -1,15 +1,15 @@
 ---
 import type { FooterFragment } from "sanity/generated/graphql";
-import SanityLink from "@fields/SanityLink.astro";
 import LocaleSelector from "@blocks/LocaleSelector.astro";
-import { getShopPolicies } from "@lib/shopify/shop";
+import SanityLink from "@fields/SanityLink.astro";
 import { getRenderLocale, localizeHref } from "@lib/shopify/locale";
+import { getShopPolicies } from "@lib/shopify/shop";
 
 interface Props {
-  footerData: FooterFragment | null | undefined;
+  footer: FooterFragment | null | undefined;
 }
 
-const { footerData }: Props = Astro.props;
+const { footer }: Props = Astro.props;
 
 const locale = getRenderLocale(Astro);
 const policies = await getShopPolicies(locale);
@@ -18,11 +18,11 @@ const policies = await getShopPolicies(locale);
 <footer class="footer g-page-margin">
   <nav aria-label="Footer">
     <ul>
-      {footerData?.navigationItems?.map((navigationItem) => {
+      {footer?.navigationItems?.map((navigationItem) => {
         if (!navigationItem?.link) return null;
         return (
           <li>
-            <SanityLink linkData={navigationItem.link} class="g-text-link-hover">
+            <SanityLink link={navigationItem.link} class="g-text-link-hover">
               {navigationItem.label}
             </SanityLink>
           </li>
@@ -43,13 +43,13 @@ const policies = await getShopPolicies(locale);
 
 <style>
   .footer {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--size-3) var(--gutter);
     margin-top: var(--section-space-lg);
     padding-block: var(--size-5);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-3) var(--gutter);
+    align-items: center;
+    justify-content: space-between;
   }
 
   ul {

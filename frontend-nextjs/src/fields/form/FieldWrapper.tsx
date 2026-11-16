@@ -1,44 +1,66 @@
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
 
 interface Props {
+  id: string;
+  name: string;
+  label: string;
   type: string;
-  width?: "full" | "half" | null;
+  required?: boolean;
+  width?: string;
   errorId: string;
   error?: string;
   children: ReactNode;
 }
 
-// Group types lay out their own label, so the single-line control styling would fight them.
-const GROUP_TYPES = ["checkboxGroup", "radioGroup", "consent"];
-
-export default function FieldWrapper({ type, width = "full", errorId, error, children }: Props) {
-  const isFile = type === "file" || type === "files";
+export default function FieldWrapper({
+  id,
+  name,
+  label,
+  type,
+  required = false,
+  width = "full",
+  errorId,
+  error,
+  children,
+}: Props) {
+  // Groups of choices are named by a legend; consent carries its statement instead of a label.
+  const isGroup = type === "checkboxGroup" || type === "radioGroup";
+  const isConsent = type === "consent";
+  const Tag = isGroup ? "fieldset" : "div";
+  const requiredMark = required && (
+    <span className="ml-[0.125em]" aria-hidden="true">
+      *
+    </span>
+  );
 
   return (
-    <div
-      className="field flex flex-col data-[width=full]:col-span-full max-[64rem]:col-span-full"
-      data-width={width ?? "full"}
+    <Tag
+      className="g-form-field"
+      data-width={width}
       data-type={type}
+      aria-describedby={isGroup ? errorId : undefined}
     >
-      <div
-        className={cn(
-          "control border-t border-current",
-          !GROUP_TYPES.includes(type) && "flex items-center gap-[var(--s16)]",
-          type === "consent" && "border-t-0",
-          isFile && "mb-[var(--gutter)] border",
-        )}
-      >
-        {children}
-      </div>
-
+      {isGroup && (
+        <legend className="font-bold">
+          {label}
+          {requiredMark}
+        </legend>
+      )}
+      {!isGroup && !isConsent && (
+        <label className="font-bold" htmlFor={id}>
+          {label}
+          {requiredMark}
+        </label>
+      )}
+      {children}
       <p
+        className="g-form-error g-text-small empty:hidden"
         id={errorId}
-        className="error mt-[var(--s4)] mb-[var(--s8)] text-accent empty:hidden"
+        data-error-for={name}
         aria-live="polite"
       >
         {error}
       </p>
-    </div>
+    </Tag>
   );
 }

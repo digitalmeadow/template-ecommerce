@@ -1,8 +1,8 @@
 ---
 import type { SectionTabsFragment } from "sanity/generated/graphql";
-import Tabs from "@layouts/Tabs.astro";
 import PortableText from "@fields/PortableText.astro";
 import SanityMedia from "@fields/SanityMedia.astro";
+import Tabs from "@layouts/Tabs.astro";
 
 interface Props {
   section: SectionTabsFragment;
@@ -46,7 +46,7 @@ const tabItems = section.tabItems ?? [];
             class="panel"
           >
             <PortableText value={item.contentRaw} />
-            {item.media && <SanityMedia mediaData={item.media} sizes={[50, 100, 100]} />}
+            {item.media && <SanityMedia media={item.media} sizes={[50, 100, 100]} />}
           </div>
         ),
     )}
@@ -64,8 +64,8 @@ const tabItems = section.tabItems ?? [];
   .section-tabs :global(tabs-root) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
     gap: var(--gutter);
+    align-items: start;
   }
 
   .section-tabs :global([data-tabs-triggers]) {
@@ -80,9 +80,9 @@ const tabItems = section.tabItems ?? [];
 
   .section-tabs :global([data-tab-trigger]) {
     padding-block: var(--size-4);
-    border-top: var(--border-width-1) solid var(--color-rule);
     color: var(--color-text-subtle);
     text-align: left;
+    border-top: var(--border-width-1) solid var(--color-rule);
     transition: color var(--transition-default);
   }
 

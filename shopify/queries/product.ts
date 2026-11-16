@@ -11,8 +11,7 @@ export const productByHandleQuery = graphql(`
 
 // Every product's prices for one market in a page (frontend-nextjs bakes all markets into one build).
 export const productPricesQuery = graphql(`
-  query ProductPricesQuery($countryCode: CountryCode, $cursor: String)
-  @inContext(country: $countryCode) {
+  query ProductPricesQuery($country: CountryCode, $cursor: String) @inContext(country: $country) {
     products(first: 250, after: $cursor) {
       edges {
         node {

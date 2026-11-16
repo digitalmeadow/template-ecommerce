@@ -1,12 +1,12 @@
 ---
 import PageLayout from "@layouts/PageLayout.astro";
-import ProductBrowser from "@sections/product/ProductBrowser.astro";
 import { EMPTY_PRODUCT_BROWSER_RESULTS } from "@lib/fetches/productBrowser";
+import ProductBrowser from "@sections/product/ProductBrowser.astro";
 
 // Static shell: ProductBrowser reads `?q=` and fetches results on load.
 ---
 
-<PageLayout metaData={{ title: "Search", description: null, image: null }} noindex>
+<PageLayout meta={{ title: "Search", description: null, image: null }} noindex>
   <section class="search g-page-margin">
     <h1 class="g-heading-3">Search</h1>
     <ProductBrowser
@@ -19,9 +19,9 @@ import { EMPTY_PRODUCT_BROWSER_RESULTS } from "@lib/fetches/productBrowser";
 
 <style>
   .search {
+    padding-top: var(--size-40);
     display: flex;
     flex-direction: column;
     gap: var(--size-10);
-    padding-top: var(--size-40);
   }
 </style>

@@ -18,9 +18,9 @@ const characters = (section.heading ?? "").trim().split("");
   id={section.id ?? undefined}
 >
   <FontSizeFillWidth>
-    <h1 data-text-animate-colors aria-label={section.heading}>
-      {characters.map((char) => (
-        <span aria-hidden="true">{char}</span>
+    <h1 data-animate-colors aria-label={section.heading}>
+      {characters.map((character) => (
+        <span aria-hidden="true">{character}</span>
       ))}
     </h1>
   </FontSizeFillWidth>
@@ -44,6 +44,8 @@ const characters = (section.heading ?? "").trim().split("");
 </style>
 
 <script>
+  import { prefersReducedMotion } from "@lib/animations";
+
   const COLORS = [
     "var(--color-highlight-green)",
     "var(--color-highlight-blue)",
@@ -53,17 +55,16 @@ const characters = (section.heading ?? "").trim().split("");
   ];
 
   let cleanups: (() => void)[] = [];
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   document.addEventListener("astro:page-load", () => {
     cleanups = [];
-    if (reduceMotion) return;
+    if (prefersReducedMotion()) return;
 
-    document.querySelectorAll<HTMLElement>("[data-text-animate-colors]").forEach((heading) => {
-      const charElements = Array.from(heading.children);
+    document.querySelectorAll<HTMLElement>("[data-animate-colors]").forEach((heading) => {
+      const characterElements = Array.from(heading.children);
 
-      charElements.forEach((char, index) => {
-        const animation = char.animate(
+      characterElements.forEach((character, index) => {
+        const animation = character.animate(
           [
             { color: "var(--color-text)" },
             ...COLORS.map((color) => ({ color })),

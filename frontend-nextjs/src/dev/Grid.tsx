@@ -1,51 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 
-// Matches --column-count in spacing.css
 const COLUMNS = 16;
 
 export default function Grid() {
-  const visibleRef = useRef(false);
-  const gridRef = useRef<HTMLDivElement>(null);
+  const visualizerRef = useRef<HTMLDivElement>(null);
 
-  const toggleGrid = useCallback(() => {
-    visibleRef.current = !visibleRef.current;
-    if (gridRef.current) {
-      gridRef.current.classList.toggle("hidden", !visibleRef.current);
-    }
-    if (visibleRef.current) {
-      document.body.dataset.outlined = "";
-    } else {
-      delete document.body.dataset.outlined;
-    }
+  useEffect(() => {
+    let isVisible = false;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!event.ctrlKey || event.code !== "KeyG") return;
+      isVisible = !isVisible;
+      if (visualizerRef.current) visualizerRef.current.hidden = !isVisible;
+      if (isVisible) document.body.dataset.outlined = "";
+      else delete document.body.dataset.outlined;
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.code === "KeyG") {
-        toggleGrid();
-      }
-    };
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [toggleGrid]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("grid") === "true") {
-      toggleGrid();
-    }
-  }, [toggleGrid]);
-
   return (
-    <div id="grid-visualizer" ref={gridRef} className="hidden">
-      <div
-        className="pointer-events-none fixed top-0 left-1/2 z-100 grid h-screen w-[var(--container-width)] -translate-x-1/2 gap-x-[var(--gutter)]"
-        style={{ gridTemplateColumns: `repeat(var(--column-count), 1fr)` }}
-      >
-        {Array.from({ length: COLUMNS }).map((_, i) => (
-          <div key={i} className="h-full w-full bg-black/10" />
+    <div id="grid-visualizer" ref={visualizerRef} hidden>
+      <div className="pointer-events-none fixed top-0 left-[var(--margin)] z-100 grid h-screen w-[var(--container-width)] grid-cols-[repeat(var(--column-count),1fr)] gap-x-[var(--gutter)] opacity-12">
+        {Array.from({ length: COLUMNS }, (_, index) => (
+          // The grid has 4 columns below the breakpoint (tokens/grid.css).
+          <div key={index} className="column h-full w-full bg-accent mobile:nth-[n+5]:hidden" />
         ))}
       </div>
     </div>

@@ -4,8 +4,8 @@ import { getGlobals } from "@lib/sanity/globals";
 
 // An endpoint rather than a static file so the app name follows the organisation settings.
 export const GET: APIRoute = async () => {
-  const { organisationSettingsData } = await getGlobals();
-  const name = organisationSettingsData?.name ?? undefined;
+  const { organisationSettings } = await getGlobals();
+  const name = organisationSettings?.name ?? undefined;
 
   const manifest = {
     name,

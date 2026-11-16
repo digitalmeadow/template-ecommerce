@@ -1,0 +1,27 @@
+/* Opt-in motion: data-animate-reveal (scripts/ fades it in once in view). */
+[data-animate-reveal] {
+  opacity: 1;
+}
+
+/* An animation, not a transition: the shorthand would clobber an element's own transition. */
+html[data-js] [data-animate-reveal] {
+  opacity: 0;
+}
+
+html[data-js] [data-animate-reveal][data-revealed] {
+  opacity: 1;
+  animation: reveal-fade var(--duration-reveal) var(--ease-out);
+}
+
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-js] [data-animate-reveal] {
+    opacity: 1;
+    animation: none;
+  }
+}

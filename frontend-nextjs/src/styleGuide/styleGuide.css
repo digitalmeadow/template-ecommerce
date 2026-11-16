@@ -1,0 +1,341 @@
+/* The style guide's own UI, apart from the site's CSS (loaded only by its index layout). */
+
+html {
+  --bar-height: 3rem;
+  scroll-padding-top: calc(var(--bar-height) + 4rem);
+}
+
+body {
+  margin: 0;
+  font:
+    0.8125rem/1.4 system-ui,
+    sans-serif;
+  color: #000;
+  background-color: #fff;
+}
+
+/* Resets carry no specificity, so the component rules below always win. */
+:where(.style-guide) :where(button, kbd) {
+  font: inherit;
+  color: inherit;
+}
+
+:where(.style-guide) :where(a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+:where(.style-guide) :where(button) {
+  margin: 0;
+  padding: 0.25rem 0.625rem;
+  text-transform: capitalize;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+:where(.style-guide) :where(h2, h3, ul) {
+  margin: 0;
+}
+
+.style-guide button[aria-pressed="true"] {
+  color: #fff;
+  background-color: #000;
+}
+
+.style-guide :focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+/* Every control is one 28px box, so the bar reads as one row. */
+.style-guide .segments,
+.style-guide .grid-toggle {
+  height: 1.75rem;
+  box-sizing: border-box;
+  display: flex;
+  border: 1px solid #ddd;
+}
+
+.style-guide .segments button {
+  font-size: 0.75rem;
+}
+
+.style-guide .bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 0 1rem;
+  min-height: var(--bar-height);
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 2rem;
+  align-items: center;
+  font-size: 0.8125rem;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.style-guide .name {
+  font-weight: 600;
+}
+
+/* Tabs fill the bar's height; the current one is marked on the bar's edge, like the sidebar. */
+.style-guide .tabs {
+  display: flex;
+  gap: 1.25rem;
+  align-self: stretch;
+}
+
+.style-guide .tab {
+  display: flex;
+  align-items: center;
+  color: #666;
+}
+
+.style-guide .tab:hover {
+  color: #000;
+}
+
+.style-guide .tab[aria-current="page"] {
+  font-weight: 500;
+  color: #000;
+  box-shadow: inset 0 -2px #000;
+}
+
+.style-guide .controls {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.style-guide .grid-toggle {
+  gap: 0.375rem;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.style-guide .grid-toggle kbd {
+  padding: 0 0.25rem;
+  font-size: 0.625rem;
+  color: #888;
+  border: 1px solid #ddd;
+}
+
+.style-guide .grid-toggle[aria-pressed="true"] kbd {
+  color: inherit;
+}
+
+.style-guide .layout {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+}
+
+/* Same top padding as the content, so the first label and first frame line up. */
+.style-guide .sidebar {
+  position: sticky;
+  top: var(--bar-height);
+  padding: 2.5rem 0.5rem;
+  height: calc(100svh - var(--bar-height));
+  box-sizing: border-box;
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+  align-self: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-right: 1px solid #e5e5e5;
+}
+
+.style-guide .nav-group {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.style-guide .nav-group .nav-title {
+  padding: 0 0.5rem;
+}
+
+.style-guide .links {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  list-style: none;
+}
+
+.style-guide .links a {
+  padding: 0.25rem 0.5rem;
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #666;
+}
+
+.style-guide .links a:hover {
+  color: #000;
+  background-color: #f2f2f2;
+}
+
+.style-guide .links a[aria-current] {
+  font-weight: 500;
+  color: #000;
+  box-shadow: inset 2px 0 #000;
+}
+
+/* Labels stay small and quiet: the frames are the content. */
+.style-guide .nav-title {
+  margin: 0;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.style-guide .nav-title[aria-current] {
+  color: #000;
+}
+
+.style-guide .content {
+  padding: 1.5rem 1rem 2.5rem 2.5rem;
+  min-width: 0;
+  display: grid;
+  gap: 4rem;
+}
+
+.style-guide .group {
+  display: grid;
+  gap: 2rem;
+}
+
+/* Sticks under the bar while its frames scroll by, so you always know which group you're in. */
+.style-guide .group-head {
+  position: sticky;
+  top: var(--bar-height);
+  z-index: 5;
+  padding: 1rem 0 0.75rem;
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.style-guide .group-title {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.style-guide .group-count {
+  font-size: 0.6875rem;
+  color: #888;
+}
+
+.style-guide .preview {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.style-guide .head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.style-guide .title {
+  margin: 0;
+  font-size: 0.5625rem;
+  font-weight: 500;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.style-guide .title a:hover,
+.style-guide .open:hover {
+  text-decoration: underline 1px;
+  text-underline-offset: 0.15em;
+}
+
+.style-guide .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+/* Quieter than the bar's controls: these change one frame. */
+.style-guide .actions .segments {
+  height: 1.5rem;
+}
+
+.style-guide .actions .segments button {
+  padding-block: 0;
+  font-size: 0.6875rem;
+}
+
+.style-guide .size {
+  font-variant-numeric: tabular-nums;
+  color: #666;
+}
+
+.style-guide .stage {
+  min-width: 0;
+}
+
+/* Holds the scaled frame's footprint: `scale` doesn't change layout size. */
+.style-guide .device {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  outline: 1px solid #ccc;
+}
+
+.style-guide iframe {
+  display: block;
+  border: 0;
+  transform-origin: 0 0;
+}
+
+.style-guide .handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0;
+  width: 0.75rem;
+  touch-action: none;
+  cursor: ew-resize;
+  background-color: rgb(0 0 0 / 10%);
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+.style-guide .device:hover .handle,
+.style-guide .handle:focus-visible {
+  opacity: 1;
+}
+
+@media (max-width: 48rem) {
+  .style-guide .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .style-guide .sidebar {
+    display: none;
+  }
+
+  .style-guide .content {
+    padding-left: 1rem;
+  }
+}

@@ -6,7 +6,8 @@ export const analyticsSettings = defineType({
   name: "analyticsSettings",
   title: "Analytics",
   icon: BarChartIcon,
-  description: "Loaded only after a visitor accepts cookies.",
+  description:
+    "Loaded once a visitor accepts cookies, or straight away where no consent is required.",
   fields: [
     defineField({
       type: "string",

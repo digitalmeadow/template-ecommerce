@@ -1,9 +1,9 @@
 ---
 import type { ProductFilter } from "shopify/generated/graphql";
-import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
 import type { ProductBrowserResults, ProductBrowserSource } from "@lib/fetches/productBrowser";
 import { COLLECTION_SORT_OPTIONS, filterToParam, SEARCH_SORT_OPTIONS } from "@lib/shopify/filters";
 import { getRenderLocale } from "@lib/shopify/locale";
+import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
 
 interface Props {
   source: ProductBrowserSource;
@@ -128,7 +128,7 @@ if (results.endCursor) nextParams.set("after", results.endCursor);
       </p>
     )}
     {results.products.length ? (
-      <ProductThumbnailsGrid productsData={results.products} />
+      <ProductThumbnailsGrid products={results.products} />
     ) : (
       <p class="empty">
         {source.type === "search" && !source.query ? "Enter a search term." : "No products found."}
@@ -143,8 +143,8 @@ if (results.endCursor) nextParams.set("after", results.endCursor);
 </product-browser>
 
 <script>
-  import { hasBrowseParams } from "@lib/shopify/filters";
   import { trackCollectionView, trackSearch, type AnalyticsListItem } from "@lib/analytics/track";
+  import { hasBrowseParams } from "@lib/shopify/filters";
 
   const PARTIAL_PATH = "/partials/product-browser";
 
@@ -288,8 +288,8 @@ if (results.endCursor) nextParams.set("after", results.endCursor);
   .controls {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
     gap: var(--size-6);
+    align-items: flex-start;
   }
 
   .price-range {
@@ -320,7 +320,7 @@ if (results.endCursor) nextParams.set("after", results.endCursor);
   }
 
   .load-more {
-    display: inline-block;
     margin-top: var(--size-10);
+    display: inline-block;
   }
 </style>

@@ -1,27 +1,54 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import type { FormConsentDefinition, FormGroupDefinition } from "@/lib/forms/types";
-import { FORM_ENDPOINT } from "@/config";
-import { HONEYPOT_FIELD_NAME } from "@/lib/forms/constants";
-import { formFields } from "@/lib/forms/fields";
-import { validateSubmission, validateTotalUploadSize } from "@/lib/forms/schema";
-import { cn } from "@/lib/utils";
+import type { FormConsentFragment, FormFieldFragment } from "sanity-nextjs/generated/graphql";
+import ButtonSubmit from "@/blocks/ButtonSubmit";
 import FormField from "@/fields/FormField";
 import FormTerm from "@/fields/FormTerm";
-import ButtonSubmit from "@/blocks/ButtonSubmit";
+import { FORM_ENDPOINT, FORM_ID_FIELD_NAME, HONEYPOT_FIELD_NAME } from "@/lib/forms/constants";
+import type { FormSubmissionResponse } from "@/lib/forms/types";
+import { cn } from "@/lib/utils";
 
 interface Props {
   formId: string;
-  groups: FormGroupDefinition[];
-  terms: (FormConsentDefinition & { statement: ReactNode })[];
+  groups: { heading?: string | null; fields: FormFieldFragment[] }[];
+  terms: { term: FormConsentFragment; statement: ReactNode }[];
   submitLabel: string;
   successMessage: ReactNode;
-  groupHeadingTag?: "h2" | "h3";
-  className?: string;
+  groupHeadingTag: "h2" | "h3";
 }
 
 type Status = "submitting" | "success" | "error" | null;
+
+type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+const FAILURE_MESSAGE = "Something went wrong. Please try again.";
+
+// `required` on a checkbox only requires that one box, so groups check here.
+function requiredGroupErrors(form: HTMLFormElement): Record<string, string> {
+  const errors: Record<string, string> = {};
+  form.querySelectorAll<HTMLElement>("[data-required-group]").forEach((group) => {
+    if (group.querySelector("input:checked")) return;
+    errors[group.dataset.groupName ?? ""] = `${group.dataset.groupLabel} is required.`;
+  });
+  return errors;
+}
+
+// Native constraint messages, shown inline under each field instead of browser bubbles.
+function controlErrors(form: HTMLFormElement): Record<string, string> {
+  const errors: Record<string, string> = {};
+  form.querySelectorAll<Control>("input, select, textarea").forEach((control) => {
+    if (control.validity.valid) return;
+    errors[control.name] ??= control.validationMessage;
+  });
+  return errors;
+}
+
+// Without this a failed submit leaves focus on the button and the errors go unnoticed.
+function focusFirstError(form: HTMLFormElement, errors: Record<string, string>) {
+  const controls = Array.from(form.querySelectorAll<Control>("input, select, textarea"));
+  controls.find((control) => errors[control.name])?.focus();
+}
 
 export default function FormClient({
   formId,
@@ -29,28 +56,25 @@ export default function FormClient({
   terms,
   submitLabel,
   successMessage,
-  groupHeadingTag: GroupHeading = "h2",
-  className,
+  groupHeadingTag: GroupHeading,
 }: Props) {
-  const fields = formFields({ groups, terms });
   const [status, setStatus] = useState<Status>(null);
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Every control starts empty, so only a form without required fields starts ready.
-  const [ready, setReady] = useState(() => !fields.some((field) => field.required));
+  const [isReady, setIsReady] = useState(
+    () =>
+      !groups.some((group) => group.fields.some((field) => field.required)) &&
+      !terms.some(({ term }) => term.required),
+  );
 
   const lastGroupIndex = groups.length - 1;
 
+  // Matches `:invalid` rather than checkValidity(), which fires events while typing.
   function updateReady(form: HTMLFormElement) {
-    const pending = validateSubmission(fields, new FormData(form));
-    setReady(Object.keys(pending).length === 0);
-  }
-
-  // Without this a failed submit leaves focus on the button and the errors go unnoticed.
-  function focusFirstError(form: HTMLFormElement, fieldErrors: Record<string, string>) {
-    const name = fields.find((field) => fieldErrors[field.name])?.name;
-    if (!name) return;
-    form.querySelector<HTMLElement>(`[name="${CSS.escape(name)}"]`)?.focus();
+    setIsReady(
+      !form.querySelector(":invalid") && Object.keys(requiredGroupErrors(form)).length === 0,
+    );
   }
 
   function fail(text: string) {
@@ -63,68 +87,45 @@ export default function FormClient({
     if (status === "submitting") return;
 
     const form = event.currentTarget;
-    const body = new FormData(form);
-    const fieldErrors = validateSubmission(fields, body);
-    setErrors(fieldErrors);
-
-    if (Object.keys(fieldErrors).length > 0) {
-      setStatus(null);
-      setMessage("");
-      focusFirstError(form, fieldErrors);
+    // Both run so every problem shows at once, not one category per submit.
+    const clientErrors = { ...requiredGroupErrors(form), ...controlErrors(form) };
+    setErrors(clientErrors);
+    if (Object.keys(clientErrors).length > 0) {
+      focusFirstError(form, clientErrors);
       return;
     }
 
-    const uploadError = validateTotalUploadSize(fields, body);
-    if (uploadError) return fail(uploadError);
-
-    // Bots that fill the honeypot get a silent success.
-    if (body.get(HONEYPOT_FIELD_NAME)) {
-      setStatus("success");
-      return;
-    }
-
-    if (!FORM_ENDPOINT) {
-      console.warn("FORM_ENDPOINT is not set; form submission skipped.");
-      return fail("This form is not accepting submissions right now.");
-    }
-
-    body.append("formId", formId);
     setStatus("submitting");
     setMessage("");
 
+    const body = new FormData(form);
+    body.append(FORM_ID_FIELD_NAME, formId);
+
     try {
       const response = await fetch(FORM_ENDPOINT, { method: "POST", body });
+      const result = (await response.json().catch(() => ({}))) as FormSubmissionResponse;
 
-      if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as {
-          message?: string;
-          errors?: Record<string, string>;
-        } | null;
-
-        if (result?.errors) {
+      if (!response.ok || result.ok === false) {
+        if (result.errors) {
           setErrors(result.errors);
           focusFirstError(form, result.errors);
         }
-        return fail(result?.message ?? "Please check the highlighted fields.");
+        return fail(result.message ?? FAILURE_MESSAGE);
       }
 
+      // Locked for the rest of this page view; the values stay visible behind it.
       setStatus("success");
     } catch {
-      fail("Something went wrong. Please try again.");
+      fail(FAILURE_MESSAGE);
     }
   }
 
   return (
-    <div
-      className={cn("form flex flex-col gap-y-[var(--s20)]", className)}
-      data-form-id={formId}
-      data-state={status ?? undefined}
-    >
-      {/* Locked once submitted; the values stay visible behind it. */}
+    <div className="form flex flex-col gap-y-5" data-state={status ?? undefined}>
       <form
         className={cn(
-          "groups flex flex-col gap-y-[var(--s40)] transition-opacity duration-[var(--transition-default-duration)]",
-          status === "success" && "pointer-events-none opacity-50",
+          "groups flex flex-col gap-y-10 transition-opacity duration-(--duration-default) ease-out",
+          status === "success" && "pointer-events-none opacity-(--opacity-disabled)",
         )}
         noValidate
         inert={status === "success"}
@@ -135,29 +136,27 @@ export default function FormClient({
         {groups.map((group, index) => (
           <div className="group" key={index}>
             {group.heading && (
-              <GroupHeading className="mb-[var(--s16)]">{group.heading}</GroupHeading>
+              <GroupHeading className="g-heading-6 mb-4">{group.heading}</GroupHeading>
             )}
 
-            {/* Rows sit flush; each field draws its own top border, forming the dividers. */}
-            <div className="grid grid-cols-2 gap-x-[var(--gutter)] max-[64rem]:grid-cols-1">
+            <div className="grid grid-cols-2 gap-x-(--gutter) gap-y-6 mobile:grid-cols-1 [&>[data-width=full]]:col-span-full mobile:[&>[data-width=half]]:col-span-full">
               {group.fields.map((field) => (
                 <FormField
                   key={field.name}
                   field={field}
                   prefix={formId}
-                  error={errors[field.name]}
+                  error={errors[field.name ?? ""]}
                 />
               ))}
 
               {index === lastGroupIndex && (
-                // Beside a trailing half field, on its own row after a full one.
-                <div className="flex flex-col gap-y-[var(--s20)] max-[64rem]:col-span-full [[data-width=full]+&]:col-span-full">
+                // Follows the trailing field: beside a half one, on its own row after a full one.
+                <div className="self-end mobile:col-span-full [[data-width=full]+&]:col-span-full">
                   <ButtonSubmit
                     label={submitLabel}
-                    variant="filled"
-                    state={status}
+                    state={status === "error" ? null : status}
                     mutedUntilReady
-                    ready={ready}
+                    isReady={isReady}
                   />
                 </div>
               )}
@@ -166,20 +165,20 @@ export default function FormClient({
         ))}
 
         {terms.length > 0 && (
-          <div className="flex flex-col gap-y-[var(--s12)]">
-            {terms.map(({ statement, ...term }) => (
+          <div className="flex flex-col gap-y-3">
+            {terms.map(({ term, statement }) => (
               <FormTerm
                 key={term.name}
                 term={term}
                 statement={statement}
                 prefix={formId}
-                error={errors[term.name]}
+                error={errors[term.name ?? ""]}
               />
             ))}
           </div>
         )}
 
-        <div className="visually-hidden" aria-hidden="true">
+        <div className="g-sr-only" aria-hidden="true">
           <label htmlFor={`${HONEYPOT_FIELD_NAME}-${formId}`}>Leave this field empty</label>
           <input
             id={`${HONEYPOT_FIELD_NAME}-${formId}`}
@@ -191,9 +190,9 @@ export default function FormClient({
         </div>
       </form>
 
-      <div className="min-h-[1em]" aria-live="polite">
-        {status === "error" && <p className="text-accent">{message}</p>}
-        {status === "success" && successMessage}
+      <div className="min-h-lh" aria-live="polite">
+        <p className={cn(status === "error" && "text-error")}>{message}</p>
+        <div hidden={status !== "success"}>{successMessage}</div>
       </div>
     </div>
   );

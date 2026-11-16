@@ -3,17 +3,16 @@ import type { MuxVideoFragment } from "sanity/generated/graphql";
 import { fetchMuxBlurUp } from "@lib/video";
 
 interface Props {
-  videoData: MuxVideoFragment | null | undefined;
+  video: MuxVideoFragment | null | undefined;
   layout?: "width" | "height" | "cover" | "contain";
   loading?: "lazy" | "eager";
-  mediaId?: string | null;
 }
 
-const { videoData, layout = "width", loading = "lazy", mediaId }: Props = Astro.props;
+const { video, layout = "width", loading = "lazy" }: Props = Astro.props;
 
-const aspectRatio = videoData?.asset?.data?.aspect_ratio?.replace(":", "/");
-const playbackId = videoData?.asset?.playbackId;
-const posterURL = playbackId
+const aspectRatio = video?.asset?.data?.aspect_ratio?.replace(":", "/");
+const playbackId = video?.asset?.playbackId;
+const posterUrl = playbackId
   ? `https://image.mux.com/${playbackId}/thumbnail.jpg?fit_mode=crop&time=0`
   : undefined;
 const placeholderSrc = playbackId ? (await fetchMuxBlurUp(playbackId)).imageDataURL : undefined;
@@ -31,14 +30,13 @@ const placeholderSrc = playbackId ? (await fetchMuxBlurUp(playbackId)).imageData
 
   <mux-player
     class="video"
-    data-media-id={mediaId}
     playback-id={playbackId}
     layout={layout}
     loading={loading}
-    poster={posterURL}
+    poster={posterUrl}
     autoplay="muted"
     loop
-    title={videoData?.asset?.filename}
+    title={video?.asset?.filename}
     min_resolution="720p"
     oncanplay="this.dataset.loaded = ''"
   ></mux-player>
@@ -53,7 +51,7 @@ const placeholderSrc = playbackId ? (await fetchMuxBlurUp(playbackId)).imageData
     transition: opacity var(--transition-media);
   }
 
-  mux-player[data-loaded]:not([data-loaded="false"]) {
+  mux-player[data-loaded] {
     opacity: var(--media-opacity, 1);
   }
 
@@ -67,9 +65,7 @@ const placeholderSrc = playbackId ? (await fetchMuxBlurUp(playbackId)).imageData
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    object-fit: cover;
   }
 
   .layout-width {
@@ -87,8 +83,8 @@ const placeholderSrc = playbackId ? (await fetchMuxBlurUp(playbackId)).imageData
     width: auto;
     min-width: 100%;
     min-height: 100%;
-    transform: translateX(-50%) translateY(-50%);
     object-fit: cover;
+    transform: translateX(-50%) translateY(-50%);
   }
 
   .layout-contain {

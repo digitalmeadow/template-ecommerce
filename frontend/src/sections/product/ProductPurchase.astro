@@ -1,25 +1,25 @@
 ---
-import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
-import ProductAddToCart from "@sections/product/ProductAddToCart.astro";
-import ProductVariantSelector from "@sections/product/ProductVariantSelector.astro";
-import ProductPrice from "@sections/product/ProductPrice.astro";
 import QuantitySelector from "@blocks/QuantitySelector.astro";
 import FontSizeFillWidth from "@layouts/FontSizeFillWidth.astro";
+import type { ProductShopifySanity } from "@lib/fetches/productShopifySanity";
 import { getRenderLocale } from "@lib/shopify/locale";
 import { getInitialVariant } from "@lib/shopify/variants";
+import ProductAddToCart from "@sections/product/ProductAddToCart.astro";
+import ProductPrice from "@sections/product/ProductPrice.astro";
+import ProductVariantSelector from "@sections/product/ProductVariantSelector.astro";
 
 interface Props {
-  productData: ProductShopifySanity;
+  product: ProductShopifySanity;
 }
 
-const { productData }: Props = Astro.props;
-const { shopify } = productData;
+const { product }: Props = Astro.props;
+const { shopify } = product;
 const initialVariant = getInitialVariant(shopify.variants.nodes);
 ---
 
 <div class="product-purchase">
   <FontSizeFillWidth>
-    <h1>{productData.shopify?.title}</h1>
+    <h1>{shopify.title}</h1>
   </FontSizeFillWidth>
   <ProductPrice
     priceRange={shopify.priceRange}
@@ -31,7 +31,7 @@ const initialVariant = getInitialVariant(shopify.variants.nodes);
     <input type="hidden" name="locale" value={getRenderLocale(Astro).path} />
 
     <div class="variant-selector">
-      <ProductVariantSelector productData={productData} />
+      <ProductVariantSelector product={product} />
     </div>
 
     <div class="purchase">
@@ -64,7 +64,7 @@ const initialVariant = getInitialVariant(shopify.variants.nodes);
 
   .purchase {
     display: flex;
-    align-items: center;
     gap: var(--size-6);
+    align-items: center;
   }
 </style>

@@ -1,44 +1,6 @@
-export type FormFieldType =
-  | "text"
-  | "email"
-  | "tel"
-  | "textarea"
-  | "select"
-  | "checkboxGroup"
-  | "radioGroup"
-  | "consent"
-  | "file"
-  | "files";
-
-export const FILE_TYPES = new Set<string>(["file", "files"]);
-
-export interface FormFieldDefinition {
-  name: string;
-  label: string;
-  type: FormFieldType;
-  placeholder?: string | null;
-  options?: string[] | null;
-  required?: boolean | null;
-  width?: "full" | "half" | null;
+// Optional JSON body an endpoint can return; `errors` is keyed by field name.
+export interface FormSubmissionResponse {
+  ok?: boolean;
+  message?: string;
+  errors?: Record<string, string>;
 }
-
-export interface FormGroupDefinition {
-  heading?: string | null;
-  fields: FormFieldDefinition[];
-}
-
-export interface FormConsentDefinition {
-  name: string;
-  label: string;
-  required?: boolean | null;
-  statementRaw?: unknown;
-}
-
-export interface FormDefinition {
-  groups: FormGroupDefinition[];
-  terms?: FormConsentDefinition[] | null;
-}
-
-export const TERMS_GROUP = "Terms";
-
-export type GroupedFormField = FormFieldDefinition & { group?: string };

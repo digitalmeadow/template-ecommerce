@@ -1,0 +1,138 @@
+.g-form-field {
+  display: grid;
+  gap: var(--size-2-5);
+  align-content: start;
+}
+
+/* A legend sits outside the fieldset's grid, so it needs the gap as a margin. */
+.g-form-field > legend {
+  margin-bottom: var(--size-2-5);
+}
+
+.g-form-field input:not([type="checkbox"], [type="radio"]),
+.g-form-field select,
+.g-form-field textarea {
+  padding: 0 var(--size-2-5);
+  width: 100%;
+  min-width: 0;
+  min-height: 2.5rem;
+  color: inherit;
+  background-color: var(--color-surface);
+  border-bottom: var(--border-width-1) solid var(--color-text);
+  transition: background-color var(--transition-default);
+}
+
+.g-form-field textarea {
+  padding: var(--size-2-5);
+  min-height: 8rem;
+  line-height: var(--line-height-body);
+  resize: vertical;
+}
+
+.g-form-field :is(input, select, textarea):hover {
+  background-color: var(--color-surface-strong);
+}
+
+.g-form-field :is(input, textarea)::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.g-form-field [aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+/* A select can't hold a pseudo-element, so its wrapper stacks the chevron over it. */
+.g-select {
+  --select-inset: 0rem;
+  display: grid;
+  align-items: center;
+}
+
+/* Matches the boxed field's own padding; a bare select's chevron sits flush. */
+.g-form-field .g-select {
+  --select-inset: var(--size-2-5);
+}
+
+.g-select > select,
+.g-select::after {
+  grid-area: 1 / 1;
+}
+
+.g-select > select {
+  padding-right: calc(var(--select-inset) + 0.75rem + var(--size-2-5));
+  cursor: pointer;
+}
+
+.g-select::after {
+  margin-right: var(--select-inset);
+  width: 0.75rem;
+  height: 0.75rem;
+  justify-self: end;
+  pointer-events: none;
+  content: "";
+  background-color: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5'%3E%3Cpath d='m3 6 5 5 5-5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.g-form-choice {
+  display: flex;
+  gap: var(--size-2-5);
+  align-items: start;
+  line-height: var(--line-height-body);
+}
+
+/* Drawn from tokens, not native, so they match Figma in every scheme and browser. */
+.g-form-choice input:is([type="checkbox"], [type="radio"]) {
+  margin: 0;
+  width: 1rem;
+  height: 1rem;
+  display: grid;
+  flex-shrink: 0;
+  place-content: center;
+  appearance: none;
+  cursor: pointer;
+  background-color: var(--color-background);
+  border: var(--border-width-1) solid var(--color-text-subtle);
+  translate: 0 0.15em;
+}
+
+.g-form-choice input[type="checkbox"] {
+  border-radius: var(--size-0-5);
+}
+
+.g-form-choice input[type="checkbox"]:checked {
+  background-color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.g-form-choice input[type="checkbox"]:checked::before {
+  width: 0.75rem;
+  height: 0.75rem;
+  content: "";
+  background-color: var(--color-inverse-text);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5'%3E%3Cpath d='m2.5 8.5 3.5 3.5 7.5-8'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.g-form-choice input[type="radio"] {
+  border-radius: 50%;
+}
+
+.g-form-choice input[type="radio"]:checked {
+  border: 0.28125rem solid var(--color-text);
+}
+
+.g-form-choice:has(:disabled) {
+  pointer-events: none;
+  opacity: var(--opacity-disabled);
+}
+
+/* The choice is dimmed as a whole, not twice. */
+.g-form-choice :disabled {
+  opacity: 1;
+}
+
+.g-form-error {
+  color: var(--color-error);
+}

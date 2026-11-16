@@ -712,9 +712,9 @@ const { part }: Props = Astro.props;
 
 <style>
   .block {
+    padding-block: var(--size-10) var(--size-20);
     display: grid;
     gap: var(--size-5);
-    padding-block: var(--size-10) var(--size-20);
   }
 
   .subtitle {
@@ -736,11 +736,11 @@ const { part }: Props = Astro.props;
   }
 
   .row {
+    padding-block: var(--size-2-5);
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-    align-items: center;
     gap: var(--gutter);
-    padding-block: var(--size-2-5);
+    align-items: center;
     border-bottom: var(--border-width-1) solid var(--color-rule);
   }
 
@@ -761,8 +761,8 @@ const { part }: Props = Astro.props;
   }
 
   .cell {
-    min-height: var(--size-10);
     padding: var(--size-2-5);
+    min-height: var(--size-10);
     font-size: var(--font-size-tiny);
     line-height: var(--line-height-body);
   }
@@ -779,8 +779,8 @@ const { part }: Props = Astro.props;
   }
 
   .subgrid {
-    align-items: center;
     padding-block: var(--size-2-5);
+    align-items: center;
   }
 
   .child {

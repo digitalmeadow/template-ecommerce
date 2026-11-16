@@ -10,7 +10,7 @@ export function splitIntoWords(container: HTMLElement): HTMLElement[] {
   const words: HTMLElement[] = [];
   for (const textNode of textNodes) {
     const fragment = document.createDocumentFragment();
-    const parts = (textNode.textContent ?? "").split(/(\s+)/).filter(Boolean);
+    const parts = textNode.textContent!.split(/(\s+)/).filter(Boolean);
     for (const part of parts) {
       if (/^\s+$/.test(part)) {
         fragment.append(part);

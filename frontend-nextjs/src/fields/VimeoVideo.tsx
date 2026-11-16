@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Player from "@vimeo/player";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -11,7 +11,6 @@ interface Props {
   title?: string;
   layout?: "width" | "height" | "cover" | "contain";
   loading?: "lazy" | "eager";
-  mediaId?: string | null;
 }
 
 const EMBED_PARAMS = {
@@ -25,21 +24,21 @@ const EMBED_PARAMS = {
   autopause: "0",
 };
 
-// width/height size the box from the ratio; cover/contain fill the parent and size the frame with container units.
-const containerClasses: Record<string, string> = {
-  width: "relative w-full aspect-[var(--video-ratio)]",
-  height: "relative h-full aspect-[var(--video-ratio)]",
-  cover: "absolute inset-[0] [container-type:size]",
-  contain: "relative h-full w-full [container-type:size]",
+const LAYOUT_CLASSES = {
+  width: "w-full aspect-(--ratio)",
+  height: "h-full aspect-(--ratio)",
+  cover: "h-full w-full [container-type:size]",
+  contain: "h-full w-full [container-type:size]",
 };
 
-const frameClasses: Record<string, string> = {
-  width: "h-full w-full",
-  height: "h-full w-full",
+// Emulates object-fit on the iframe; absolute + translate because overflowing grid items anchor start.
+const FRAME_CLASSES = {
+  width: "",
+  height: "",
   cover:
-    "h-[max(100cqh,calc(100cqw/var(--video-ratio)))] w-[max(100cqw,calc(100cqh*var(--video-ratio)))]",
+    "absolute top-1/2 left-1/2 -translate-1/2 h-[max(100cqh,calc(100cqw/var(--ratio)))] w-[max(100cqw,calc(100cqh*var(--ratio)))]",
   contain:
-    "h-[min(100cqh,calc(100cqw/var(--video-ratio)))] w-[min(100cqw,calc(100cqh*var(--video-ratio)))]",
+    "absolute top-1/2 left-1/2 -translate-1/2 h-[min(100cqh,calc(100cqw/var(--ratio)))] w-[min(100cqw,calc(100cqh*var(--ratio)))]",
 };
 
 function embedUrl(url: string) {
@@ -57,16 +56,15 @@ export default function VimeoVideo({
   title,
   layout = "width",
   loading = "lazy",
-  mediaId,
 }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (!iframeRef.current) return;
 
     const player = new Player(iframeRef.current);
-    const reveal = () => setLoaded(true);
+    const reveal = () => setIsLoaded(true);
     player.on("play", reveal);
     player
       .getPaused()
@@ -82,41 +80,40 @@ export default function VimeoVideo({
 
   return (
     <div
-      className={cn("vimeo-video overflow-hidden", containerClasses[layout])}
-      style={{ "--video-ratio": aspectRatio } as CSSProperties}
-      data-media-id={mediaId ?? undefined}
+      className={cn(
+        "vimeo-video relative grid overflow-hidden *:min-h-0 *:min-w-0 *:[grid-area:1/1]",
+        LAYOUT_CLASSES[layout],
+      )}
+      // The player letterboxes inside its iframe, so cropping needs the source ratio.
+      style={{ "--ratio": aspectRatio } as CSSProperties}
     >
-      <div
-        className={cn(
-          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-          frameClasses[layout],
-        )}
-      >
-        {thumbnailUrl && (
-          <img
-            className={cn(
-              "placeholder pointer-events-none absolute inset-[0] h-full w-full object-cover blur-[100px] transition-opacity duration-[var(--transition-media-load-duration)]",
-              loaded && "opacity-0",
-            )}
-            src={thumbnailUrl}
-            alt=""
-            aria-hidden="true"
-          />
-        )}
-        {/* Decorative player: clicks and hover belong to the parent. */}
-        <iframe
-          ref={iframeRef}
+      {thumbnailUrl && (
+        <img
           className={cn(
-            "pointer-events-none absolute inset-[0] h-full w-full border-0 opacity-0 transition-opacity duration-[var(--transition-media-load-duration)]",
-            loaded && "opacity-100",
+            "placeholder pointer-events-none h-full w-full object-cover blur-[100px] transition-opacity duration-(--duration-media) ease-out",
+            isLoaded && "opacity-0",
           )}
-          src={embedUrl(url)}
-          title={title || "Video"}
-          loading={loading}
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
+          src={thumbnailUrl}
+          alt=""
+          loading="eager"
+          aria-hidden="true"
         />
-      </div>
+      )}
+      {/* Decorative player: clicks and hover belong to the parent. */}
+      <iframe
+        ref={iframeRef}
+        className={cn(
+          "video pointer-events-none h-full w-full border-0 opacity-0 transition-opacity duration-(--duration-media) ease-out",
+          FRAME_CLASSES[layout],
+          isLoaded && "opacity-(--media-opacity,1)",
+        )}
+        src={embedUrl(url)}
+        title={title || "Video"}
+        loading={loading}
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+        data-loaded={isLoaded ? "" : undefined}
+      />
     </div>
   );
 }

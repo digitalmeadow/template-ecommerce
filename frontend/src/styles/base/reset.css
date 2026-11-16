@@ -24,26 +24,26 @@ picture,
 video,
 canvas,
 svg {
-  display: block;
   max-width: 100%;
+  display: block;
 }
 
 input,
 button,
 textarea,
 select {
-  min-width: 0;
   padding: 0;
+  min-width: 0;
   font: inherit;
-  background-color: transparent;
   color: inherit;
+  background-color: transparent;
   border-width: 0;
 }
 
 a,
 button {
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -54,8 +54,8 @@ h3,
 h4,
 h5,
 h6 {
-  overflow-wrap: break-word;
   font-weight: inherit;
+  overflow-wrap: break-word;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -68,8 +68,8 @@ select {
 }
 
 fieldset {
-  min-width: 0;
   padding: 0;
+  min-width: 0;
   border: 0;
 }
 

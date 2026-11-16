@@ -1,6 +1,6 @@
 import ChevronDownIcon from "@sanity/icons/ChevronDown";
-import EnvelopeIcon from "@sanity/icons/Envelope";
 import ComposeIcon from "@sanity/icons/Compose";
+import EnvelopeIcon from "@sanity/icons/Envelope";
 import ProjectsIcon from "@sanity/icons/Projects";
 import { StructureBuilder } from "sanity/structure";
 

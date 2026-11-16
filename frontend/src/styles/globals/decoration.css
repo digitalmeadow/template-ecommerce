@@ -9,8 +9,8 @@
   left: calc(-1 * var(--gutter) / 2 - var(--marker-size) / 2);
   width: var(--marker-size);
   height: var(--marker-size);
-  background-color: var(--color-accent);
   content: "";
+  background-color: var(--color-accent);
 }
 
 /* Media loading and missing state. */

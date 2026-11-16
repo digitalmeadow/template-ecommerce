@@ -1,14 +1,14 @@
 ---
-export const prerender = false;
-export const partial = true;
-
-import ProductBrowser from "@sections/product/ProductBrowser.astro";
-import { fetchProductBrowserResults, type ProductBrowserSource } from "@lib/fetches/productBrowser";
-import { loadBuildJson } from "@lib/buildAssets";
 import type { ProductThumbnailFragment } from "sanity/generated/graphql";
-import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
+import { loadBuildJson } from "@lib/buildAssets";
+import { fetchProductBrowserResults, type ProductBrowserSource } from "@lib/fetches/productBrowser";
 import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
 import { getLocale } from "@lib/shopify/locale";
+import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
+import ProductBrowser from "@sections/product/ProductBrowser.astro";
+
+export const prerender = false;
+export const partial = true;
 
 // A collection (`?handle=`) or search (`?q=`) page filtered by the URL's Liquid parameters, for
 // ProductBrowser to swap in. Never calls Sanity: thumbnails come from the build's JSON.

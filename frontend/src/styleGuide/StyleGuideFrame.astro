@@ -4,10 +4,10 @@
 import "@styles/index.css";
 import { ClientRouter } from "astro:transitions";
 import Grid from "@dev/Grid.astro";
+import { getHtmlLang, getRenderLocale } from "@lib/shopify/locale";
 import ScriptAnimations from "@scripts/ScriptAnimations.astro";
 import ScriptMeasurements from "@scripts/ScriptMeasurements.astro";
 import SectionsRenderer from "@sections/SectionsRenderer.astro";
-import { getHtmlLang, getRenderLocale } from "@lib/shopify/locale";
 import { findEntry } from "./entries";
 import { isScheme } from "./entry";
 

@@ -2,16 +2,16 @@
 import SanityMedia from "@fields/SanityMedia.astro";
 import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
 import { resolveSanityHref } from "@lib/sanity/resolve";
-import { localizeHref, getRenderLocale } from "@lib/shopify/locale";
+import { getRenderLocale, localizeHref } from "@lib/shopify/locale";
 import ProductPrice from "./ProductPrice.astro";
 
 interface Props {
-  productData: ProductThumbnailShopifySanity;
+  product: ProductThumbnailShopifySanity;
 }
 
-const { productData }: Props = Astro.props;
+const { product }: Props = Astro.props;
 
-const handle = productData.sanity.shopify?.handle?.current ?? productData.shopify.handle;
+const handle = product.sanity.shopify?.handle?.current ?? product.shopify.handle;
 ---
 
 <a href={localizeHref(resolveSanityHref("product", handle), getRenderLocale(Astro))}>
@@ -19,20 +19,20 @@ const handle = productData.sanity.shopify?.handle?.current ?? productData.shopif
     class="product-thumbnail"
     data-product-root
     data-analytics-item={JSON.stringify({
-      id: productData.shopify.id,
-      title: productData.shopify.title,
-      price: productData.shopify.priceRange.minVariantPrice.amount,
-      currencyCode: productData.shopify.priceRange.minVariantPrice.currencyCode,
+      id: product.shopify.id,
+      title: product.shopify.title,
+      price: product.shopify.priceRange.minVariantPrice.amount,
+      currencyCode: product.shopify.priceRange.minVariantPrice.currencyCode,
     })}
   >
     <div class="media">
-      <SanityMedia mediaData={productData.sanity.mediaThumbnail} layout="cover" />
+      <SanityMedia media={product.sanity.mediaThumbnail} layout="cover" />
     </div>
-    <h3 class="title g-heading-6">{productData.shopify?.title}</h3>
+    <h3 class="title g-heading-6">{product.shopify.title}</h3>
     <div class="price">
       <ProductPrice
-        priceRange={productData.shopify.priceRange}
-        compareAtPriceRange={productData.shopify.compareAtPriceRange}
+        priceRange={product.shopify.priceRange}
+        compareAtPriceRange={product.shopify.compareAtPriceRange}
       />
     </div>
   </article>
@@ -46,11 +46,9 @@ const handle = productData.sanity.shopify?.handle?.current ?? productData.shopif
   .product-thumbnail {
     width: 100%;
     height: 100%;
-
     display: grid;
-    grid-template-columns: 100%;
     grid-template-rows: 1fr auto auto;
-
+    grid-template-columns: 100%;
     transition: filter var(--transition-default);
   }
 

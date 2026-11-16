@@ -1,7 +1,7 @@
 import { DocumentActionComponent, DocumentActionsContext } from "sanity";
-import { ActionShopify } from "./actions/ActionShopify";
 import { SINGLETON_DOCUMENT_TYPES, UNPREVIEWABLE_DOCUMENT_TYPES } from "../config";
 import { ActionPreview } from "./actions/ActionPreview";
+import { ActionShopify } from "./actions/ActionShopify";
 
 export function resolveDocumentActions(
   previous: DocumentActionComponent[],

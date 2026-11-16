@@ -1,36 +1,27 @@
-"use client";
+import LocaleSelectorClient from "@/blocks/LocaleSelectorClient";
+import { LOCALE_LIST } from "@/lib/shopify/locale";
+import { getLocalization } from "@/lib/shopify/localization";
+import { getRenderLocale } from "@/lib/shopify/renderLocale";
 
-import type { ChangeEvent } from "react";
-import { isValidLocale, type LocaleCode } from "@/lib/shopify/locale";
-import { getStoredLocale, setStoredLocale } from "@/lib/shopify/locale.client";
-import { useBrowserValue } from "@/lib/useBrowserValue";
+export default async function LocaleSelector() {
+  const [currentLocale, { availableCountries }] = await Promise.all([
+    getRenderLocale(),
+    getLocalization(),
+  ]);
 
-interface Props {
-  localeOptions: { locale: LocaleCode; label: string }[];
-}
+  // Only markets Shopify serves; the currency label is Shopify's, never configured.
+  const localeOptions = LOCALE_LIST.flatMap((locale) => {
+    const country = availableCountries.find((available) => available.isoCode === locale.country);
+    return country
+      ? [{ path: locale.path, label: `${locale.label} (${country.currency.isoCode})` }]
+      : [];
+  });
 
-export default function LocaleSelector({ localeOptions }: Props) {
-  const currentLocale = useBrowserValue<LocaleCode | "">(getStoredLocale, "");
-
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const newLocale = event.target.value;
-    if (isValidLocale(newLocale)) {
-      setStoredLocale(newLocale);
-      window.location.reload();
-    }
-  };
-
-  if (localeOptions.length === 0) return null;
+  if (localeOptions.length < 2) return null;
 
   return (
-    <div data-current={currentLocale}>
-      <select aria-label="Select market" value={currentLocale} onChange={handleChange}>
-        {localeOptions.map((option) => (
-          <option key={option.locale} value={option.locale}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+    <div className="locale-selector g-select">
+      <LocaleSelectorClient localeOptions={localeOptions} currentPath={currentLocale.path} />
     </div>
   );
 }

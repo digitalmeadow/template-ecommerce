@@ -1,9 +1,9 @@
-import { shopPoliciesQuery, shopQuery } from "shopify/queries/shop";
 import type { ShopPolicyFragment } from "shopify/generated/graphql";
-import { shopifyServer } from "@lib/shopify/serverClient";
+import { shopPoliciesQuery, shopQuery } from "shopify/queries/shop";
+import { shopifyIdFromGid } from "shopify/utils/ids";
 import { buildScoped, buildScopedByKey } from "@lib/cache";
 import { getLocale, type Locale } from "@lib/shopify/locale";
-import { shopifyIdFromGid } from "shopify/utils/ids";
+import { shopifyServer } from "@lib/shopify/serverClient";
 
 export const getShop = buildScoped(async () => {
   const { shop } = await shopifyServer.request(shopQuery);
@@ -16,7 +16,7 @@ export async function getCustomerAccountUrl(): Promise<string> {
   return shop.customerAccountUrl ?? `https://shopify.com/${shopifyIdFromGid(shop.id)}/account`;
 }
 
-const getShopPoliciesByLanguage = buildScopedByKey(async (localePath) => {
+const getShopPoliciesByLocalePath = buildScopedByKey(async (localePath) => {
   const { shop } = await shopifyServer.request(shopPoliciesQuery, {
     language: getLocale(localePath).language,
   });
@@ -27,5 +27,5 @@ const getShopPoliciesByLanguage = buildScopedByKey(async (localePath) => {
 
 /** The policies the store has written, in Shopify admin order. */
 export function getShopPolicies(locale: Locale): Promise<ShopPolicyFragment[]> {
-  return getShopPoliciesByLanguage(locale.path);
+  return getShopPoliciesByLocalePath(locale.path);
 }

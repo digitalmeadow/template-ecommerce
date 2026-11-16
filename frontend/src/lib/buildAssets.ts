@@ -5,6 +5,7 @@ const cache = new Map<string, Promise<unknown>>();
 /**
  * JSON prerendered at build (e.g. `/product-thumbnails.json`), read by on-demand routes instead
  * of calling Sanity per request. Held per worker isolate; a deploy starts fresh isolates.
+ * Not `buildScopedByKey`: that's inert on the preview worker, which needs this cache too.
  */
 export function loadBuildJson<T>(path: string, url: URL): Promise<T> {
   const cached = cache.get(path);

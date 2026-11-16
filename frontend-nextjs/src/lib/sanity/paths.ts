@@ -1,9 +1,9 @@
 import { sanityClient } from "sanity-nextjs/client.server";
+import { collectionByHandleQuery, collectionsQuery } from "sanity-nextjs/queries/collection";
 import { homeQuery } from "sanity-nextjs/queries/home";
 import { pageQuery, pagesQuery } from "sanity-nextjs/queries/page";
 import { productByHandleQuery, productsQuery } from "sanity-nextjs/queries/product";
-import { collectionByHandleQuery, collectionsQuery } from "sanity-nextjs/queries/collection";
-import { buildCacheEnabled, buildScoped, buildScopedByKey } from "@/lib/cache";
+import { buildCacheEnabled, buildScoped, buildScopedByKey, isStaticRuntime } from "@/lib/cache";
 
 // Next can't pass props from generateStaticParams, so build-time pages look up their document in a cached bulk query.
 export const getHome = buildScoped(async () => {
@@ -47,19 +47,23 @@ const getCollectionByHandle = buildScopedByKey(async (handle) => {
   return result.allCollection[0] ?? null;
 });
 
+// After the build an unknown slug can only be a 404, so it never costs a Sanity request.
 export async function getPage(slug: string) {
+  if (isStaticRuntime) return null;
   if (!buildCacheEnabled) return getPageBySlug(slug);
   const pages = await getPages();
   return pages.find((page) => page.slug?.current === slug) ?? null;
 }
 
 export async function getProduct(handle: string) {
+  if (isStaticRuntime) return null;
   if (!buildCacheEnabled) return getProductByHandle(handle);
   const products = await getProducts();
   return products.find((product) => product.shopify?.handle?.current === handle) ?? null;
 }
 
 export async function getCollection(handle: string) {
+  if (isStaticRuntime) return null;
   if (!buildCacheEnabled) return getCollectionByHandle(handle);
   const collections = await getCollections();
   return collections.find((collection) => collection.shopify?.handle?.current === handle) ?? null;

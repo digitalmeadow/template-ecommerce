@@ -1,10 +1,10 @@
 import type { PageFragment } from "sanity-nextjs/generated/graphql";
-import SectionHero from "./SectionHero";
-import SectionText from "./SectionText";
-import SectionCollection from "./SectionCollection";
 import SectionAccordions from "./SectionAccordions";
-import SectionTabs from "./SectionTabs";
+import SectionCollection from "./SectionCollection";
 import SectionForm from "./SectionForm";
+import SectionHero from "./SectionHero";
+import SectionTabs from "./SectionTabs";
+import SectionText from "./SectionText";
 
 // Derived from the fragment, so a section added to the GraphQL union fails the switch below until rendered.
 type Section = NonNullable<NonNullable<PageFragment["sections"]>[number]>;
@@ -21,17 +21,17 @@ export default function SectionsRenderer({ sections }: Props) {
 
         switch (section.__typename) {
           case "SectionHero":
-            return <SectionHero key={section._key} sectionData={section} />;
+            return <SectionHero key={section._key} section={section} />;
           case "SectionText":
-            return <SectionText key={section._key} sectionData={section} />;
+            return <SectionText key={section._key} section={section} />;
           case "SectionCollection":
-            return <SectionCollection key={section._key} sectionData={section} />;
+            return <SectionCollection key={section._key} section={section} />;
           case "SectionAccordions":
-            return <SectionAccordions key={section._key} sectionData={section} />;
+            return <SectionAccordions key={section._key} section={section} />;
           case "SectionTabs":
-            return <SectionTabs key={section._key} sectionData={section} />;
+            return <SectionTabs key={section._key} section={section} />;
           case "SectionForm":
-            return <SectionForm key={section._key} sectionData={section} />;
+            return <SectionForm key={section._key} section={section} />;
           default:
             section satisfies never;
             return null;

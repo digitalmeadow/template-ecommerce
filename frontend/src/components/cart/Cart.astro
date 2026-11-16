@@ -1,16 +1,16 @@
 ---
+import type { CartFragment as CartSettingsFragment } from "sanity/generated/graphql";
 import PriceDisplay from "@blocks/PriceDisplay.astro";
-import Overlay from "@layouts/Overlay.astro";
-import CartLineItem from "./CartLineItem.astro";
-import type { CartFragment } from "sanity/generated/graphql";
 import PortableText from "@fields/PortableText.astro";
+import Overlay from "@layouts/Overlay.astro";
 import { getRenderLocale } from "@lib/shopify/locale";
+import CartLineItem from "./CartLineItem.astro";
 
 interface Props {
-  cartData: CartFragment | null | undefined;
+  cart: CartSettingsFragment | null | undefined;
 }
 
-const { cartData }: Props = Astro.props;
+const { cart }: Props = Astro.props;
 
 const localePath = getRenderLocale(Astro).path;
 ---
@@ -41,7 +41,7 @@ const localePath = getRenderLocale(Astro).path;
 
       <div class="cart-content">
         <div class="empty-message">
-          <PortableText value={cartData?.emptyMessageRaw} />
+          <PortableText value={cart?.emptyMessageRaw} />
         </div>
 
         <ul class="cart-line-items" data-cart-line-items></ul>
@@ -90,7 +90,7 @@ const localePath = getRenderLocale(Astro).path;
           <p class="cart-error g-form-error" role="alert" data-cart-error></p>
 
           <div data-cart-note>
-            <PortableText value={cartData?.noteRaw} />
+            <PortableText value={cart?.noteRaw} />
           </div>
 
           <a class="checkout-button g-text-link" href="/checkout" data-cart-checkout>
@@ -103,6 +103,10 @@ const localePath = getRenderLocale(Astro).path;
 </cart-drawer>
 
 <script>
+  import type { CartFragment, MoneyFragment } from "shopify/generated/graphql";
+  import { trackBeginCheckout, trackCartView } from "@lib/analytics/track";
+  import type { CartLineItemElement, OverlayElement } from "@lib/elements";
+  import type { CartMessage, CartResult } from "@lib/shopify/cartActions";
   import {
     $cart,
     $cartCount,
@@ -118,10 +122,6 @@ const localePath = getRenderLocale(Astro).path;
     updateNote,
   } from "@stores/cart";
   import { $cartOpen, setCartOpen } from "@stores/ui";
-  import type { CartLineItemElement, OverlayElement } from "@lib/elements";
-  import type { CartFragment, MoneyFragment } from "shopify/generated/graphql";
-  import type { CartMessage } from "@lib/shopify/cartActions";
-  import { trackBeginCheckout, trackCartView } from "@lib/analytics/track";
 
   class CartDrawerElement extends HTMLElement {
     private cartElement!: HTMLElement;
@@ -197,20 +197,14 @@ const localePath = getRenderLocale(Astro).path;
 
     private handleCheckoutClick = () => trackBeginCheckout($cart.get());
 
-    private handleDiscountSubmit = async (event: SubmitEvent) => {
+    private handleDiscountSubmit = (event: SubmitEvent) => {
       event.preventDefault();
-      const code = readCode(this.discountForm);
-      if (!code) return;
-      const result = await applyDiscountCode(code);
-      if (result && !result.messages.length) this.discountForm.reset();
+      submitCode(this.discountForm, applyDiscountCode);
     };
 
-    private handleGiftCardSubmit = async (event: SubmitEvent) => {
+    private handleGiftCardSubmit = (event: SubmitEvent) => {
       event.preventDefault();
-      const code = readCode(this.giftCardForm);
-      if (!code) return;
-      const result = await applyGiftCard(code);
-      if (result && !result.messages.length) this.giftCardForm.reset();
+      submitCode(this.giftCardForm, applyGiftCard);
     };
 
     private handleNoteChange = () => {
@@ -273,7 +267,9 @@ const localePath = getRenderLocale(Astro).path;
     private renderCodes(cart: CartFragment | null, messages: CartMessage[]) {
       this.discountCodesContainer.replaceChildren(
         ...(cart?.discountCodes ?? []).map((discountCode) => {
-          const message = messages.find((item) => item.discountCode === discountCode.code);
+          const message = messages.find(
+            (cartMessage) => cartMessage.discountCode === discountCode.code,
+          );
           const label = discountCode.applicable
             ? discountCode.code
             : `${discountCode.code} (${message?.message ?? "not applicable"})`;
@@ -297,8 +293,14 @@ const localePath = getRenderLocale(Astro).path;
     }
   }
 
-  function readCode(form: HTMLFormElement): string {
-    return String(new FormData(form).get("code") ?? "").trim();
+  async function submitCode(
+    form: HTMLFormElement,
+    apply: (code: string) => Promise<CartResult | null>,
+  ) {
+    const code = String(new FormData(form).get("code") ?? "").trim();
+    if (!code) return;
+    const result = await apply(code);
+    if (result && !result.messages.length) form.reset();
   }
 
   customElements.define("cart-drawer", CartDrawerElement);
@@ -342,8 +344,8 @@ const localePath = getRenderLocale(Astro).path;
 
   .code-form {
     display: flex;
-    align-items: center;
     gap: var(--size-3);
+    align-items: center;
   }
 
   .code-field {
@@ -351,8 +353,8 @@ const localePath = getRenderLocale(Astro).path;
   }
 
   .code-form[data-pending] {
-    opacity: var(--opacity-disabled);
     pointer-events: none;
+    opacity: var(--opacity-disabled);
   }
 
   .applied-code {
@@ -365,8 +367,8 @@ const localePath = getRenderLocale(Astro).path;
   }
 
   .checkout-button {
-    display: inline-block;
     margin-top: var(--size-10);
+    display: inline-block;
   }
 
   .applied-codes:empty,
@@ -385,7 +387,7 @@ const localePath = getRenderLocale(Astro).path;
   }
 
   [data-cart][data-pending] [data-cart-checkout] {
-    opacity: var(--opacity-disabled);
     pointer-events: none;
+    opacity: var(--opacity-disabled);
   }
 </style>

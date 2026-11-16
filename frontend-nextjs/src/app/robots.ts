@@ -1,13 +1,10 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/meta/metadata";
+import { isIndexable, SITE_URL } from "@/meta/metadata";
 
+// Non-indexable builds still allow crawling: a disallowed page's noindex is never read.
 export default function robots(): MetadataRoute.Robots {
-  if (process.env.PREVIEW === "true") {
-    return { rules: { userAgent: "*", disallow: "/" } };
-  }
-
   return {
     rules: { userAgent: "*", allow: "/" },
-    sitemap: SITE_URL ? new URL("/sitemap.xml", SITE_URL).href : undefined,
+    sitemap: isIndexable ? new URL("/sitemap.xml", SITE_URL).href : undefined,
   };
 }

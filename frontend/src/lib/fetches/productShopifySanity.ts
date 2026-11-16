@@ -1,23 +1,28 @@
-import { shopifyServer } from "@lib/shopify/serverClient";
 import { sanityClient } from "sanity/client";
-import type {
-  ProductCardFragment as ShopifyProductCardFragment,
-  ProductFragment as ShopifyProductFragment,
-} from "shopify/generated/graphql";
 import type {
   ProductFragment as SanityProductFragment,
   ProductThumbnailFragment as SanityProductThumbnailFragment,
 } from "sanity/generated/graphql";
 import {
-  productByHandleQuery as shopifyProductByHandleQuery,
-  productCardByHandleQuery as shopifyProductCardByHandleQuery,
-} from "shopify/queries/product";
-import {
   productByHandleQuery as sanityProductByHandleQuery,
   productThumbnailsQuery as sanityProductThumbnailsQuery,
 } from "sanity/queries/product";
-import { DEFAULT_LOCALE, getLocale, type Locale } from "@lib/shopify/locale";
+import type {
+  ProductCardFragment as ShopifyProductCardFragment,
+  ProductFragment as ShopifyProductFragment,
+} from "shopify/generated/graphql";
+import {
+  productByHandleQuery as shopifyProductByHandleQuery,
+  productCardByHandleQuery as shopifyProductCardByHandleQuery,
+} from "shopify/queries/product";
 import { buildScoped, buildScopedByKey } from "@lib/cache";
+import {
+  DEFAULT_LOCALE,
+  localeHandleKey,
+  parseLocaleHandleKey,
+  type Locale,
+} from "@lib/shopify/locale";
+import { shopifyServer } from "@lib/shopify/serverClient";
 
 export type SanityProductThumbnails = Map<string, SanityProductThumbnailFragment>;
 
@@ -34,8 +39,7 @@ export type ProductShopifySanity = {
 
 // Keyed `{locale}:{handle}`: each market's build of a page shares one request per product.
 const fetchShopifyProductByKey = buildScopedByKey(async (key) => {
-  const [localePath, handle] = key.split(":") as [string, string];
-  const locale = getLocale(localePath);
+  const { locale, handle } = parseLocaleHandleKey(key);
   const { data, context } = await shopifyServer.requestWithContext(shopifyProductByHandleQuery, {
     handle,
     country: locale.country,
@@ -50,8 +54,7 @@ const fetchShopifyProductByKey = buildScopedByKey(async (key) => {
 });
 
 const fetchShopifyProductCardByKey = buildScopedByKey(async (key) => {
-  const [localePath, handle] = key.split(":") as [string, string];
-  const locale = getLocale(localePath);
+  const { locale, handle } = parseLocaleHandleKey(key);
   const { product } = await shopifyServer.request(shopifyProductCardByHandleQuery, {
     handle,
     country: locale.country,
@@ -78,7 +81,7 @@ export const fetchSanityProductThumbnails = buildScoped(
  * are left out of the build with a warning rather than failing it.
  */
 export async function isProductInShopify(handle: string): Promise<boolean> {
-  const product = await fetchShopifyProductByKey(`${DEFAULT_LOCALE.path}:${handle}`);
+  const product = await fetchShopifyProductByKey(localeHandleKey(DEFAULT_LOCALE, handle));
   if (!product) {
     console.warn(
       `Product "${handle}" is active in Sanity but not in Shopify's Headless channel; skipping.`,
@@ -110,7 +113,7 @@ export async function fetchProductThumbnailsByHandle(
 ): Promise<ProductThumbnailShopifySanity[]> {
   const cards = await Promise.all(
     handles.map((handle) =>
-      fetchShopifyProductCardByKey(`${locale.path}:${handle}`).catch((error) => {
+      fetchShopifyProductCardByKey(localeHandleKey(locale, handle)).catch((error) => {
         console.error(`Error fetching product card for handle "${handle}":`, error);
         return null;
       }),
@@ -120,17 +123,17 @@ export async function fetchProductThumbnailsByHandle(
 }
 
 /**
- * Null when Shopify doesn't have the product. Pass `sanityProductData` when the caller already
+ * Null when Shopify doesn't have the product. Pass `prefetchedSanityProduct` when the caller already
  * holds it (getStaticPaths) to skip a Sanity request.
  */
 export async function fetchProductShopifySanity(
   handle: string,
   locale: Locale,
-  sanityProductData?: SanityProductFragment,
+  prefetchedSanityProduct?: SanityProductFragment,
 ): Promise<ProductShopifySanity | null> {
   const [shopifyProduct, sanityProduct] = await Promise.all([
-    fetchShopifyProductByKey(`${locale.path}:${handle}`),
-    sanityProductData ??
+    fetchShopifyProductByKey(localeHandleKey(locale, handle)),
+    prefetchedSanityProduct ??
       sanityClient
         .request(sanityProductByHandleQuery, { handle })
         .then((result) => result.allProduct[0]),

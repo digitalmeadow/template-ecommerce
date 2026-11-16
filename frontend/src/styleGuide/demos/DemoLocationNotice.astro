@@ -5,11 +5,11 @@ import LocationNotice from "@components/LocationNotice.astro";
 import { locationNotice } from "../fixtures/settings";
 ---
 
-<LocationNotice locationNoticeData={locationNotice} waitForConsent={false} />
+<LocationNotice locationNotice={locationNotice} waitForConsent={false} />
 
 <script>
-  import { LOCALE_LIST, getPageLocale } from "@lib/shopify/locale";
   import { fillMarket } from "@lib/shopify/geo";
+  import { getPageLocale, LOCALE_LIST } from "@lib/shopify/locale";
 
   document.addEventListener("astro:page-load", async () => {
     await customElements.whenDefined("location-notice");

@@ -1,13 +1,9 @@
 import { scroll } from "motion";
-import { prefersReducedMotion } from "@/styles/animations";
-
-// Media frames whose stacked children (media + placeholder) drift together.
-const FRAME_SELECTOR = ".sanity-image, .mux-video, .vimeo-video";
+import { prefersReducedMotion } from "@/lib/animations";
 
 // Reads a numeric CSS custom property (e.g. "1.12", "5%") off :root.
-function readVar(name: string, fallback: number) {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const value = parseFloat(raw);
+function readVar(name: string, fallback: number): number {
+  const value = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
   return Number.isFinite(value) ? value : fallback;
 }
 
@@ -19,11 +15,12 @@ export function initParallax(): () => void {
   const defaultTravel = readVar("--parallax-travel", 2);
   const wrapperTravel = readVar("--parallax-travel-wrapper", 1);
 
-  // Max drift the overscale can hide on each edge, so frame edges never show.
+  // Max drift the overscale can hide on each edge — clamp so we never reveal frame edges.
   const maxTravel = ((scale - 1) / 2) * 100;
 
   const cleanups: (() => void)[] = [];
 
+  // Drives translateY from -travel% to +travel%; `extra` appends the overscale, for media layers only.
   const drive = (target: HTMLElement, layers: HTMLElement[], travel: number, extra: string) => {
     layers.forEach((layer) => (layer.style.willChange = "transform"));
     const stop = scroll(
@@ -43,6 +40,8 @@ export function initParallax(): () => void {
     });
   };
 
+  // Media drift: move the frame's stacked children (image/video + placeholder) together.
+  const FRAME_SELECTOR = ".sanity-image, .vimeo-video";
   document.querySelectorAll<HTMLElement>("[data-animate-parallax]").forEach((host) => {
     const frame = host.matches(FRAME_SELECTOR)
       ? host
@@ -55,6 +54,7 @@ export function initParallax(): () => void {
     drive(frame, layers, travel, ` scale(${scale})`);
   });
 
+  // Wrapper drift: move the element itself, no scale, no overflow assumptions.
   document.querySelectorAll<HTMLElement>("[data-animate-parallax-wrapper]").forEach((element) => {
     const override = parseFloat(element.dataset.animateParallaxWrapper ?? "");
     const travel = Number.isFinite(override) ? override : wrapperTravel;

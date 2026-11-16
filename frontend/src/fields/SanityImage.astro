@@ -3,32 +3,30 @@ import type { SanityImageFragment } from "sanity/generated/graphql";
 import { getSanityImageFocalPoint, getSanityImageProps } from "@lib/sanity/images";
 
 interface Props {
-  imageData: SanityImageFragment | null | undefined;
+  image: SanityImageFragment | null | undefined;
   layout?: "width" | "height" | "cover" | "contain";
   sizes?: [number, number, number];
   loading?: "lazy" | "eager";
   /* Above-the-fold images: skips lazy loading and raises fetch priority for LCP. */
   priority?: boolean;
-  mediaId?: string | null;
 }
 
 const {
-  imageData,
+  image,
   layout = "width",
   sizes = [100, 100, 100],
   loading = "lazy",
   priority = false,
-  mediaId,
 }: Props = Astro.props;
 
-const altText = imageData?.asset?.altText ?? "";
-const placeholderSrc = imageData?.asset?.metadata?.lqip;
-const sanityImageProps = getSanityImageProps({ sanityImage: imageData, sizes });
+const altText = image?.asset?.altText ?? "";
+const placeholderSrc = image?.asset?.metadata?.lqip;
+const sanityImageProps = getSanityImageProps({ sanityImage: image, sizes });
 const aspectRatio =
   sanityImageProps?.width && sanityImageProps?.height
     ? sanityImageProps.width / sanityImageProps.height
     : undefined;
-const focalPoint = getSanityImageFocalPoint(imageData);
+const focalPoint = getSanityImageFocalPoint(image);
 ---
 
 <div
@@ -39,18 +37,19 @@ const focalPoint = getSanityImageFocalPoint(imageData);
       : undefined
   }
 >
-  <img
-    class:list={["placeholder", `layout-${layout}`]}
-    src={placeholderSrc}
-    alt=""
-    loading="eager"
-    aria-hidden="true"
-  />
+  {placeholderSrc && (
+    <img
+      class:list={["placeholder", `layout-${layout}`]}
+      src={placeholderSrc}
+      alt=""
+      loading="eager"
+      aria-hidden="true"
+    />
+  )}
 
   {sanityImageProps && (
     <img
       class:list={["image", `layout-${layout}`]}
-      data-media-id={mediaId}
       {...sanityImageProps}
       style={focalPoint ? `object-position: ${focalPoint}` : undefined}
       alt={altText}
@@ -70,16 +69,16 @@ const focalPoint = getSanityImageFocalPoint(imageData);
   }
 
   .sanity-image > * {
-    grid-area: 1 / 1;
     min-width: 0;
     min-height: 0;
+    grid-area: 1 / 1;
   }
 
   .placeholder {
-    opacity: 1;
-    transition: opacity var(--transition-media);
     pointer-events: none;
+    opacity: 1;
     filter: blur(100px);
+    transition: opacity var(--transition-media);
   }
 
   .sanity-image:has(.image[data-loaded]) .placeholder {
@@ -100,7 +99,7 @@ const focalPoint = getSanityImageFocalPoint(imageData);
     transition: opacity var(--transition-media);
   }
 
-  .image[data-loaded]:not([data-loaded="false"]) {
+  .image[data-loaded] {
     opacity: var(--media-opacity, 1);
   }
 

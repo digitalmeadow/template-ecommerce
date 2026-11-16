@@ -1,17 +1,17 @@
-export const prerender = false;
-
 import type { APIContext, APIRoute } from "astro";
 import { ShopifyError } from "shopify/client";
-import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
-import { getLocale } from "@lib/shopify/locale";
-import { performCartAction } from "@lib/shopify/cartServer";
-import { parseCartForm, type CartRequestBody, type CartResult } from "@lib/shopify/cartActions";
 import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
+import { parseCartForm, type CartRequestBody, type CartResult } from "@lib/shopify/cartActions";
 import {
   readCartId,
   serializeCartCookie,
   serializeExpiredCartCookie,
 } from "@lib/shopify/cartCookie";
+import { performCartAction } from "@lib/shopify/cartServer";
+import { getLocale } from "@lib/shopify/locale";
+import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
+
+export const prerender = false;
 
 // The current cart, moved to `?locale=`'s market if it was created in another.
 export const GET: APIRoute = (context) => {

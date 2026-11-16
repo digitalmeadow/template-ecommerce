@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { CONSENT_VALUE } from "@/lib/forms/constants";
-import IconTick from "@/fields/form/IconTick";
 
 interface Props {
   id: string;
@@ -9,7 +8,7 @@ interface Props {
   required: boolean;
   statement: ReactNode;
   errorId: string;
-  invalid: boolean;
+  isInvalid: boolean;
 }
 
 export default function FieldConsent({
@@ -19,44 +18,26 @@ export default function FieldConsent({
   required,
   statement,
   errorId,
-  invalid,
+  isInvalid,
 }: Props) {
   const statementId = `${id}-statement`;
 
   return (
-    <div className="field-consent group grid grid-cols-[1fr_auto] gap-[var(--s20)] py-[var(--s12)]">
-      {/* A sibling, not label content, so its links stay clickable; describedby carries it to AT. */}
-      <div
-        className="min-w-0 opacity-50 transition-opacity duration-[var(--transition-default-duration)] group-has-[input:checked]:opacity-100"
-        id={statementId}
-      >
-        {statement}
-      </div>
-
+    <div className="g-form-choice">
+      {/* Not wrapped in a <label>: the statement is block content with links of its own. */}
       <input
-        className="peer pointer-events-none absolute m-0 appearance-none opacity-0"
         type="checkbox"
         id={id}
         name={name}
         value={CONSENT_VALUE}
         required={required}
-        aria-describedby={`${statementId} ${errorId}`}
-        aria-invalid={invalid || undefined}
-      />
-      <label
-        className="shrink-0 cursor-pointer peer-focus-visible:[&_.box]:outline peer-focus-visible:[&_.box]:outline-offset-[var(--s4)] peer-checked:[&_.tick]:opacity-100"
-        htmlFor={id}
         aria-label={label}
-      >
-        <span
-          className="box flex h-[30px] w-[30px] items-center justify-center border border-current"
-          aria-hidden="true"
-        >
-          <span className="tick aspect-[20/15] w-[18px] opacity-0 transition-opacity duration-[var(--transition-default-duration)]">
-            <IconTick />
-          </span>
-        </span>
-      </label>
+        aria-describedby={`${statementId} ${errorId}`}
+        aria-invalid={isInvalid || undefined}
+      />
+      <div className="g-text-small" id={statementId}>
+        {statement}
+      </div>
     </div>
   );
 }

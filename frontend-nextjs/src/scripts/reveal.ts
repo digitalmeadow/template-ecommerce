@@ -1,4 +1,4 @@
-import { prefersReducedMotion } from "@/styles/animations";
+import { prefersReducedMotion } from "@/lib/animations";
 
 // [data-animate-reveal] fades in once 10% is in view.
 export function initReveal(): () => void {
@@ -16,7 +16,7 @@ export function initReveal(): () => void {
   );
 
   document
-    .querySelectorAll<HTMLElement>("[data-animate-reveal]:not([data-revealed])")
+    .querySelectorAll<HTMLElement>("[data-animate-reveal]")
     .forEach((element) => observer.observe(element));
 
   return () => observer.disconnect();

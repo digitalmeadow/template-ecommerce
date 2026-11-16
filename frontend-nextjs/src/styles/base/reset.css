@@ -1,0 +1,78 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+/* Component display rules would otherwise beat the attribute. */
+[hidden] {
+  display: none !important;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+input,
+button,
+textarea,
+select {
+  padding: 0;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background-color: transparent;
+  border-width: 0;
+}
+
+a,
+button {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: inherit;
+  overflow-wrap: break-word;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  appearance: none;
+}
+
+select {
+  appearance: none;
+}
+
+fieldset {
+  padding: 0;
+  min-width: 0;
+  border: 0;
+}
+
+legend {
+  padding: 0;
+}

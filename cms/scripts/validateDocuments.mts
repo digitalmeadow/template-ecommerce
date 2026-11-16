@@ -1,9 +1,4 @@
-// Runs the Studio's own validator outside the Studio and prints the failing path for every marker —
-// the Studio's validation panel often shows a bare "Required" with no usable path.
-//
-//   pnpm --filter cms validate-documents [documentId]
-//
-// Omit the id to sweep the whole dataset (drafts included).
+// Prints full paths for Studio validation markers, which the Studio panel often shows as a bare "Required".
 import { createSchema, validateDocument, type Workspace } from "sanity";
 import { schemaTypes } from "../schemas";
 

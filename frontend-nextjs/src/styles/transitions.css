@@ -1,0 +1,37 @@
+/* PageTransition: the background sweeps up over the old page, then up off the new one.
+   Mirrors pageTransitionDuration and easeInOut in lib/animations.ts. */
+::view-transition-old(.page-cover) {
+  animation: 0.7s var(--ease-in-out) both page-cover;
+}
+
+::view-transition-new(.page-reveal) {
+  animation: 0.7s var(--ease-in-out) 0.7s both page-reveal;
+}
+
+@keyframes page-cover {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@keyframes page-reveal {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

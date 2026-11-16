@@ -1,8 +1,8 @@
+import DoubleChevronDownIcon from "@sanity/icons/DoubleChevronDown";
+import { defineArrayMember, defineField, defineType } from "sanity";
+import { pluralize } from "../../utils/preview";
 import { colorSchemeField } from "../fields/colorScheme";
 import { sectionIdField } from "../fields/sectionId";
-import { pluralize } from "../../utils/preview";
-import { defineArrayMember, defineField, defineType } from "sanity";
-import DoubleChevronDownIcon from "@sanity/icons/DoubleChevronDown";
 
 export const sectionAccordions = defineType({
   type: "object",

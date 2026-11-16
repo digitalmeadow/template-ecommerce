@@ -1,6 +1,6 @@
 import type { CartFragment, CartLineFragment } from "shopify/generated/graphql";
-import { publishShopifyEvent } from "@lib/analytics/shopifyAnalytics";
 import { pushEcommerceEvent, type EcommerceItem } from "@lib/analytics/dataLayer";
+import { publishShopifyEvent } from "@lib/analytics/shopifyAnalytics";
 import type { Variant } from "@lib/shopify/variants";
 
 // One call per storefront moment, sent to Shopify analytics and to GA4 via the dataLayer.

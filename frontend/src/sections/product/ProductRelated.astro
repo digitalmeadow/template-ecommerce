@@ -1,16 +1,16 @@
 ---
-import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
 import Carousel from "@layouts/Carousel.astro";
+import type { ProductThumbnailShopifySanity } from "@lib/fetches/productShopifySanity";
 import ProductThumbnail from "@sections/product/ProductThumbnail.astro";
 
 interface Props {
-  productsData: ProductThumbnailShopifySanity[] | null | undefined;
+  products: ProductThumbnailShopifySanity[] | null | undefined;
 }
 
-const { productsData }: Props = Astro.props;
+const { products }: Props = Astro.props;
 ---
 
-{productsData && productsData.length > 0 && (
+{products && products.length > 0 && (
   <section class="product-related g-page-margin g-section-md">
     <div class="top">
       <h2 class="g-heading-5">Related Products</h2>
@@ -37,9 +37,9 @@ const { productsData }: Props = Astro.props;
 
     <Carousel id="product-related-carousel">
       <Fragment slot="content">
-        {productsData.map((productData) => (
+        {products.map((product) => (
           <div class="carousel-item">
-            <ProductThumbnail productData={productData} />
+            <ProductThumbnail product={product} />
           </div>
         ))}
       </Fragment>
@@ -49,11 +49,11 @@ const { productsData }: Props = Astro.props;
 
 <style>
   .top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--size-1);
     margin-bottom: var(--size-4);
+    display: flex;
+    gap: var(--size-1);
+    align-items: center;
+    justify-content: space-between;
   }
 
   .carousel-controls {
@@ -62,8 +62,8 @@ const { productsData }: Props = Astro.props;
   }
 
   .carousel-item {
-    width: calc(4 * var(--column) + 3 * var(--gutter));
     margin-right: var(--gutter);
+    width: calc(4 * var(--column) + 3 * var(--gutter));
   }
 
   @media (max-width: 48rem) {

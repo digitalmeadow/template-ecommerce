@@ -1,5 +1,5 @@
-import React from "react";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "frontend/config";
+import React from "react";
 
 export function pluralize(word: string, count: number) {
   return `${count} ${word}${count === 1 ? "" : "s"}`;

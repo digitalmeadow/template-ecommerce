@@ -18,8 +18,13 @@ export const SANITY_DOCUMENT_ROUTE_PATTERNS: Record<string, string> = {
   ...LINKABLE_ROUTE_PATTERNS,
 };
 
-// Form submissions POST here as multipart FormData. Unset renders forms that validate but can't send.
-export const FORM_ENDPOINT: string | undefined = undefined;
+// One per Shopify market the site sells in. The first is the default and is served unprefixed;
+// the rest at `/{path}/…`, built from the same pages with that market's prices. Currency comes from Shopify.
+export const LOCALES = [
+  { path: "en-au", country: "AU", language: "EN", label: "Australia" },
+  { path: "en-nz", country: "NZ", language: "EN", label: "New Zealand" },
+  { path: "en-us", country: "US", language: "EN", label: "United States" },
+] as const;
 
-// Browser UI and web app manifest colour; mirrors `--color-background` in src/styles/colors.css.
+// Browser UI and web app manifest colour; mirrors `--core-cream` (the light background) in src/styles/tokens/colors.css.
 export const THEME_COLOR = "#f6f2e5";

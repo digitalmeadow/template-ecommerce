@@ -1,5 +1,0 @@
-/* Font files load through next/font (src/fonts), which defines --font-biz-ud-mincho on <html>. */
-:root {
-  --font-body: var(--font-biz-ud-mincho), serif;
-  --font-heading: var(--font-biz-ud-mincho), serif;
-}

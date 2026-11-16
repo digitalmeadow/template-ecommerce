@@ -5,9 +5,9 @@ import type {
   FormGroupFragment,
   SectionFormFragment,
 } from "sanity/generated/graphql";
+import ButtonSubmit from "@blocks/ButtonSubmit.astro";
 import FormField from "@fields/FormField.astro";
 import FormTerm from "@fields/FormTerm.astro";
-import ButtonSubmit from "@blocks/ButtonSubmit.astro";
 import PortableText from "@fields/PortableText.astro";
 import { HONEYPOT_FIELD_NAME } from "@lib/forms/constants";
 
@@ -105,10 +105,10 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
   }
 
   .form {
+    margin-left: calc(8 * var(--column) + 8 * var(--gutter));
     display: flex;
     flex-direction: column;
     row-gap: var(--size-5);
-    margin-left: calc(8 * var(--column) + 8 * var(--gutter));
   }
 
   .groups {
@@ -149,8 +149,8 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
 
   /* Locked once submitted; a page load or client-router navigation restores it. */
   .form[data-state="success"] .groups {
-    opacity: var(--opacity-disabled);
     pointer-events: none;
+    opacity: var(--opacity-disabled);
   }
 
   .messages {
@@ -263,23 +263,23 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
     }
 
     private validateGroups() {
-      let valid = true;
+      let isValid = true;
 
       this.querySelectorAll<HTMLElement>("[data-required-group]").forEach((group) => {
         if (group.querySelector("input:checked")) return;
 
-        valid = false;
+        isValid = false;
         const target = this.querySelector(`[data-error-for="${group.dataset.groupName}"]`);
         if (target) target.textContent = `${group.dataset.groupLabel} is required.`;
         group.setAttribute("aria-invalid", "true");
       });
 
-      return valid;
+      return isValid;
     }
 
     // Native constraint messages, shown inline under each field instead of browser bubbles.
     private validateControls() {
-      let valid = true;
+      let isValid = true;
 
       this.form
         ?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
@@ -288,22 +288,22 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
         .forEach((control) => {
           if (control.validity.valid) return;
 
-          valid = false;
+          isValid = false;
           const target = this.querySelector(`[data-error-for="${control.name}"]`);
           if (target) target.textContent = control.validationMessage;
           control.setAttribute("aria-invalid", "true");
         });
 
-      return valid;
+      return isValid;
     }
 
     // Matches `:invalid` rather than checkValidity(), which fires events while typing.
     private updateReady = () => {
       if (!this.form || !this.button) return;
 
-      const ready = !this.form.querySelector(":invalid") && this.requiredGroupsFilled();
+      const isReady = !this.form.querySelector(":invalid") && this.requiredGroupsFilled();
 
-      if (ready) this.button.dataset.ready = "";
+      if (isReady) this.button.dataset.ready = "";
       else delete this.button.dataset.ready;
     };
 
@@ -312,8 +312,10 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
       const input = event.target as HTMLInputElement;
       if (input.type !== "file") return;
 
-      const name = this.querySelector<HTMLElement>(`label[for="${input.id}"] [data-file-label]`);
-      if (!name) return;
+      const fileLabel = this.querySelector<HTMLElement>(
+        `label[for="${input.id}"] [data-file-label]`,
+      );
+      if (!fileLabel) return;
 
       const files = input.files;
       const chosen = !files?.length
@@ -322,10 +324,10 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
           ? `${files.length} files selected`
           : files[0].name;
 
-      name.textContent = chosen || name.dataset.fileLabel || "";
+      fileLabel.textContent = chosen || fileLabel.dataset.fileLabel || "";
 
-      if (chosen) name.dataset.hasFile = "";
-      else delete name.dataset.hasFile;
+      if (chosen) fileLabel.dataset.hasFile = "";
+      else delete fileLabel.dataset.hasFile;
     };
 
     private async readResponse(response: Response): Promise<FormSubmissionResponse> {
@@ -343,9 +345,9 @@ const GroupHeadingTag = section.heading ? "h3" : "h2";
       this.clearErrors();
 
       // Both run so every problem shows at once, not one category per submit.
-      const groupsValid = this.validateGroups();
-      const controlsValid = this.validateControls();
-      if (!groupsValid || !controlsValid) {
+      const areGroupsValid = this.validateGroups();
+      const areControlsValid = this.validateControls();
+      if (!areGroupsValid || !areControlsValid) {
         this.focusFirstError();
         return;
       }

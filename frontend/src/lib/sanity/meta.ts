@@ -9,21 +9,6 @@ export interface ResolvedMeta {
 
 const DESCRIPTION_MAX = 155;
 
-type PortableTextSpan = { _type?: string; text?: string | null };
-type PortableTextBlock = { _type?: string; children?: PortableTextSpan[] | null };
-
-/** Flattens Portable Text to a single plain string; non-text blocks (images etc.) are skipped. */
-export function portableTextToPlainText(value: unknown): string {
-  if (!Array.isArray(value)) return "";
-
-  return (value as PortableTextBlock[])
-    .filter((block) => block?._type === "block")
-    .map((block) => (block.children ?? []).map((child) => child?.text ?? "").join(""))
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 /** Truncates on a word boundary so descriptions don't get cut mid-word by search engines. */
 export function truncate(text: string, max = DESCRIPTION_MAX): string {
   const clean = text.replace(/\s+/g, " ").trim();

@@ -1,6 +1,8 @@
 import type { LinkFragment } from "sanity-nextjs/generated/graphql";
 import { SANITY_DOCUMENT_ROUTE_PATTERNS } from "@/config";
 
+// Kept apart from links.ts so client scripts can import it without the server-only Sanity client.
+
 export type LinkKind = "internal" | "anchor" | "external" | "email" | "phone" | "download";
 
 export interface ResolvedLink {
@@ -15,17 +17,7 @@ export function resolveSanityHref(documentType: string, slug?: string | null): s
     throw new Error("Invalid document type");
   }
 
-  const pattern = SANITY_DOCUMENT_ROUTE_PATTERNS[documentType]!;
-
-  if (!pattern.includes("[slug]")) {
-    return pattern;
-  }
-
-  if (slug) {
-    return pattern.replace("[slug]", slug);
-  }
-
-  return pattern.replace("[slug]", "");
+  return SANITY_DOCUMENT_ROUTE_PATTERNS[documentType]!.replace("[slug]", slug ?? "");
 }
 
 export function sanityFileUrlFromRef(source: string | undefined): string {
@@ -42,7 +34,7 @@ export function sanityFileUrlFromRef(source: string | undefined): string {
   return `https://cdn.sanity.io/files/${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}/${process.env.NEXT_PUBLIC_SANITY_DATASET}/${sourceUrl}`;
 }
 
-// Pure, so it runs anywhere; page references must already be resolved (`resolveSanityLink`).
+/** Pure, so it runs anywhere; page references must already be resolved (`resolveSanityLink`). */
 export function resolveLink(link: LinkFragment | null | undefined): ResolvedLink | null {
   if (!link) return null;
   const newTab = !!link.newTab;

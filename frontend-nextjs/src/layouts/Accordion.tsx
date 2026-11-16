@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   headingLevel?: 2 | 3 | 4;
   // Opening one accordion closes the others in the same group.
   group?: string;
-  initOpen?: boolean;
+  isInitiallyOpen?: boolean;
   content: ReactNode;
   className?: string;
 }
@@ -19,18 +19,16 @@ export default function Accordion({
   summary,
   headingLevel = 2,
   group,
-  initOpen = false,
+  isInitiallyOpen = false,
   content,
   className,
 }: Props) {
-  const [isOpen, setIsOpen] = useState(initOpen);
+  const [isOpen, setIsOpen] = useState(isInitiallyOpen);
   const accordionRef = useRef<HTMLDivElement>(null);
   const contentId = `accordion-${useId()}`;
   const Heading = `h${headingLevel}` as const;
 
-  const close = useCallback(() => setIsOpen(false), []);
-
-  const open = useCallback(() => {
+  function open() {
     setIsOpen(true);
     if (group) {
       window.dispatchEvent(
@@ -39,50 +37,47 @@ export default function Accordion({
         }),
       );
     }
-  }, [group]);
+  }
 
   useEffect(() => {
     if (!group) return;
     const handleAccordionOpen = (event: Event) => {
-      if ((event as EventAccordionOpen).detail.target !== accordionRef.current) close();
+      if ((event as EventAccordionOpen).detail.target !== accordionRef.current) setIsOpen(false);
     };
     window.addEventListener(`accordion:opened:${group}`, handleAccordionOpen);
     return () => {
       window.removeEventListener(`accordion:opened:${group}`, handleAccordionOpen);
     };
-  }, [group, close]);
+  }, [group]);
 
-  const toggle = useCallback(() => {
-    if (isOpen) close();
+  function toggle() {
+    if (isOpen) setIsOpen(false);
     else open();
-  }, [isOpen, open, close]);
+  }
 
   return (
     <div
       ref={accordionRef}
       className={cn(
-        "accordion group/accordion -mt-px block border-t border-border last:border-b",
+        "accordion group/accordion -mt-px block border-t border-rule last:border-b",
         className,
       )}
       data-state={isOpen ? "open" : undefined}
     >
-      <Heading className="heading">
+      <Heading className="heading g-heading-6">
         <button
           type="button"
-          className="summary grid w-full cursor-pointer grid-cols-[1fr_auto] items-start gap-[var(--s8)] py-[var(--s4)] text-left"
+          className="summary grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-2 py-2 text-left"
           onClick={toggle}
           aria-expanded={isOpen}
           aria-controls={contentId}
         >
           <span className="summary-text">{summary}</span>
-          <span
-            className="icon grid h-[var(--s16)] w-[var(--s16)] items-center justify-items-center text-[1.125rem] leading-none"
-            aria-hidden="true"
-          >
-            <span className="icon-open col-start-1 row-start-1 transition-opacity duration-[var(--transition-default-duration)] group-data-[state=open]/accordion:opacity-0">
+          <span className="icon grid size-4 place-items-center" aria-hidden="true">
+            <span className="icon-open transition-opacity duration-(--duration-default) ease-out [grid-area:1/1] group-data-[state=open]/accordion:opacity-0">
               +
             </span>
-            <span className="icon-close col-start-1 row-start-1 opacity-0 transition-opacity duration-[var(--transition-default-duration)] group-data-[state=open]/accordion:opacity-100">
+            <span className="icon-close opacity-0 transition-opacity duration-(--duration-default) ease-out [grid-area:1/1] group-data-[state=open]/accordion:opacity-100">
               -
             </span>
           </span>
@@ -91,11 +86,11 @@ export default function Accordion({
 
       <div
         id={contentId}
-        className="content-container grid grid-rows-[0fr] transition-[grid-template-rows] duration-[var(--transition-default-duration)] group-data-[state=open]/accordion:grid-rows-[1fr]"
+        className="content-container grid grid-rows-[0fr] transition-[grid-template-rows] duration-(--duration-default) ease-out group-data-[state=open]/accordion:grid-rows-[1fr]"
         inert={!isOpen}
       >
         <div className="content-inner overflow-hidden">
-          <div className="content pt-[var(--s8)] pb-[var(--s24)] pl-[2em]">{content}</div>
+          <div className="content pt-2 pb-6 pl-8">{content}</div>
         </div>
       </div>
     </div>

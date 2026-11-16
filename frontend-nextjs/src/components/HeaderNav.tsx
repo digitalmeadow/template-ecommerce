@@ -2,61 +2,51 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-interface NavItem {
+interface NavigationItem {
   label: string | null | undefined;
   href: string | undefined;
+  isInternal: boolean;
   target?: string;
   rel?: string;
   download?: string;
-  isInternal: boolean;
 }
 
 interface Props {
-  navItems: NavItem[];
+  navigationItems: NavigationItem[];
+  className?: string;
 }
 
 const underlineStyles = [
-  "underline-color-orange",
-  "underline-color-yellow",
-  "underline-color-green",
-  "underline-color-blue",
-  "underline-color-purple",
+  "g-underline-orange",
+  "g-underline-yellow",
+  "g-underline-green",
+  "g-underline-blue",
+  "g-underline-purple",
 ];
 
-export default function HeaderNav({ navItems }: Props) {
+// The header persists across navigations, so the active link follows the URL on the client.
+export default function HeaderNav({ navigationItems, className }: Props) {
   const pathname = usePathname();
 
   return (
-    <nav className="header-nav">
-      {navItems.map((item, index) => {
-        const linkClassName = `text-link ${underlineStyles[index % underlineStyles.length]}`;
+    <nav className={className}>
+      {navigationItems.map(({ label, href, isInternal, ...attributes }, index) => {
+        const Anchor = isInternal ? Link : "a";
         return (
           <div key={index} className="nav-item">
-            {item.href === undefined ? (
-              <span className={linkClassName}>{item.label}</span>
-            ) : item.isInternal ? (
-              <Link
-                href={item.href}
-                className={linkClassName}
-                data-active={pathname === item.href ? "" : undefined}
-                target={item.target}
-                rel={item.rel}
-                download={item.download}
-              >
-                {item.label}
-              </Link>
+            {href === undefined ? (
+              label
             ) : (
-              <a
-                href={item.href}
-                className={linkClassName}
-                data-active={pathname === item.href ? "" : undefined}
-                target={item.target}
-                rel={item.rel}
-                download={item.download}
+              <Anchor
+                className={cn("g-text-link", underlineStyles[index % underlineStyles.length])}
+                href={href}
+                data-active={String(pathname === href)}
+                {...attributes}
               >
-                {item.label}
-              </a>
+                {label}
+              </Anchor>
             )}
           </div>
         );

@@ -5,9 +5,9 @@
 // The page's own UI uses none of the site's CSS, so it looks the same on every project.
 // `?scheme=` and `?width=` set the starting controls, so a view can be linked.
 import { getHtmlLang, getRenderLocale } from "@lib/shopify/locale";
-import Preview from "./Preview.astro";
 import { ENTRIES, groupEntries } from "./entries";
-import { SCHEMES, TABS, WIDTHS, entryId, isScheme, isWidthId, type WidthId } from "./entry";
+import { entryId, isScheme, isWidthId, SCHEMES, TABS, WIDTHS, type WidthId } from "./entry";
+import Preview from "./Preview.astro";
 
 const tab = TABS.find((item) => item.id === (Astro.params.tab ?? "sections"));
 if (!tab) return new Response("Not found", { status: 404 });
@@ -244,10 +244,10 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
   :global(:where(.style-guide) :where(button)) {
     margin: 0;
     padding: 0.25rem 0.625rem;
-    background: none;
-    border: 0;
     text-transform: capitalize;
     cursor: pointer;
+    background: none;
+    border: 0;
   }
 
   .style-guide :global(button[aria-pressed="true"]) {
@@ -263,9 +263,9 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
   /* Every control is one 28px box, so the bar reads as one row. */
   .style-guide :global(.segments),
   .grid-toggle {
-    display: flex;
     height: 1.75rem;
     box-sizing: border-box;
+    display: flex;
     border: 1px solid #ddd;
   }
 
@@ -277,13 +277,13 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     position: sticky;
     top: 0;
     z-index: 10;
+    padding: 0 1rem;
+    min-height: var(--bar-height);
+    box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: 0 2rem;
-    min-height: var(--bar-height);
-    padding: 0 1rem;
-    box-sizing: border-box;
+    align-items: center;
     font-size: 0.8125rem;
     background-color: #fff;
     border-bottom: 1px solid #e5e5e5;
@@ -296,8 +296,8 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
   /* Tabs fill the bar's height; the current one is marked on the bar's edge, like the sidebar. */
   .tabs {
     display: flex;
-    align-self: stretch;
     gap: 1.25rem;
+    align-self: stretch;
   }
 
   .tab {
@@ -317,16 +317,16 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 
   .controls {
+    margin-left: auto;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: 0.5rem;
-    margin-left: auto;
+    align-items: center;
   }
 
   .grid-toggle {
-    align-items: center;
     gap: 0.375rem;
+    align-items: center;
     font-size: 0.75rem;
   }
 
@@ -350,16 +350,16 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
   .sidebar {
     position: sticky;
     top: var(--bar-height);
-    align-self: start;
-    display: grid;
-    align-content: start;
-    gap: 1.5rem;
-    height: calc(100svh - var(--bar-height));
     padding: 2.5rem 0.5rem;
+    height: calc(100svh - var(--bar-height));
     box-sizing: border-box;
+    display: grid;
+    gap: 1.5rem;
+    align-content: start;
+    align-self: start;
     overflow-y: auto;
-    border-right: 1px solid #e5e5e5;
     overscroll-behavior: contain;
+    border-right: 1px solid #e5e5e5;
   }
 
   .nav-group {
@@ -372,15 +372,15 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 
   .links {
-    display: grid;
     margin: 0;
     padding: 0;
+    display: grid;
     list-style: none;
   }
 
   .links a {
-    display: block;
     padding: 0.25rem 0.5rem;
+    display: block;
     font-size: 0.75rem;
     line-height: 1rem;
     color: #666;
@@ -402,10 +402,10 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 
   .content {
+    padding: 1.5rem 1rem 2.5rem 2.5rem;
+    min-width: 0;
     display: grid;
     gap: 4rem;
-    min-width: 0;
-    padding: 1.5rem 1rem 2.5rem 2.5rem;
   }
 
   .group {
@@ -418,11 +418,11 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     position: sticky;
     top: var(--bar-height);
     z-index: 5;
+    padding: 1rem 0 0.75rem;
     display: flex;
+    gap: 1rem;
     align-items: baseline;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem 0 0.75rem;
     background-color: #fff;
     border-bottom: 1px solid #e5e5e5;
   }
@@ -431,8 +431,8 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     margin: 0;
     font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
   .group-count {
@@ -445,9 +445,9 @@ Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     margin: 0;
     font-size: 0.5625rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
   @media (max-width: 48rem) {

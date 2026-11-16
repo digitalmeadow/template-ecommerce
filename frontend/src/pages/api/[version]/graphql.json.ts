@@ -1,7 +1,7 @@
-export const prerender = false;
-
 import type { APIRoute } from "astro";
 import { proxyStorefrontRequest } from "@lib/shopify/proxy";
+
+export const prerender = false;
 
 // Same-origin Storefront API, for our browser code and Shopify's own scripts (consent, analytics).
 const proxy: APIRoute = ({ params, request }) => {

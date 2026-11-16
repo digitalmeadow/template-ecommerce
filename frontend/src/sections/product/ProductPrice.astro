@@ -1,6 +1,6 @@
 ---
-import PriceDisplay from "@blocks/PriceDisplay.astro";
 import type { MoneyFragment, PriceRangeFragment } from "shopify/generated/graphql";
+import PriceDisplay from "@blocks/PriceDisplay.astro";
 
 interface Props {
   priceRange: PriceRangeFragment;
@@ -20,7 +20,7 @@ const isDiscounted = !!compareAt && Number(compareAt.amount) > Number(price.amou
 
 <div class="product-price" data-product-price={variant ? "variant" : "range"}>
   <PriceDisplay
-    variant="compare-at"
+    kind="compare-at"
     data-price-compare-at
     amount={isDiscounted ? compareAt.amount : undefined}
     currency={isDiscounted ? compareAt.currencyCode : undefined}

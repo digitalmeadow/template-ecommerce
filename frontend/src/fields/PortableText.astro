@@ -5,17 +5,16 @@ import Mark from "@fields/portableTextComponents/Mark.astro";
 interface Props {
   value: unknown;
   class?: string | undefined;
-  style?: "default" | "large";
 }
 
-const { value, class: className, style = "default" }: Props = Astro.props;
+const { value, class: className }: Props = Astro.props;
 
 const components = {
   mark: Mark,
 };
 ---
 
-<div class:list={["portable-text", className, style]}>
+<div class:list={["portable-text", className]}>
   {/* Codegen types Portable Text as `unknown`; Sanity's schema guarantees the shape. */}
   <AstroPortableText
     value={value as Parameters<typeof AstroPortableText>[0]["value"]}
@@ -23,21 +22,21 @@ const components = {
   />
 </div>
 
-<style is:global>
-  .portable-text p,
-  .portable-text li {
+<style>
+  .portable-text :global(p),
+  .portable-text :global(li) {
     margin-bottom: 0.5em;
   }
-  .portable-text p:last-child,
-  .portable-text li:last-child {
+  .portable-text :global(p:last-child),
+  .portable-text :global(li:last-child) {
     margin-bottom: 0;
   }
 
-  .portable-text li {
+  .portable-text :global(li) {
     padding-left: 2em;
   }
 
-  .portable-text ul {
+  .portable-text :global(ul) {
     margin-bottom: 1em;
   }
 </style>

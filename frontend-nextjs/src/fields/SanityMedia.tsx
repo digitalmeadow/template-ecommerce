@@ -1,54 +1,41 @@
 import type { MediaFragment } from "sanity-nextjs/generated/graphql";
-import { fetchVimeoOEmbed } from "@/lib/video";
-import SanityImage from "@/fields/SanityImage";
 import MuxVideo from "@/fields/MuxVideo";
+import SanityImage from "@/fields/SanityImage";
 import VimeoVideo from "@/fields/VimeoVideo";
+import { fetchVimeoOEmbed } from "@/lib/video";
 
 interface Props {
-  mediaData: MediaFragment | null | undefined;
+  media: MediaFragment | null | undefined;
   layout?: "width" | "height" | "cover" | "contain";
   sizes?: [number, number, number];
   loading?: "lazy" | "eager";
-  mediaId?: string | null;
 }
 
 export default async function SanityMedia({
-  mediaData,
+  media,
   layout = "width",
   sizes = [100, 100, 100],
   loading = "lazy",
-  mediaId,
 }: Props) {
-  if (mediaData?.type === "image") {
-    return (
-      <SanityImage
-        imageData={mediaData.image}
-        layout={layout}
-        sizes={sizes}
-        loading={loading}
-        mediaId={mediaId}
-      />
-    );
+  if (media?.type === "image") {
+    return <SanityImage image={media.image} layout={layout} sizes={sizes} loading={loading} />;
   }
 
-  if (mediaData?.type === "video") {
-    return <MuxVideo videoData={mediaData.video} layout={layout} mediaId={mediaId} />;
+  if (media?.type === "video") {
+    return <MuxVideo video={media.video} layout={layout} loading={loading} />;
   }
 
-  if (mediaData?.type === "vimeo" && mediaData.vimeo?.url) {
-    const oEmbed = await fetchVimeoOEmbed(mediaData.vimeo.url);
-    // Server-side so the ratio and placeholder are in the first paint; consumers crop rather than letterbox.
-    const aspectRatio = oEmbed?.width && oEmbed.height ? oEmbed.width / oEmbed.height : undefined;
+  if (media?.type === "vimeo" && media.vimeo?.url) {
+    const oEmbed = await fetchVimeoOEmbed(media.vimeo.url);
 
     return (
       <VimeoVideo
-        url={mediaData.vimeo.url}
-        aspectRatio={aspectRatio}
+        url={media.vimeo.url}
+        aspectRatio={oEmbed?.width && oEmbed.height ? oEmbed.width / oEmbed.height : undefined}
         thumbnailUrl={oEmbed?.thumbnail_url}
         title={oEmbed?.title}
         layout={layout}
         loading={loading}
-        mediaId={mediaId}
       />
     );
   }

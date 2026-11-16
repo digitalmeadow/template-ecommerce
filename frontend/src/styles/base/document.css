@@ -4,21 +4,20 @@
 }
 
 html {
+  scrollbar-gutter: stable;
+  scroll-padding-top: var(--scroll-padding-top);
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
-
-  scroll-padding-top: var(--scroll-padding-top);
-  scrollbar-gutter: stable;
 }
 
 body {
   font-family: var(--font-body);
   font-size: var(--font-size-regular);
-  line-height: var(--line-height-tight);
   font-weight: var(--font-weight-regular);
-  background-color: var(--color-background);
+  line-height: var(--line-height-tight);
   color: var(--color-text);
+  background-color: var(--color-background);
 }
 
 h1,
@@ -49,17 +48,17 @@ b {
 /* One disabled look for every control; a fieldset's controls count too. */
 :is(button, input, select, textarea):disabled,
 [aria-disabled="true"] {
-  opacity: var(--opacity-disabled);
   pointer-events: none;
+  opacity: var(--opacity-disabled);
 }
 
 /* Each section repaints with its own scheme's roles. */
 [data-color-scheme] {
-  background-color: var(--color-background);
   color: var(--color-text);
+  background-color: var(--color-background);
 }
 
 ::selection {
-  background: var(--color-accent);
   color: var(--color-on-accent);
+  background: var(--color-accent);
 }

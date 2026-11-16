@@ -5,7 +5,7 @@ import root from "../prettier.config.mjs";
 const config = {
   ...root,
   // Imported, not named: prettier resolves plugin names from the cwd, not this package.
-  plugins: [astro],
+  plugins: [...root.plugins, astro],
 };
 
 export default config;

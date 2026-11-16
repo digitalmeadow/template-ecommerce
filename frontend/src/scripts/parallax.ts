@@ -1,4 +1,5 @@
 import { scroll } from "motion";
+import { prefersReducedMotion } from "@lib/animations";
 
 // Reads a numeric CSS custom property (e.g. "1.12", "5%") off :root.
 function readVar(name: string, fallback: number): number {
@@ -8,8 +9,7 @@ function readVar(name: string, fallback: number): number {
 
 // [data-animate-parallax] drifts media inside its overflow-hidden frame; the -wrapper variant drifts the element itself.
 export function initParallax(): () => void {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduceMotion) return () => {};
+  if (prefersReducedMotion()) return () => {};
 
   const scale = readVar("--parallax-scale", 1.12);
   const defaultTravel = readVar("--parallax-travel", 2);

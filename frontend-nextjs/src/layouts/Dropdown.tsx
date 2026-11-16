@@ -96,7 +96,7 @@ export default function Dropdown({
       {/* 0fr -> 1fr keeps the panel in flow, so opening pushes following content down. */}
       <div
         className={cn(
-          "grid justify-items-start transition-[grid-template-rows] duration-[var(--transition-default-duration)]",
+          "grid justify-items-start transition-[grid-template-rows] duration-(--duration-default) ease-out",
           isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
         )}
       >
@@ -104,7 +104,7 @@ export default function Dropdown({
           ref={panelRef}
           id={panelId}
           className={cn(
-            "dropdown-panel pointer-events-none relative z-[5] overflow-hidden opacity-0 transition-opacity duration-[var(--transition-default-duration)]",
+            "dropdown-panel pointer-events-none relative z-5 overflow-hidden opacity-0 transition-opacity duration-(--duration-default) ease-out",
             isOpen && "pointer-events-auto opacity-100",
             panelClassName,
           )}

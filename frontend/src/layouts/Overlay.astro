@@ -18,8 +18,8 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 </overlay-root>
 
 <script>
-  import { lockScroll, unlockScroll } from "@lib/scrollLock";
   import { trapFocus } from "@lib/focus";
+  import { lockScroll, unlockScroll } from "@lib/scrollLock";
 
   class OverlayElement extends HTMLElement {
     private backdrop!: HTMLElement;
@@ -84,33 +84,28 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
 
     close() {
       if (!this.isOpen) return;
-      this.isOpen = false;
-
-      document.removeEventListener("keydown", this.handleCloseKeydown);
-      document.removeEventListener("astro:before-swap", this.dismiss);
-
-      if (this.previouslyFocused) {
-        this.previouslyFocused.focus();
-      }
-
-      this.dispatchEvent(new CustomEvent("overlay:closed"));
-      this.render();
-      unlockScroll();
+      const previouslyFocused = this.previouslyFocused;
+      this.finishClose();
+      previouslyFocused?.focus();
     }
 
     // Navigating away: the new page owns scroll and focus, so close without restoring either.
     dismiss = () => {
       if (!this.isOpen) return;
+      this.finishClose();
+    };
+
+    private finishClose() {
       this.isOpen = false;
+      this.previouslyFocused = null;
 
       document.removeEventListener("keydown", this.handleCloseKeydown);
       document.removeEventListener("astro:before-swap", this.dismiss);
-      this.previouslyFocused = null;
 
       this.dispatchEvent(new CustomEvent("overlay:closed"));
       this.render();
       unlockScroll();
-    };
+    }
 
     toggle() {
       if (this.isOpen) {
@@ -172,7 +167,7 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     pointer-events: none;
   }
 
-  overlay-root[data-state]:not([data-state="false"]) {
+  overlay-root[data-state="open"] {
     z-index: 21;
     pointer-events: auto;
   }
@@ -189,19 +184,19 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     position: fixed;
     top: 0;
     right: 0;
+    padding: var(--margin);
     height: 100%;
     display: grid;
     grid-template-rows: auto 1fr;
-    padding: var(--margin);
-    background-color: var(--color-background);
     overflow-y: auto;
     outline: none;
+    background-color: var(--color-background);
   }
 
   .panel.fullscreen {
     width: 100%;
-    opacity: 0;
     pointer-events: none;
+    opacity: 0;
     transition: opacity var(--transition-default);
   }
 
@@ -211,12 +206,12 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     transition: transform var(--transition-default);
   }
 
-  overlay-root[data-state]:not([data-state="false"]) :is(.backdrop, .panel.fullscreen) {
-    opacity: 1;
+  overlay-root[data-state="open"] :is(.backdrop, .panel.fullscreen) {
     pointer-events: auto;
+    opacity: 1;
   }
 
-  overlay-root[data-state]:not([data-state="false"]) .panel.right {
+  overlay-root[data-state="open"] .panel.right {
     transform: none;
   }
 
@@ -225,9 +220,9 @@ const { id, layout = "fullscreen", "aria-label": ariaLabel }: Props = Astro.prop
     .panel.right {
       top: auto;
       bottom: 0;
+      padding-block: var(--size-5) var(--size-10);
       width: 100%;
       height: calc(100svh - var(--size-30));
-      padding-block: var(--size-5) var(--size-10);
       border-top-left-radius: var(--radius-lg);
       border-top-right-radius: var(--radius-lg);
       transform: translateY(100%);

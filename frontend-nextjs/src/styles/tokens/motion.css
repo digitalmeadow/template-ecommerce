@@ -1,0 +1,19 @@
+/* Mirrored in lib/animations.ts. */
+:root {
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out: cubic-bezier(0.83, 0, 0.17, 1);
+
+  --duration-default: 0.25s;
+  --duration-media: 0.6s;
+  --duration-reveal: 0.6s;
+
+  --transition-default: var(--duration-default) var(--ease-out);
+  --transition-media: var(--duration-media) var(--ease-out);
+  --transition-reveal: var(--duration-reveal) var(--ease-out);
+
+  --stagger: 0.04s;
+
+  --parallax-scale: 1.12;
+  --parallax-travel: 2%;
+  --parallax-travel-wrapper: 1%;
+}

@@ -3,66 +3,81 @@
 import { useEffect, useState } from "react";
 import type { LocationNoticeFragment } from "sanity-nextjs/generated/graphql";
 import { getConsent, subscribeToConsent } from "@/lib/consent/consent";
-import { useBrowserValue } from "@/lib/useBrowserValue";
-import { type LocaleCode } from "@/lib/shopify/locale";
-import { getStoredLocale, setStoredLocale } from "@/lib/shopify/locale.client";
+import { isConsentRequired } from "@/lib/consent/customerPrivacy";
 import { dismissLocationNotice, fillMarket, suggestedLocale } from "@/lib/shopify/geo";
-import { cn } from "@/lib/utils";
+import { switchLocale, type Locale } from "@/lib/shopify/locale";
+import { useLocale } from "@/lib/shopify/useLocale";
 
 interface Props {
-  locationNoticeData: LocationNoticeFragment | null | undefined;
+  locationNotice: LocationNoticeFragment | null | undefined;
   // True while a cookie banner may be showing: the notice waits for it so the two never stack.
   waitForConsent: boolean;
-  className?: string;
+  /** Shown without a geo lookup (the style guide: dev and the preview site have no geo header). */
+  suggestion?: Locale;
 }
 
 // Suggests the visitor's own store; never redirects.
-export default function LocationNotice({ locationNoticeData, waitForConsent, className }: Props) {
-  const [suggestion, setSuggestion] = useState<LocaleCode | null>(null);
-  const consentDecided = useBrowserValue(
-    () => !waitForConsent || getConsent() !== null,
-    false,
-    subscribeToConsent,
-  );
+export default function LocationNotice({
+  locationNotice,
+  waitForConsent,
+  suggestion: fixedSuggestion,
+}: Props) {
+  const locale = useLocale();
+  const [geoSuggestion, setSuggestion] = useState<Locale | null>(null);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const suggestion = isDismissed ? null : (fixedSuggestion ?? geoSuggestion);
 
   useEffect(() => {
-    if (!locationNoticeData || !consentDecided) return;
-    let cancelled = false;
-    suggestedLocale(getStoredLocale()).then((locale) => {
-      if (!cancelled) setSuggestion(locale);
-    });
+    if (!locationNotice || fixedSuggestion) return;
+    let isCancelled = false;
+    let unsubscribe: (() => void) | undefined;
+
+    const suggest = () =>
+      suggestedLocale(locale).then((suggested) => {
+        if (!isCancelled) setSuggestion(suggested);
+      });
+
+    (async () => {
+      const isBannerShowing =
+        waitForConsent && getConsent() === null && (await isConsentRequired());
+      if (isCancelled) return;
+      if (!isBannerShowing) return suggest();
+      unsubscribe = subscribeToConsent(() => {
+        unsubscribe?.();
+        suggest();
+      });
+    })();
+
     return () => {
-      cancelled = true;
+      isCancelled = true;
+      unsubscribe?.();
     };
-  }, [locationNoticeData, consentDecided]);
+  }, [locationNotice, waitForConsent, locale, fixedSuggestion]);
 
-  if (!locationNoticeData || !suggestion) return null;
+  if (!locationNotice) return null;
 
-  function handleSwitch() {
-    setStoredLocale(suggestion!);
-    window.location.reload();
-  }
+  const handleDismiss = () => {
+    if (suggestion) dismissLocationNotice(suggestion);
+    setIsDismissed(true);
+  };
 
-  function handleDismiss() {
-    dismissLocationNotice(suggestion!);
-    setSuggestion(null);
-  }
+  const handleSwitch = () => {
+    if (suggestion) switchLocale(suggestion);
+  };
 
   return (
     <div
+      className="location-notice fixed bottom-0 left-0 z-5 flex w-full flex-col items-center border-t border-rule bg-background p-[var(--margin)] text-center"
       role="status"
-      className={cn(
-        "location-notice fixed bottom-0 left-0 z-5 flex w-full flex-col items-center bg-background px-[var(--margin)] py-[var(--margin)] text-center",
-        className,
-      )}
+      hidden={!suggestion}
     >
-      <p>{fillMarket(locationNoticeData.message, suggestion)}</p>
-      <div className="flex flex-wrap gap-4">
-        <button type="button" className="text-link underline-color-orange" onClick={handleDismiss}>
-          {locationNoticeData.dismissLabel}
+      <p>{suggestion && fillMarket(locationNotice.message, suggestion)}</p>
+      <div className="actions flex flex-wrap gap-4">
+        <button className="g-text-link g-underline-orange" type="button" onClick={handleDismiss}>
+          {locationNotice.dismissLabel}
         </button>
-        <button type="button" className="text-link underline-color-green" onClick={handleSwitch}>
-          {fillMarket(locationNoticeData.switchLabel, suggestion)}
+        <button className="g-text-link g-underline-green" type="button" onClick={handleSwitch}>
+          {suggestion && fillMarket(locationNotice.switchLabel, suggestion)}
         </button>
       </div>
     </div>

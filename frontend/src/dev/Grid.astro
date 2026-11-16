@@ -16,11 +16,11 @@ const columns = Array.from({ length: 16 });
     top: 0;
     left: var(--margin);
     z-index: 100;
+    width: var(--container-width);
+    height: 100vh;
     display: grid;
     grid-template-columns: repeat(var(--column-count), 1fr);
     column-gap: var(--gutter);
-    width: var(--container-width);
-    height: 100vh;
     pointer-events: none;
     opacity: 0.12;
   }

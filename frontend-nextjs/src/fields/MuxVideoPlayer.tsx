@@ -1,65 +1,66 @@
 "use client";
 
+import MuxPlayer from "@mux/mux-player-react/lazy";
 import { useState } from "react";
-import MuxPlayer from "@mux/mux-player-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
   playbackId: string;
-  aspectRatio: string;
-  posterURL: string;
+  aspectRatio?: string;
+  posterUrl: string;
   filename?: string;
   placeholderSrc?: string;
   layout?: "width" | "height" | "cover" | "contain";
-  mediaId?: string;
+  loading?: "lazy" | "eager";
 }
 
-const layoutContainerClasses: Record<string, string> = {
+const LAYOUT_CLASSES = {
   width: "w-full",
   height: "h-full",
-  cover: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-auto min-w-full min-h-full",
-  contain: "w-full h-full",
+  cover: "absolute top-1/2 left-1/2 w-auto min-w-full min-h-full -translate-1/2 object-cover",
+  contain: "h-full w-full object-contain",
 };
 
 export default function MuxVideoPlayer({
   playbackId,
   aspectRatio,
-  posterURL,
+  posterUrl,
   filename,
   placeholderSrc,
   layout = "width",
-  mediaId,
+  loading = "lazy",
 }: Props) {
-  const [loaded, setLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   return (
     <div
-      className={cn("mux-video relative", layoutContainerClasses[layout])}
-      style={{ aspectRatio }}
+      className={cn("mux-video relative", LAYOUT_CLASSES[layout])}
+      style={aspectRatio ? { aspectRatio } : undefined}
     >
       {placeholderSrc && (
         <img
+          className="placeholder absolute top-0 left-0 h-full w-full object-cover"
           src={placeholderSrc}
           alt=""
           aria-hidden="true"
-          className="placeholder absolute inset-0 h-full w-full object-cover"
         />
       )}
 
       <MuxPlayer
         className={cn(
-          "video h-full w-full opacity-0 transition-opacity duration-300 ease-in-out",
-          loaded && "opacity-100",
+          "video h-full w-full opacity-0 transition-opacity duration-(--duration-media) ease-out [--controls:none]",
+          isLoaded && "opacity-(--media-opacity,1)",
         )}
         playbackId={playbackId}
-        poster={posterURL}
+        poster={posterUrl}
         title={filename}
+        loading={loading === "lazy" ? "viewport" : "page"}
         loop
         muted
         autoPlay="muted"
         minResolution="720p"
-        data-media-id={mediaId}
-        onCanPlay={() => setLoaded(true)}
+        data-loaded={isLoaded ? "" : undefined}
+        onCanPlay={() => setIsLoaded(true)}
       />
     </div>
   );

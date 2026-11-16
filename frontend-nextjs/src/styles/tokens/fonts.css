@@ -1,0 +1,21 @@
+/* Archivo Narrow (OFL, public/fonts/ArchivoNarrow-OFL.txt), Latin subset, variable 400–700. */
+@font-face {
+  font-family: "Archivo Narrow";
+  font-style: normal;
+  font-weight: 400 700;
+  src: url("/fonts/ArchivoNarrow-Variable.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Archivo Narrow";
+  font-style: italic;
+  font-weight: 400 700;
+  src: url("/fonts/ArchivoNarrow-Italic-Variable.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  --font-body: "Archivo Narrow", "Arial Narrow", "Helvetica Neue Condensed", sans-serif;
+  --font-heading: var(--font-body);
+}

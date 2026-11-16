@@ -6,8 +6,8 @@ export default function ColorSchemeSwitch() {
       onClick={() => {
         const html = document.documentElement;
         const currentScheme = html.getAttribute("data-color-scheme");
-        const newScheme = currentScheme === "dark" ? "light" : "dark";
-        html.setAttribute("data-color-scheme", newScheme);
+        const nextScheme = currentScheme === "dark" ? "light" : "dark";
+        html.setAttribute("data-color-scheme", nextScheme);
       }}
     >
       Toggle Light/Dark

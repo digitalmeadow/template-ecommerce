@@ -1,44 +1,52 @@
-import type { SectionFormFragment } from "sanity-nextjs/generated/graphql";
-import { normaliseForm } from "@/lib/forms/fields";
-import PortableText from "@/fields/PortableText";
+import type {
+  FormConsentFragment,
+  FormFieldFragment,
+  FormGroupFragment,
+  SectionFormFragment,
+} from "sanity-nextjs/generated/graphql";
 import FormClient from "@/fields/form/FormClient";
+import PortableText from "@/fields/PortableText";
 
 interface Props {
-  sectionData: SectionFormFragment;
+  section: SectionFormFragment;
 }
 
-export default function SectionForm({ sectionData }: Props) {
-  const form = sectionData.form;
-  if (!form?._id) return null;
+export default function SectionForm({ section }: Props) {
+  const form = section.form;
+  const formId = form?._id;
+  if (!form || !formId) return null;
 
-  const { groups, terms } = normaliseForm(form);
+  const groups = (form.groups ?? [])
+    .filter((group): group is FormGroupFragment => Boolean(group))
+    .map((group) => ({
+      heading: group.heading,
+      fields: (group.fields ?? []).filter((field): field is FormFieldFragment =>
+        Boolean(field?.name),
+      ),
+    }))
+    .filter((group) => group.fields.length > 0);
+
+  const terms = (form.terms ?? [])
+    .filter((term): term is FormConsentFragment => Boolean(term?.name))
+    .map((term) => ({ term, statement: <PortableText value={term.statementRaw} /> }));
 
   return (
     <section
-      data-color-scheme={sectionData.colorScheme ?? undefined}
-      className="section-form mt-[var(--s120)] pb-[var(--s200)]"
-      id={sectionData.id ?? undefined}
+      data-color-scheme={section.colorScheme ?? undefined}
+      className="section-form g-page-margin g-section-lg"
+      id={section.id ?? undefined}
     >
-      <div className="u-container">
-        {sectionData.heading && (
-          <h2 className="mb-[100px] text-muted max-[64rem]:mb-[var(--s80)]">
-            {sectionData.heading}
-          </h2>
-        )}
+      {section.heading && <h2 className="g-heading-4 mb-20">{section.heading}</h2>}
 
+      <div className="ml-[calc(8*var(--column)+8*var(--gutter))] mobile:ml-0">
         <FormClient
-          className="ml-[calc(6*var(--column)+6*var(--gutter))] text-foreground max-[64rem]:ml-0"
-          formId={form._id}
+          formId={formId}
           groups={groups}
-          terms={(terms ?? []).map((term) => ({
-            ...term,
-            statementRaw: undefined,
-            statement: <PortableText value={term.statementRaw} />,
-          }))}
+          terms={terms}
           submitLabel={form.submitLabel ?? "Submit"}
           successMessage={<PortableText value={form.successMessageRaw} />}
-          // Group headings sit under the section heading when there is one.
-          groupHeadingTag={sectionData.heading ? "h3" : "h2"}
+          // Group headings sit under the section heading when there is one; otherwise they'd skip a level.
+          groupHeadingTag={section.heading ? "h3" : "h2"}
         />
       </div>
     </section>

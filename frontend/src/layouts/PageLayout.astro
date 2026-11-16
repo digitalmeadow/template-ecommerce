@@ -1,21 +1,17 @@
 ---
 import "@styles/index.css";
-
+import { INDEXABLE } from "astro:env/client";
 import { ClientRouter } from "astro:transitions";
-import Header from "@components/Header.astro";
-import Footer from "@components/Footer.astro";
-import Grid from "@dev/Grid.astro";
-import Meta from "@meta/Meta.astro";
-import JsonLd from "@meta/JsonLd.astro";
-import { getHtmlLang, localizeHref, getRenderLocale } from "@lib/shopify/locale";
-import CookiesBanner from "@components/CookiesBanner.astro";
-import AnnouncementBanner from "@components/AnnouncementBanner.astro";
-import LocationNotice from "@components/LocationNotice.astro";
 import Analytics from "@components/Analytics.astro";
+import AnnouncementBanner from "@components/AnnouncementBanner.astro";
 import Cart from "@components/cart/Cart.astro";
-import ScriptMeasurements from "@scripts/ScriptMeasurements.astro";
-import ScriptAnimations from "@scripts/ScriptAnimations.astro";
+import CookiesBanner from "@components/CookiesBanner.astro";
+import Footer from "@components/Footer.astro";
+import Header from "@components/Header.astro";
+import LocationNotice from "@components/LocationNotice.astro";
+import { THEME_COLOR } from "@config";
 import PageTransition from "@decorations/PageTransition.astro";
+import Grid from "@dev/Grid.astro";
 import { getGlobals } from "@lib/sanity/globals";
 import type { ResolvedMeta } from "@lib/sanity/meta";
 import {
@@ -23,11 +19,14 @@ import {
   buildWebSiteSchema,
   type JsonLdSchema,
 } from "@lib/sanity/structuredData";
-import { INDEXABLE, PREVIEW } from "astro:env/client";
-import { THEME_COLOR } from "@config";
+import { getHtmlLang, getRenderLocale, localizeHref } from "@lib/shopify/locale";
+import JsonLd from "@meta/JsonLd.astro";
+import Meta from "@meta/Meta.astro";
+import ScriptAnimations from "@scripts/ScriptAnimations.astro";
+import ScriptMeasurements from "@scripts/ScriptMeasurements.astro";
 
 interface Props {
-  metaData: ResolvedMeta | null | undefined;
+  meta: ResolvedMeta | null | undefined;
   ogType?: "website" | "article" | "product";
   /* Page-level structured data. A prop because <slot /> renders inside <main>, not <head>. */
   jsonLd?: (JsonLdSchema | undefined)[];
@@ -35,30 +34,26 @@ interface Props {
   noindex?: boolean;
 }
 
-const { metaData, ogType, jsonLd = [], noindex = false }: Props = Astro.props;
+const { meta, ogType, jsonLd = [], noindex = false }: Props = Astro.props;
 
 const locale = getRenderLocale(Astro);
 // Other locales render the default locale's page, so Astro.url is the unprefixed path.
 const pathname = localizeHref(Astro.url.pathname, locale);
 
 const {
-  headerData,
-  footerData,
-  cartData,
-  metaSettingsData,
-  organisationSettingsData,
-  analyticsSettingsData,
-  announcementBannerData,
-  cookieConsentData,
-  locationNoticeData,
+  header,
+  footer,
+  cart,
+  metaSettings,
+  organisationSettings,
+  analyticsSettings,
+  announcementBanner,
+  cookieConsent,
+  locationNotice,
 } = await getGlobals();
 
-const organisationSchema = buildOrganisationSchema(organisationSettingsData, Astro.site);
-const webSiteSchema = buildWebSiteSchema(organisationSettingsData, Astro.site, locale);
-
-// The preview site is otherwise a fully indexable duplicate of live.
-const isPreview = PREVIEW === "true";
-if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
+const organisationSchema = buildOrganisationSchema(organisationSettings, Astro.site);
+const webSiteSchema = buildWebSiteSchema(organisationSettings, Astro.site, locale);
 ---
 
 <html
@@ -76,8 +71,8 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    {organisationSettingsData?.name && (
-      <meta name="apple-mobile-web-app-title" content={organisationSettingsData.name} />
+    {organisationSettings?.name && (
+      <meta name="apple-mobile-web-app-title" content={organisationSettings.name} />
     )}
     <link rel="manifest" href="/site.webmanifest" />
 
@@ -87,12 +82,12 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <Meta
-      metaData={metaData}
-      metaSettingsData={metaSettingsData}
+      meta={meta}
+      metaSettings={metaSettings}
       locale={locale}
       pathname={pathname}
-      siteName={organisationSettingsData?.name}
-      organisationDescription={organisationSettingsData?.description}
+      siteName={organisationSettings?.name}
+      organisationDescription={organisationSettings?.description}
       ogType={ogType}
       noindex={!INDEXABLE || noindex}
     />
@@ -123,14 +118,14 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
       <PageTransition />
     </div>
 
-    <AnnouncementBanner announcementBannerData={announcementBannerData} />
+    <AnnouncementBanner announcementBanner={announcementBanner} />
 
     <div class="header-container" transition:persist="header">
-      <Header headerData={headerData} />
+      <Header header={header} />
     </div>
 
     <div transition:persist="cart">
-      <Cart cartData={cartData} />
+      <Cart cart={cart} />
     </div>
 
     <main id="main" tabindex="-1">
@@ -138,15 +133,15 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
     </main>
 
     <div transition:persist="consent">
-      <CookiesBanner cookieConsentData={cookieConsentData} />
+      <CookiesBanner cookieConsent={cookieConsent} />
       <LocationNotice
-        locationNoticeData={locationNoticeData}
-        waitForConsent={Boolean(cookieConsentData?.messageRaw)}
+        locationNotice={locationNotice}
+        waitForConsent={Boolean(cookieConsent?.messageRaw)}
       />
-      <Analytics analyticsSettingsData={analyticsSettingsData} />
+      <Analytics analyticsSettings={analyticsSettings} />
     </div>
 
-    <Footer footerData={footerData} />
+    <Footer footer={footer} />
 
     <Grid />
   </body>
@@ -165,14 +160,14 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
   /* minmax(0, …): a wide child (a carousel's slide strip) must never size the page. */
   body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   :global(body > [data-announcement-banner]) {
-    grid-area: 1 / 1 / 2 / 2;
     position: relative;
     z-index: 11;
+    grid-area: 1 / 1 / 2 / 2;
   }
 
   body > .header-container {
@@ -189,12 +184,12 @@ if (isPreview) Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
 
   .skip-link {
     position: fixed;
-    z-index: 100;
     top: 0;
     left: 0;
+    z-index: 100;
     padding: var(--size-3) var(--size-5);
-    background-color: var(--color-text);
     color: var(--color-background);
+    background-color: var(--color-text);
     transform: translateY(-100%);
   }
 

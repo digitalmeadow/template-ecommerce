@@ -1,9 +1,9 @@
-import { colorSchemeField } from "../fields/colorScheme";
-import { sectionIdField } from "../fields/sectionId";
-import { defineField, defineType } from "sanity";
 import BlockElementIcon from "@sanity/icons/BlockElement";
+import { defineField, defineType } from "sanity";
 import { previewText } from "../../utils/preview";
+import { colorSchemeField } from "../fields/colorScheme";
 import { RICH_TEXT_STYLES, richText } from "../fields/richText";
+import { sectionIdField } from "../fields/sectionId";
 
 export const sectionText = defineType({
   type: "object",

@@ -31,6 +31,8 @@
           "SHOPIFY_PRIVATE_API_TOKEN",
         ],
       },
+      // Once a custom domain is attached, add `"workers_dev": false` (no workers.dev duplicate in
+      // search) and `"preview_urls": true` (they follow workers_dev otherwise; Previews need them).
       // Non-production branches deploy here as Previews.
       "previews": {},
     },

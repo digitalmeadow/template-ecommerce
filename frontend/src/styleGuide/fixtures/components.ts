@@ -1,11 +1,11 @@
-import AnnouncementBanner from "@components/AnnouncementBanner.astro";
-import Footer from "@components/Footer.astro";
-import Header from "@components/Header.astro";
 import ButtonSubmit from "@blocks/ButtonSubmit.astro";
 import LocaleSelector from "@blocks/LocaleSelector.astro";
 import PriceDisplay from "@blocks/PriceDisplay.astro";
 import QuantitySelector from "@blocks/QuantitySelector.astro";
 import SearchForm from "@blocks/SearchForm.astro";
+import AnnouncementBanner from "@components/AnnouncementBanner.astro";
+import Footer from "@components/Footer.astro";
+import Header from "@components/Header.astro";
 import FormTerm from "@fields/FormTerm.astro";
 import ProductThumbnailsGrid from "@sections/product/ProductThumbnailsGrid.astro";
 import DemoAccordions from "../demos/DemoAccordions.astro";
@@ -27,23 +27,23 @@ export const componentEntries: Entry[] = [
     "Site",
     "Announcement Banner",
     AnnouncementBanner,
-    { announcementBannerData: announcementBanner },
+    { announcementBanner },
     FULL_WIDTH,
   ),
   // Fixed height: the header's bar is fixed and its links stick while the page scrolls.
-  componentEntry("Site", "Header", Header, { headerData: header }, { padded: false, height: 360 }),
-  componentEntry("Site", "Footer", Footer, { footerData: footer }, FULL_WIDTH),
+  componentEntry("Site", "Header", Header, { header }, { padded: false, height: 360 }),
+  componentEntry("Site", "Footer", Footer, { footer }, FULL_WIDTH),
   componentEntry("Site", "Cookie Banner", DemoCookies, {}, VIEWPORT),
   componentEntry("Site", "Location Notice", DemoLocationNotice, {}, VIEWPORT),
   componentEntry("Site", "Cart", DemoCart, {}, { padded: false, height: 720 }),
 
   componentEntry("Shop", "Product Thumbnail", DemoProductThumbnails, {}),
   componentEntry("Shop", "Product Thumbnails Grid", ProductThumbnailsGrid, {
-    productsData: products,
+    products,
   }),
   componentEntry("Shop", "Price", PriceDisplay, { amount: "699.95", currency: "AUD" }),
   componentEntry("Shop", "Price, compare-at", PriceDisplay, {
-    variant: "compare-at",
+    kind: "compare-at",
     amount: "785.00",
     currency: "AUD",
   }),

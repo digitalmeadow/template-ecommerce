@@ -4,19 +4,19 @@ import PortableText from "@fields/PortableText.astro";
 import { announcementDismissedScript } from "@lib/announcement";
 
 interface Props {
-  announcementBannerData: AnnouncementBannerFragment | null | undefined;
+  announcementBanner: AnnouncementBannerFragment | null | undefined;
 }
 
-const { announcementBannerData }: Props = Astro.props;
+const { announcementBanner }: Props = Astro.props;
 
-const version = String(announcementBannerData?._updatedAt ?? "");
-const visible = announcementBannerData?.enabled && announcementBannerData.textRaw;
+const version = String(announcementBanner?._updatedAt ?? "");
+const isVisible = announcementBanner?.enabled && announcementBanner.textRaw;
 ---
 
-{visible && (
+{isVisible && (
   <>
     <div class="announcement-banner" data-announcement-banner data-version={version}>
-      <PortableText value={announcementBannerData.textRaw} />
+      <PortableText value={announcementBanner.textRaw} />
       <button
         class="announcement-dismiss"
         type="button"
@@ -33,7 +33,7 @@ const visible = announcementBannerData?.enabled && announcementBannerData.textRa
 )}
 
 <script>
-  import { ANNOUNCEMENT_DISMISSED_STORAGE_KEY, dismissAnnouncement } from "@lib/announcement";
+  import { applyAnnouncementDismissal, dismissAnnouncement } from "@lib/announcement";
 
   document.addEventListener("click", (event) => {
     const button = (event.target as Element | null)?.closest("[data-announcement-dismiss]");
@@ -44,25 +44,20 @@ const visible = announcementBannerData?.enabled && announcementBannerData.textRa
   // The client router replaces <html> attributes on every navigation; reapply the dismissal.
   document.addEventListener("astro:after-swap", () => {
     const banner = document.querySelector<HTMLElement>("[data-announcement-banner]");
-    if (
-      banner &&
-      localStorage.getItem(ANNOUNCEMENT_DISMISSED_STORAGE_KEY) === banner.dataset.version
-    ) {
-      document.documentElement.dataset.announcementDismissed = "";
-    }
+    if (banner) applyAnnouncementDismissal(banner.dataset.version ?? "");
   });
 </script>
 
 <style>
   .announcement-banner {
+    padding: var(--size-2) var(--margin);
     display: flex;
+    gap: var(--size-4);
     align-items: center;
     justify-content: center;
-    gap: var(--size-4);
-    padding: var(--size-2) var(--margin);
+    color: var(--color-inverse-text);
     text-align: center;
     background-color: var(--color-inverse-background);
-    color: var(--color-inverse-text);
   }
 
   :global(html[data-announcement-dismissed]) .announcement-banner {

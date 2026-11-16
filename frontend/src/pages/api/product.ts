@@ -1,9 +1,9 @@
-export const prerender = false;
-
 import type { APIRoute } from "astro";
 import { productLiveByHandleQuery } from "shopify/queries/product";
-import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
 import { getLocale } from "@lib/shopify/locale";
+import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
+
+export const prerender = false;
 
 const CACHE_SECONDS = 60;
 

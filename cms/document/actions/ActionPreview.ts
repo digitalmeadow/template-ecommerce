@@ -10,9 +10,9 @@ export const ActionPreview: DocumentActionComponent = ({ draft, published, type 
   const slug = document?.slug?.current ?? document?.shopify?.handle?.current;
 
   const pattern = SANITY_DOCUMENT_ROUTE_PATTERNS[type] || "/";
-  const needsSlug = pattern.includes("[slug]");
+  const isSlugRequired = pattern.includes("[slug]");
 
-  if (needsSlug && !slug) {
+  if (isSlugRequired && !slug) {
     return {
       label: "Preview",
       icon: EyeOpenIcon,

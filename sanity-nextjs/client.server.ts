@@ -1,7 +1,6 @@
 import "server-only";
-
-import { GraphQLClient } from "graphql-request";
 import { createClient } from "@sanity/client";
+import { GraphQLClient } from "graphql-request";
 import { SANITY_API_VERSION } from "./config";
 
 const projectId = process.env.SANITY_PROJECT_ID;

@@ -3,44 +3,37 @@
 import { useState } from "react";
 import { ACCEPTED_FILE_ATTR } from "@/lib/forms/constants";
 import { cn } from "@/lib/utils";
-import IconArrow from "@/fields/form/IconArrow";
 
 interface Props {
   id: string;
   name: string;
-  label: string;
   placeholder: string;
   required: boolean;
   multiple: boolean;
   errorId: string;
-  invalid: boolean;
+  isInvalid: boolean;
 }
 
 function describeFiles(files: FileList | null) {
   if (!files?.length) return "";
-  return files.length > 1 ? `${files.length} files selected` : files[0].name;
+  return files.length > 1 ? `${files.length} files selected` : files[0]!.name;
 }
 
 export default function FieldFile({
   id,
   name,
-  label,
   placeholder,
   required,
   multiple,
   errorId,
-  invalid,
+  isInvalid,
 }: Props) {
   const [chosen, setChosen] = useState("");
 
   return (
     <>
-      <label className="visually-hidden" htmlFor={id}>
-        {label}
-      </label>
-      {/* Native control hidden, so the label reports the chosen filename. */}
       <input
-        className="peer absolute h-px w-px opacity-0"
+        className="peer g-sr-only"
         id={id}
         name={name}
         type="file"
@@ -48,22 +41,17 @@ export default function FieldFile({
         required={required}
         multiple={multiple}
         aria-describedby={errorId}
-        aria-invalid={invalid || undefined}
+        aria-invalid={isInvalid || undefined}
         onChange={(event) => setChosen(describeFiles(event.target.files))}
       />
+      {/* Drawn like the other controls (globals/forms.css); the native input is hidden behind it. */}
       <label
-        className="field-file flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-[var(--s16)] px-[var(--s20)] py-[var(--s16)] peer-focus-visible:outline peer-focus-visible:outline-offset-[var(--s4)]"
+        className="flex min-h-10 cursor-pointer items-center justify-between gap-2.5 border-b border-text bg-surface px-2.5 transition-[background-color] duration-(--duration-default) ease-out peer-focus-visible:outline-(length:--focus-ring-width) peer-focus-visible:outline-offset-(--focus-ring-offset) peer-focus-visible:outline-focus peer-focus-visible:outline-solid peer-aria-invalid:border-error hover:bg-surface-strong"
         htmlFor={id}
         aria-hidden="true"
       >
-        <span
-          className={cn("overflow-hidden text-ellipsis whitespace-nowrap", !chosen && "opacity-50")}
-        >
-          {chosen || placeholder}
-        </span>
-        <span className="h-[1.13em] w-[1.13em] shrink-0">
-          <IconArrow direction="up" />
-        </span>
+        <span className={cn(!chosen && "text-text-subtle")}>{chosen || placeholder}</span>
+        <span>↑</span>
       </label>
     </>
   );

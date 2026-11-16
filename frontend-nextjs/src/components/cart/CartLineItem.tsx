@@ -1,132 +1,95 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import Link from "next/link";
 import type { CartLineFragment } from "shopify/generated/graphql";
-import { resolveSanityHref } from "@/lib/sanity/resolve";
-import { updateLineQuantity, removeLine } from "@/stores/cart";
-import QuantitySelector from "@/blocks/QuantitySelector";
 import PriceDisplay from "@/blocks/PriceDisplay";
+import QuantitySelector from "@/blocks/QuantitySelector";
+import { resolveSanityHref } from "@/lib/sanity/resolve";
+import type { CartMessage } from "@/lib/shopify/cartActions";
+import { localizeHref } from "@/lib/shopify/locale";
+import { useLocale } from "@/lib/shopify/useLocale";
 import { DEFAULT_VARIANT_TITLE } from "@/lib/shopify/variants";
 import { cn } from "@/lib/utils";
+import { removeLine, updateLineQuantity } from "@/stores/cart";
 
 interface Props {
   line: CartLineFragment;
-  className?: string;
+  messages: CartMessage[];
+  isPending: boolean;
 }
 
-export default function CartLineItem({ line, className }: Props) {
-  const [isRemoving, setIsRemoving] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-
+export default function CartLineItem({ line, messages, isPending }: Props) {
+  const locale = useLocale();
   const { merchandise, quantity, cost, id } = line;
-  const { product, title: variantTitle, compareAtPrice } = merchandise;
+  const { product, title: variantTitle, image: variantImage, quantityAvailable } = merchandise;
 
-  const isSingleDefaultVariant = variantTitle === DEFAULT_VARIANT_TITLE;
+  const href = localizeHref(resolveSanityHref("product", product.handle), locale);
+  const imageUrl = variantImage?.thumbnailUrl ?? product.featuredImage?.thumbnailUrl;
+  // Null when inventory isn't tracked or the token can't read it.
+  const max =
+    quantityAvailable != null && quantityAvailable > 0
+      ? Math.max(quantityAvailable, quantity)
+      : undefined;
 
-  const variantImage = merchandise.image ?? product.featuredImage;
-  // Shopify CDN resize params; imgix-style ones are ignored
-  const imageUrl = variantImage?.url
-    ? `${variantImage.url}${variantImage.url.includes("?") ? "&" : "?"}width=128&height=128&crop=center`
-    : undefined;
-
-  const productHref = resolveSanityHref("product", product.handle);
-
-  const handleQuantityChange = useCallback(
-    async (newQuantity: number) => {
-      setIsUpdating(true);
-      document.body.style.cursor = "wait";
-      try {
-        await updateLineQuantity(id, newQuantity);
-      } catch (error) {
-        console.error("Failed to update cart quantity", error);
-      } finally {
-        document.body.style.cursor = "";
-        setIsUpdating(false);
-      }
-    },
-    [id],
-  );
-
-  const handleRemove = useCallback(async () => {
-    setIsRemoving(true);
-    document.body.style.cursor = "wait";
-    try {
-      await removeLine(id);
-    } catch (error) {
-      console.error("Failed to remove cart line", error);
-      setIsRemoving(false);
-    } finally {
-      document.body.style.cursor = "";
-    }
-  }, [id]);
-
-  const compareAtAmount = compareAtPrice ? Number(compareAtPrice.amount) * quantity : null;
+  const compareAt = cost.compareAtAmountPerQuantity;
+  const isDiscounted =
+    !!compareAt && Number(compareAt.amount) > Number(cost.amountPerQuantity.amount);
+  const message = messages.map((lineMessage) => lineMessage.message).join(" ");
 
   return (
-    <li
-      className={cn(
-        "cart-line-item",
-        "grid w-full grid-cols-[auto_1fr] gap-[var(--gutter)]",
-        isRemoving && "pointer-events-none opacity-50",
-        className,
-      )}
-    >
-      <Link href={productHref} className="thumbnail">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt=""
-            width={64}
-            height={64}
-            className="h-16 w-16 bg-foreground object-cover"
-          />
-        ) : (
-          <div className="h-16 w-16 bg-foreground" />
+    <div className="cart-line-item grid grid-cols-[auto_minmax(0,1fr)] gap-(--gutter)">
+      <Link className="size-16 bg-surface" href={href}>
+        {imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- Shopify's CDN already sizes it.
+          <img className="size-full object-cover" src={imageUrl} alt="" />
         )}
       </Link>
 
-      <div className="info flex flex-col gap-[var(--s4)]">
-        <Link href={productHref} className="text-link-wrapper">
-          <div className="titles flex flex-wrap gap-x-[1ch]">
-            <span className="product-title">{product.title}</span>
-            <span className={cn("variant-title", isSingleDefaultVariant && "hidden")}>
-              {variantTitle}
-            </span>
+      <div className="flex flex-col gap-1">
+        <Link href={href}>
+          <div className="flex flex-wrap gap-x-[1ch]">
+            <span>{product.title}</span>
+            {variantTitle !== DEFAULT_VARIANT_TITLE && (
+              <span className="text-text-muted">{variantTitle}</span>
+            )}
           </div>
         </Link>
 
-        <div className="inventory flex flex-wrap items-center gap-[var(--s16)]">
+        <div className="flex flex-wrap items-center gap-4">
           <QuantitySelector
+            key={`${quantity}:${max}`}
             initial={quantity}
-            updating={isUpdating}
-            onChange={handleQuantityChange}
+            max={max}
+            onChange={(value) => updateLineQuantity(id, value)}
           />
           <button
+            className="self-start g-text-link g-underline-orange"
             type="button"
-            className="text-link underline-color-orange remove-button self-start"
             aria-label="Remove item from cart"
-            onClick={handleRemove}
-            disabled={isRemoving}
+            disabled={isPending}
+            onClick={() => removeLine(id)}
           >
-            {isRemoving ? "Removing" : "Remove"}
+            Remove
           </button>
         </div>
 
-        <div className="prices">
-          {compareAtAmount != null && (
-            <PriceDisplay
-              amount={String(compareAtAmount)}
-              currency={compareAtPrice?.currencyCode}
-              variant="compare-at"
-            />
+        <p className="g-form-error empty:hidden" role="status">
+          {message}
+        </p>
+
+        <div className={cn(isPending && "opacity-(--opacity-disabled)")}>
+          {compareAt && isDiscounted && (
+            <div>
+              <PriceDisplay
+                kind="compare-at"
+                amount={String(Number(compareAt.amount) * quantity)}
+                currency={compareAt.currencyCode}
+              />
+            </div>
           )}
-          <PriceDisplay
-            amount={String(cost.totalAmount.amount ?? 0)}
-            currency={cost.totalAmount.currencyCode}
-          />
+          <PriceDisplay amount={cost.totalAmount.amount} currency={cost.totalAmount.currencyCode} />
         </div>
       </div>
-    </li>
+    </div>
   );
 }

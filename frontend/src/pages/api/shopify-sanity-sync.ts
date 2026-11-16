@@ -1,12 +1,11 @@
+import type { APIRoute } from "astro";
+import { SHOPIFY_SANITY_SYNC_SECRET } from "astro:env/server";
+import { shopifyIdFromGid } from "shopify/utils/ids";
+import { sanityWriteClient } from "@lib/sanity/writeClient";
+
 // https://www.sanity.io/docs/custom-sync-handlers-for-sanity-connect
 
 export const prerender = false;
-
-import type { APIRoute } from "astro";
-import { createClient } from "sanity";
-import { SANITY_PROJECT_ID, SANITY_DATASET } from "astro:env/client";
-import { SANITY_EDITOR_API_TOKEN, SHOPIFY_SANITY_SYNC_SECRET } from "astro:env/server";
-import { shopifyIdFromGid } from "shopify/utils/ids";
 
 const PRODUCT_DOCUMENT_TYPE = "product";
 const PRODUCT_VARIANT_DOCUMENT_TYPE = "productVariant";
@@ -16,13 +15,8 @@ const SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX = "product-";
 const SHOPIFY_PRODUCT_VARIANT_DOCUMENT_ID_PREFIX = "productVariant-";
 const SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX = "collection-";
 
-const sanityClient = createClient({
-  projectId: SANITY_PROJECT_ID,
-  dataset: SANITY_DATASET,
-  apiVersion: "2026-01-01",
-  useCdn: false,
-  token: SANITY_EDITOR_API_TOKEN,
-});
+type Transaction = ReturnType<typeof sanityWriteClient.transaction>;
+type SyncedDocument = { _id: string; _type: string };
 
 // Sanity Connect can't send custom headers, so its sync URL carries `?secret=`; a Bearer header also works.
 function getProvidedSecret(request: Request): string | null {
@@ -65,23 +59,11 @@ export const POST: APIRoute = async ({ request }) => {
         break;
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    return Response.json({ success: true });
   } catch (error) {
-    return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : String(error),
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
+    return Response.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status: 500 },
     );
   }
 };
@@ -90,16 +72,21 @@ type CreateOrUpdatePayload = PayloadProductsSync | PayloadCollectionsSync;
 type DeletePayload = PayloadProductsDelete | PayloadCollectionsDelete;
 
 async function syncCreateOrUpdate(body: RequestPayload) {
-  const transaction = sanityClient.transaction();
+  const transaction = sanityWriteClient.transaction();
   const payload = body as CreateOrUpdatePayload;
 
   if ("products" in payload && payload.products?.length) {
-    await createOrUpdateProducts(transaction, payload.products);
-    await createOrUpdateProductVariants(transaction, payload.products);
+    await upsertDocuments(transaction, payload.products.map(buildProductDocument));
+    await upsertDocuments(
+      transaction,
+      payload.products.flatMap((product) =>
+        product.variants.map((variant) => buildProductVariantDocument(product, variant)),
+      ),
+    );
   }
 
   if ("collections" in payload && payload.collections?.length) {
-    await createOrUpdateCollections(transaction, payload.collections);
+    await upsertDocuments(transaction, payload.collections.map(buildCollectionDocument));
   }
 
   await transaction.commit();
@@ -108,218 +95,102 @@ async function syncCreateOrUpdate(body: RequestPayload) {
 async function syncDelete(body: RequestPayload) {
   const payload = body as DeletePayload;
 
-  const transaction = sanityClient.transaction();
+  const transaction = sanityWriteClient.transaction();
 
   if ("productIds" in payload && payload.productIds?.length) {
-    await deleteProducts(transaction, payload.productIds);
+    deleteProducts(transaction, payload.productIds);
   }
   if ("collectionIds" in payload && payload.collectionIds?.length) {
-    await deleteCollections(transaction, payload.collectionIds);
+    deleteCollections(transaction, payload.collectionIds);
   }
 
   await transaction.commit();
 }
 
+function sanityDocumentId(prefix: string, gid: string): string {
+  return `${prefix}${shopifyIdFromGid(gid)}`;
+}
+
 async function getExistingDocumentIds(ids: string[]): Promise<Set<string>> {
   if (!ids.length) return new Set();
-  const documents = await sanityClient.getDocuments(ids);
+  const documents = await sanityWriteClient.getDocuments(ids);
   const existingIds = documents
     .map((document) => document?._id)
     .filter((id): id is string => typeof id === "string");
   return new Set(existingIds);
 }
 
-async function createOrUpdateProducts(
-  transaction: ReturnType<typeof sanityClient.transaction>,
-  products: Product[],
-) {
-  const draftDocumentIds = products.map((product) => {
-    const productShopifyId = shopifyIdFromGid(product.id);
-    const productSanityId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productShopifyId}`;
-    return `drafts.${productSanityId}`;
-  });
-  const existingDrafts = await getExistingDocumentIds(draftDocumentIds);
+// Writes the published document and mirrors it onto an existing draft, so open drafts don't revert Shopify fields.
+async function upsertDocuments(transaction: Transaction, documents: SyncedDocument[]) {
+  const existingDrafts = await getExistingDocumentIds(
+    documents.map((document) => `drafts.${document._id}`),
+  );
 
-  for (const product of products) {
-    try {
-      const document = await buildProductDocument(product);
-      const draftId = `drafts.${document._id}`;
+  for (const document of documents) {
+    const draftId = `drafts.${document._id}`;
 
-      transaction.createIfNotExists(document).patch(document._id, (patch) => patch.set(document));
+    transaction.createIfNotExists(document).patch(document._id, (patch) => patch.set(document));
 
-      if (existingDrafts.has(draftId)) {
-        transaction.patch(draftId, (patch) =>
-          patch.set({
-            ...document,
-            _id: draftId,
-          }),
-        );
-      }
-    } catch (error) {
-      console.error(`Failed to process product ${product.id}:`, {
-        title: product.title,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
+    if (existingDrafts.has(draftId)) {
+      transaction.patch(draftId, (patch) => patch.set({ ...document, _id: draftId }));
     }
   }
 }
 
-async function deleteProducts(
-  transaction: ReturnType<typeof sanityClient.transaction>,
-  productIds: number[],
-) {
+function deleteProducts(transaction: Transaction, productIds: number[]) {
   for (const productId of productIds) {
     const documentId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productId}`;
     transaction.delete(documentId).delete(`drafts.${documentId}`);
   }
 }
 
-async function createOrUpdateCollections(
-  transaction: ReturnType<typeof sanityClient.transaction>,
-  collections: Collection[],
-) {
-  const draftDocumentIds = collections.map((collection) => {
-    const collectionShopifyId = shopifyIdFromGid(collection.id);
-    const collectionSanityId = `${SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX}${collectionShopifyId}`;
-    return `drafts.${collectionSanityId}`;
-  });
-
-  const existingDrafts = await getExistingDocumentIds(draftDocumentIds);
-
-  for (const collection of collections) {
-    try {
-      const document = buildCollectionDocument(collection);
-      const draftId = `drafts.${document._id}`;
-
-      transaction.createIfNotExists(document).patch(document._id, (patch) => patch.set(document));
-
-      if (existingDrafts.has(draftId)) {
-        transaction.patch(draftId, (patch) =>
-          patch.set({
-            ...document,
-            _id: draftId,
-          }),
-        );
-      }
-    } catch (error) {
-      console.error(`Failed to process collection ${collection.id}:`, {
-        title: collection.title,
-        handle: collection.handle,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
-  }
-}
-
-async function deleteCollections(
-  transaction: ReturnType<typeof sanityClient.transaction>,
-  collectionIds: number[],
-) {
+function deleteCollections(transaction: Transaction, collectionIds: number[]) {
   for (const collectionId of collectionIds) {
     const documentId = `${SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX}${collectionId}`;
     transaction.delete(documentId).delete(`drafts.${documentId}`);
   }
 }
 
-async function createOrUpdateProductVariants(
-  transaction: ReturnType<typeof sanityClient.transaction>,
-  products: Product[],
-) {
-  const variants = products.flatMap((product) =>
-    product.variants.map((variant) => ({ product, variant })),
-  );
-  if (!variants.length) return;
-
-  const draftIds = variants.map(({ variant }) => {
-    const variantShopifyId = shopifyIdFromGid(variant.id);
-    const variantSanityId = `${SHOPIFY_PRODUCT_VARIANT_DOCUMENT_ID_PREFIX}${variantShopifyId}`;
-    return `drafts.${variantSanityId}`;
-  });
-  const existingDrafts = await getExistingDocumentIds(draftIds);
-
-  for (const { product, variant } of variants) {
-    try {
-      const document = buildProductVariantDocument(product, variant);
-      const draftId = `drafts.${document._id}`;
-
-      transaction.createIfNotExists(document).patch(document._id, (patch) => patch.set(document));
-
-      if (existingDrafts.has(draftId)) {
-        transaction.patch(draftId, (patch) =>
-          patch.set({
-            ...document,
-            _id: draftId,
-          }),
-        );
-      }
-    } catch (error) {
-      console.error(`Failed to process variant ${variant.id}:`, {
-        title: variant.title,
-        productId: product.id,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
-  }
-}
-
-async function buildProductDocument(product: Product) {
-  const productShopifyId = shopifyIdFromGid(product.id);
-  const productSanityId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productShopifyId}`;
-
-  const productDocument = {
-    _id: productSanityId,
+function buildProductDocument(product: Product) {
+  return {
+    _id: sanityDocumentId(SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX, product.id),
     _type: PRODUCT_DOCUMENT_TYPE,
     shopify: {
-      id: productShopifyId,
+      id: shopifyIdFromGid(product.id),
       title: product.title,
       handle: { current: product.handle },
       status: product.status,
     },
   };
-
-  return productDocument;
 }
 
 function buildProductVariantDocument(product: Product, variant: ProductVariant) {
-  const variantShopifyId = shopifyIdFromGid(variant.id);
-  const variantSanityId = `${SHOPIFY_PRODUCT_VARIANT_DOCUMENT_ID_PREFIX}${variantShopifyId}`;
-  const productShopifyId = shopifyIdFromGid(product.id);
-  const productSanityId = `${SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX}${productShopifyId}`;
-
   return {
-    _id: variantSanityId,
+    _id: sanityDocumentId(SHOPIFY_PRODUCT_VARIANT_DOCUMENT_ID_PREFIX, variant.id),
     _type: PRODUCT_VARIANT_DOCUMENT_TYPE,
     shopify: {
-      id: variantShopifyId,
+      id: shopifyIdFromGid(variant.id),
       title: variant.title,
       sku: variant.sku,
-      productId: productShopifyId,
+      productId: shopifyIdFromGid(product.id),
     },
     product: {
       _type: "reference",
-      _ref: productSanityId,
+      _ref: sanityDocumentId(SHOPIFY_PRODUCT_DOCUMENT_ID_PREFIX, product.id),
     },
   };
 }
 
 function buildCollectionDocument(collection: Collection) {
-  const collectionShopifyId = shopifyIdFromGid(collection.id);
-  const collectionSanityId = `${SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX}${collectionShopifyId}`;
-
-  const collectionDocument = {
-    _id: collectionSanityId,
+  return {
+    _id: sanityDocumentId(SHOPIFY_COLLECTION_DOCUMENT_ID_PREFIX, collection.id),
     _type: COLLECTION_DOCUMENT_TYPE,
     shopify: {
-      id: collectionShopifyId,
+      id: shopifyIdFromGid(collection.id),
       title: collection.title,
       handle: { current: collection.handle },
     },
   };
-
-  return collectionDocument;
 }
 
 // Payload shapes: https://www.sanity.io/docs/sanity-connect-for-shopify-reference

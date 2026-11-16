@@ -1,9 +1,9 @@
 ---
-import type {
-  Props as PortableTextProps,
-  Mark as PortableTextMark,
-} from "astro-portabletext/types";
 import { Mark as DefaultMark } from "astro-portabletext/components";
+import type {
+  Mark as PortableTextMark,
+  Props as PortableTextProps,
+} from "astro-portabletext/types";
 import SanityLink from "@fields/SanityLink.astro";
 
 type Props = PortableTextProps<PortableTextMark>;
@@ -13,7 +13,7 @@ const { node } = props;
 ---
 
 {node.markType === "link" && node.markDef ? (
-  <SanityLink class="g-text-link" linkData={node.markDef}>
+  <SanityLink class="g-text-link" link={node.markDef}>
     <slot />
   </SanityLink>
 ) : (

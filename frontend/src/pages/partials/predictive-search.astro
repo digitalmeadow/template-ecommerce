@@ -1,13 +1,13 @@
 ---
+import { predictiveSearchQuery } from "shopify/queries/search";
+import PriceDisplay from "@blocks/PriceDisplay.astro";
+import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
+import { resolveSanityHref } from "@lib/sanity/resolve";
+import { getLocale, localizeHref } from "@lib/shopify/locale";
+import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
+
 export const prerender = false;
 export const partial = true;
-
-import PriceDisplay from "@blocks/PriceDisplay.astro";
-import { predictiveSearchQuery } from "shopify/queries/search";
-import { createBuyerShopifyClient } from "@lib/shopify/serverClient";
-import { PRIVATE_CACHE_CONTROL } from "@lib/responses";
-import { getLocale, localizeHref } from "@lib/shopify/locale";
-import { resolveSanityHref } from "@lib/sanity/resolve";
 
 const RESULTS_PER_TYPE = 5;
 
@@ -26,7 +26,8 @@ const { predictiveSearch } = query
     })
   : { predictiveSearch: null };
 
-const searchHref = `${localizeHref("/search", locale)}?q=${encodeURIComponent(query)}`;
+const searchHrefFor = (text: string) =>
+  `${localizeHref("/search", locale)}?q=${encodeURIComponent(text)}`;
 const hasResults =
   !!predictiveSearch &&
   (predictiveSearch.products.length > 0 ||
@@ -41,11 +42,7 @@ const hasResults =
         <ul class="queries">
           {predictiveSearch.queries.map((suggestion) => (
             <li>
-              <a
-                href={`${localizeHref("/search", locale)}?q=${encodeURIComponent(suggestion.text)}`}
-              >
-                {suggestion.text}
-              </a>
+              <a href={searchHrefFor(suggestion.text)}>{suggestion.text}</a>
             </li>
           ))}
         </ul>
@@ -76,7 +73,7 @@ const hasResults =
           ))}
         </ul>
       )}
-      <a class="view-all g-text-link" href={searchHref}>
+      <a class="view-all g-text-link" href={searchHrefFor(query)}>
         View all results
       </a>
     </>
